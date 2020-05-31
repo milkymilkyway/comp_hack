@@ -31,6 +31,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include <ctime>
+
 namespace libcomp
 {
 class String;

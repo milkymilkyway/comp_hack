@@ -1,3 +1,9 @@
+comphack (4.12.0.1) xenial; urgency=low
+
+  * Corrected PPA build error.
+
+ -- COMP Omega <compomega@tutanota.com>  Sat, 30 May 2020 14:11:55 -0600
+
 comphack (4.12.0) xenial; urgency=low
 
   * Negotiation "progress" accuracy adjustments
