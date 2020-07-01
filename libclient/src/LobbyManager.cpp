@@ -38,16 +38,28 @@
 #include <PacketLobbyWorldList.h>
 #include <PacketLobbyWorldListChannelEntry.h>
 #include <PacketLobbyWorldListEntry.h>
+#include <PacketLobbyCharacterList.h>
+#include <PacketLobbyCharacterListEntry.h>
+#include <PacketLobbyCharacterListEquippedVAEntry.h>
+#include <PacketLobbyRequestStartGame.h>
+#include <PacketLobbyStartGame.h>
+
+// logic messages
+#include <MessageCharacterList.h>
+#include <MessageConnected.h>
+#include <MessageConnectionInfo.h>
+#include <MessageStartGame.h>
 
 using namespace logic;
 
+using libcomp::Message::MessageClientType;
 using libcomp::Message::MessageType;
 
 LobbyManager::LobbyManager(LogicWorker *pLogicWorker,
     const std::weak_ptr<libcomp::MessageQueue<libcomp::Message::Message *>>
         &messageQueue) :
     libcomp::Manager(),
-    /*mLogicWorker(pLogicWorker),*/ mMessageQueue(messageQueue)
+    mLogicWorker(pLogicWorker), mMessageQueue(messageQueue)
 {
     (void)pLogicWorker;
 }
@@ -60,6 +72,7 @@ std::list<libcomp::Message::MessageType> LobbyManager::GetSupportedTypes() const
 {
     return {
         MessageType::MESSAGE_TYPE_PACKET,
+        MessageType::MESSAGE_TYPE_CLIENT,
     };
 }
 
@@ -70,6 +83,9 @@ bool LobbyManager::ProcessMessage(const libcomp::Message::Message *pMessage)
         case to_underlying(MessageType::MESSAGE_TYPE_PACKET):
             return ProcessPacketMessage(
                 (const libcomp::Message::Packet *)pMessage);
+        case to_underlying(MessageType::MESSAGE_TYPE_CLIENT):
+            return ProcessClientMessage(
+                (const libcomp::Message::MessageClient *)pMessage);
         default:
             break;
     }
@@ -86,11 +102,97 @@ bool LobbyManager::ProcessPacketMessage(
     {
         case to_underlying(LobbyToClientPacketCode_t::PACKET_WORLD_LIST):
             return HandlePacketLobbyWorldList(p);
+        case to_underlying(LobbyToClientPacketCode_t::PACKET_CHARACTER_LIST):
+            return HandlePacketLobbyCharacterList(p);
+        case to_underlying(LobbyToClientPacketCode_t::PACKET_START_GAME):
+            return HandlePacketLobbyStartGame(p);
         default:
             break;
     }
 
     return false;
+}
+
+bool LobbyManager::ProcessClientMessage(
+    const libcomp::Message::MessageClient *pMessage)
+{
+    switch(to_underlying(pMessage->GetMessageClientType()))
+    {
+        case to_underlying(MessageClientType::REQUEST_START_GAME):
+        {
+            auto pReqStartGame =
+                reinterpret_cast<const MessageRequestStartGame *>(pMessage);
+
+            // Send the start game request packet.
+            auto p = std::make_shared<packets::PacketLobbyRequestStartGame>();
+            p->SetPacketCode(to_underlying(ClientToLobbyPacketCode_t::PACKET_START_GAME));
+            p->SetCharacterID(pReqStartGame->GetCharacterID());
+            p->SetUnknown(0);
+
+            mLogicWorker->SendObject(p);
+
+            return true;
+        }
+        default:
+            break;
+    }
+
+    return false;
+}
+
+bool LobbyManager::HandlePacketLobbyCharacterList(libcomp::ReadOnlyPacket &p)
+{
+    auto obj = std::make_shared<packets::PacketLobbyCharacterList>();
+
+    if(!obj->LoadPacket(p, false) || p.Left())
+    {
+        return false;
+    }
+
+    bool changed = !mCharacterList || obj->CharactersCount() != mCharacterList->CharactersCount();
+
+    if(!changed)
+    {
+        auto originalList = mCharacterList->GetCharacters();
+        auto originalIterator = originalList.begin();
+
+        for(auto character : obj->GetCharacters())
+        {
+            auto original = *originalIterator;
+            changed |= original->GetCharacterID() != character->GetCharacterID() ||
+                original->GetName() != character->GetName() ||
+                original->GetWorldID() != character->GetWorldID() ||
+                original->GetKillTime() != character->GetKillTime();
+
+            if(changed)
+            {
+                break;
+            }
+
+            originalIterator++;
+        }
+
+    }
+
+    mCharacterList = obj;
+
+
+    if(changed)
+    {
+        std::stringstream ss;
+
+        auto characterObjClone = std::make_shared<packets::PacketLobbyCharacterList>();
+
+        if(obj->Save(ss))
+        {
+            if(characterObjClone->Load(ss))
+            {
+                mLogicWorker->SendToGame(new MessageCharacterList(characterObjClone));
+            }
+        }
+    }
+
+    return true;
 }
 
 bool LobbyManager::HandlePacketLobbyWorldList(libcomp::ReadOnlyPacket &p)
@@ -153,6 +255,39 @@ bool LobbyManager::HandlePacketLobbyWorldList(libcomp::ReadOnlyPacket &p)
     {
         /// @todo Send an update for latency
     }
+
+    return true;
+}
+
+bool LobbyManager::HandlePacketLobbyStartGame(libcomp::ReadOnlyPacket &p)
+{
+    auto obj = std::make_shared<packets::PacketLobbyStartGame>();
+
+    if(!obj->LoadPacket(p, false) || p.Left())
+    {
+        return false;
+    }
+
+    auto serverComponents = obj->GetServer().Split(":");
+
+    if(2 != serverComponents.size())
+    {
+        return false;
+    }
+
+    bool ok = false;
+
+    auto serverAddr = serverComponents.front();
+    auto serverPort = serverComponents.back().ToInteger<uint16_t>(&ok);
+
+    if(!ok)
+    {
+        return false;
+    }
+
+    /// @todo Name the connection with the GUI?
+    mLogicWorker->SendToLogic(new MessageConnectToChannel(
+        obj->GetSessionKey(), "channel@1", serverAddr, serverPort));
 
     return true;
 }

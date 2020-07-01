@@ -59,6 +59,27 @@ enum class MessageClientType : int32_t
     CONNECTED_TO_LOBBY = 2000,
     /// Now connected to the channel
     CONNECTED_TO_CHANNEL,
+
+    //
+    // LobbyManager related requests
+    //
+
+    REQUEST_START_GAME = 3000,
+
+    //
+    // LobbyManager related events
+    //
+    CHARACTER_LIST_UPDATE = 4000,
+
+    //
+    // AmalaManager related requests
+    //
+    REQUEST_ACCOUNT_DUMP = 5000,
+
+    //
+    // AmalaManager related events
+    //
+    ACCOUNT_DUMP_STATUS = 6000,
 };
 
 /**
