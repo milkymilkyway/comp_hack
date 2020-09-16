@@ -24,6 +24,15 @@ REMOVE_COMPILER_FLAGS(AUTO -Wextra -Wconversion -Wsign-conversion)
 # 'GetVersionExA': was declared deprecated
 ADD_COMPILER_FLAGS(AUTO /wd4996)
 
+# Don't warn about this (if the compiler supports the flag)
+INCLUDE(CheckCXXCompilerFlag)
+
+CHECK_CXX_COMPILER_FLAG(-Wno-return-local-addr WARN_RETLOCALADDR)
+
+IF(WARN_RETLOCALADDR)
+    ADD_COMPILER_FLAGS(AUTO -Wno-return-local-addr)
+ENDIF(WARN_RETLOCALADDR)
+
 ADD_LIBRARY(${PROJECT_NAME} STATIC sqlite3.c)
 
 TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} INTERFACE
