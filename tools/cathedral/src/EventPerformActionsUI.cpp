@@ -27,12 +27,16 @@
 // Cathedral Includes
 #include "MainWindow.h"
 
-// Qt Includes
+// Ignore warnings
 #include <PushIgnore.h>
+
+// Qt Includes
 #include <QLineEdit>
 
 #include "ui_Event.h"
 #include "ui_EventPerformActions.h"
+
+// Stop ignoring warnings
 #include <PopIgnore.h>
 
 // libcomp Includes
@@ -40,49 +44,42 @@
 #include <PacketCodes.h>
 
 EventPerformActions::EventPerformActions(MainWindow *pMainWindow,
-    QWidget *pParent) : Event(pMainWindow, pParent)
-{
-    QWidget *pWidget = new QWidget;
-    prop = new Ui::EventPerformActions;
-    prop->setupUi(pWidget);
+                                         QWidget *pParent)
+    : Event(pMainWindow, pParent) {
+  QWidget *pWidget = new QWidget;
+  prop = new Ui::EventPerformActions;
+  prop->setupUi(pWidget);
 
-    ui->eventTitle->setText(tr("<b>Perform Actions</b>"));
-    ui->layoutMain->addWidget(pWidget);
+  ui->eventTitle->setText(tr("<b>Perform Actions</b>"));
+  ui->layoutMain->addWidget(pWidget);
 
-    prop->actions->SetMainWindow(pMainWindow);
+  prop->actions->SetMainWindow(pMainWindow);
 }
 
-EventPerformActions::~EventPerformActions()
-{
-    delete prop;
+EventPerformActions::~EventPerformActions() { delete prop; }
+
+void EventPerformActions::Load(const std::shared_ptr<objects::Event> &e) {
+  Event::Load(e);
+
+  mEvent = std::dynamic_pointer_cast<objects::EventPerformActions>(e);
+
+  if (!mEvent) {
+    return;
+  }
+
+  auto actions = mEvent->GetActions();
+  prop->actions->Load(actions);
 }
 
-void EventPerformActions::Load(const std::shared_ptr<objects::Event>& e)
-{
-    Event::Load(e);
+std::shared_ptr<objects::Event> EventPerformActions::Save() const {
+  if (!mEvent) {
+    return nullptr;
+  }
 
-    mEvent = std::dynamic_pointer_cast<objects::EventPerformActions>(e);
+  Event::Save();
 
-    if(!mEvent)
-    {
-        return;
-    }
+  auto actions = prop->actions->Save();
+  mEvent->SetActions(actions);
 
-    auto actions = mEvent->GetActions();
-    prop->actions->Load(actions);
-}
-
-std::shared_ptr<objects::Event> EventPerformActions::Save() const
-{
-    if(!mEvent)
-    {
-        return nullptr;
-    }
-
-    Event::Save();
-
-    auto actions = prop->actions->Save();
-    mEvent->SetActions(actions);
-
-    return mEvent;
+  return mEvent;
 }

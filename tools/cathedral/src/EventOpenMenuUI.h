@@ -31,35 +31,37 @@
 // objects Includes
 #include <EventOpenMenu.h>
 
-// Qt Includes
+// Ignore warnings
 #include <PushIgnore.h>
+
+// Qt Includes
 #include <QWidget>
+
+// Stop ignoring warnings
 #include <PopIgnore.h>
 
-namespace Ui
-{
+namespace Ui {
 
 class EventOpenMenu;
 
-} // namespace Ui
+}  // namespace Ui
 
 class MainWindow;
 
-class EventOpenMenu : public Event
-{
-    Q_OBJECT
+class EventOpenMenu : public Event {
+  Q_OBJECT
 
-public:
-    explicit EventOpenMenu(MainWindow *pMainWindow, QWidget *pParent = 0);
-    virtual ~EventOpenMenu();
+ public:
+  explicit EventOpenMenu(MainWindow *pMainWindow, QWidget *pParent = 0);
+  virtual ~EventOpenMenu();
 
-    void Load(const std::shared_ptr<objects::Event>& e) override;
-    std::shared_ptr<objects::Event> Save() const override;
+  void Load(const std::shared_ptr<objects::Event> &e) override;
+  std::shared_ptr<objects::Event> Save() const override;
 
-protected:
-    Ui::EventOpenMenu *prop;
+ protected:
+  Ui::EventOpenMenu *prop;
 
-    std::shared_ptr<objects::EventOpenMenu> mEvent;
+  std::shared_ptr<objects::EventOpenMenu> mEvent;
 };
 
-#endif // TOOLS_CATHEDRAL_SRC_EVENTOPENMENUUI_H
+#endif  // TOOLS_CATHEDRAL_SRC_EVENTOPENMENUUI_H

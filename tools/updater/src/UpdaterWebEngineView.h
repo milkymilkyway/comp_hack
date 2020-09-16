@@ -27,23 +27,27 @@
 #ifndef TOOLS_UPDATER_SRC_UPDATERWEBENGINEVIEW_H
 #define TOOLS_UPDATER_SRC_UPDATERWEBENGINEVIEW_H
 
+// Ignore warnings
 #include <PushIgnore.h>
+
+// Qt Includes
 #include <QWebEngineView.h>
+
+// Stop ignoring warnings
 #include <PopIgnore.h>
 
-class UpdaterWebEngineView : public QWebEngineView
-{
-    Q_OBJECT
+class UpdaterWebEngineView : public QWebEngineView {
+  Q_OBJECT
 
-public:
-    UpdaterWebEngineView(QWidget *pParent = 0);
-    ~UpdaterWebEngineView();
+ public:
+  UpdaterWebEngineView(QWidget* pParent = 0);
+  ~UpdaterWebEngineView();
 
-protected:
-    virtual QWebEngineView* createWindow(QWebEnginePage::WebWindowType type);
+ protected:
+  virtual QWebEngineView* createWindow(QWebEnginePage::WebWindowType type);
 
-protected slots:
-    void openExternal(const QUrl& url);
+ protected slots:
+  void openExternal(const QUrl& url);
 };
 
-#endif // TOOLS_UPDATER_SRC_UPDATERWEBENGINEVIEW_H
+#endif  // TOOLS_UPDATER_SRC_UPDATERWEBENGINEVIEW_H

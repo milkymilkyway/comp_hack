@@ -29,54 +29,45 @@
 #include "MainWindow.h"
 #include "ObjectSelectorWindow.h"
 
-// Qt Includes
+// Ignore warnings
 #include <PushIgnore.h>
+
+// Qt Includes
 #include <QLineEdit>
 #include <QMessageBox>
 
-#include "ui_ObjectSelector.h"
+// Stop ignoring warnings
 #include <PopIgnore.h>
 
-ObjectSelectorBase::ObjectSelectorBase(QWidget *pParent) : QWidget(pParent),
-    mMainWindow(0)
-{
-}
+#include "ui_ObjectSelector.h"
 
-ObjectSelectorBase::~ObjectSelectorBase()
-{
-}
+ObjectSelectorBase::ObjectSelectorBase(QWidget *pParent)
+    : QWidget(pParent), mMainWindow(0) {}
+
+ObjectSelectorBase::~ObjectSelectorBase() {}
 
 bool ObjectSelectorBase::Bind(MainWindow *pMainWindow,
-    const libcomp::String& objType)
-{
-    mMainWindow = pMainWindow;
+                              const libcomp::String &objType) {
+  mMainWindow = pMainWindow;
 
-    if(mObjType != objType)
-    {
-        bool changed = !mObjType.IsEmpty();
+  if (mObjType != objType) {
+    bool changed = !mObjType.IsEmpty();
 
-        mObjType = objType;
+    mObjType = objType;
 
-        return changed;
-    }
+    return changed;
+  }
 
-    return false;
+  return false;
 }
 
+libcomp::String ObjectSelectorBase::GetObjectType() const { return mObjType; }
 
-libcomp::String ObjectSelectorBase::GetObjectType() const
-{
-    return mObjType;
-}
-
-void ObjectSelectorBase::GetItem()
-{
-    if(mMainWindow && !mObjType.IsEmpty())
-    {
-        auto selector = mMainWindow->GetObjectSelector(mObjType);
-        if(selector)
-        {
-            selector->Open(this);
-        }
+void ObjectSelectorBase::GetItem() {
+  if (mMainWindow && !mObjType.IsEmpty()) {
+    auto selector = mMainWindow->GetObjectSelector(mObjType);
+    if (selector) {
+      selector->Open(this);
     }
+  }
 }

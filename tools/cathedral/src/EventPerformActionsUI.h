@@ -31,35 +31,37 @@
 // objects Includes
 #include <EventPerformActions.h>
 
-// Qt Includes
+// Ignore warnings
 #include <PushIgnore.h>
+
+// Qt Includes
 #include <QWidget>
+
+// Stop ignoring warnings
 #include <PopIgnore.h>
 
-namespace Ui
-{
+namespace Ui {
 
 class EventPerformActions;
 
-} // namespace Ui
+}  // namespace Ui
 
 class MainWindow;
 
-class EventPerformActions : public Event
-{
-    Q_OBJECT
+class EventPerformActions : public Event {
+  Q_OBJECT
 
-public:
-    explicit EventPerformActions(MainWindow *pMainWindow, QWidget *pParent = 0);
-    virtual ~EventPerformActions();
+ public:
+  explicit EventPerformActions(MainWindow *pMainWindow, QWidget *pParent = 0);
+  virtual ~EventPerformActions();
 
-    void Load(const std::shared_ptr<objects::Event>& e) override;
-    std::shared_ptr<objects::Event> Save() const override;
+  void Load(const std::shared_ptr<objects::Event> &e) override;
+  std::shared_ptr<objects::Event> Save() const override;
 
-protected:
-    Ui::EventPerformActions *prop;
+ protected:
+  Ui::EventPerformActions *prop;
 
-    std::shared_ptr<objects::EventPerformActions> mEvent;
+  std::shared_ptr<objects::EventPerformActions> mEvent;
 };
 
-#endif // TOOLS_CATHEDRAL_SRC_EVENTPERFORMACTIONSUI_H
+#endif  // TOOLS_CATHEDRAL_SRC_EVENTPERFORMACTIONSUI_H

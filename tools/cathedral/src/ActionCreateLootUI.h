@@ -31,36 +31,38 @@
 // objects Includes
 #include <ActionCreateLoot.h>
 
-// Qt Includes
+// Ignore warnings
 #include <PushIgnore.h>
+
+// Qt Includes
 #include <QWidget>
+
+// Stop ignoring warnings
 #include <PopIgnore.h>
 
-namespace Ui
-{
+namespace Ui {
 
 class ActionCreateLoot;
 
-} // namespace Ui
+}  // namespace Ui
 
 class MainWindow;
 
-class ActionCreateLoot : public Action
-{
-    Q_OBJECT
+class ActionCreateLoot : public Action {
+  Q_OBJECT
 
-public:
-    explicit ActionCreateLoot(ActionList *pList, MainWindow *pMainWindow,
-        QWidget *pParent = 0);
-    virtual ~ActionCreateLoot();
+ public:
+  explicit ActionCreateLoot(ActionList *pList, MainWindow *pMainWindow,
+                            QWidget *pParent = 0);
+  virtual ~ActionCreateLoot();
 
-    void Load(const std::shared_ptr<objects::Action>& act) override;
-    std::shared_ptr<objects::Action> Save() const override;
+  void Load(const std::shared_ptr<objects::Action> &act) override;
+  std::shared_ptr<objects::Action> Save() const override;
 
-protected:
-    Ui::ActionCreateLoot *prop;
+ protected:
+  Ui::ActionCreateLoot *prop;
 
-    std::shared_ptr<objects::ActionCreateLoot> mAction;
+  std::shared_ptr<objects::ActionCreateLoot> mAction;
 };
 
-#endif // TOOLS_CATHEDRAL_SRC_ACTIONCREATELOOTUI_H
+#endif  // TOOLS_CATHEDRAL_SRC_ACTIONCREATELOOTUI_H

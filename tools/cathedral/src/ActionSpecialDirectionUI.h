@@ -31,36 +31,38 @@
 // objects Includes
 #include <ActionSpecialDirection.h>
 
-// Qt Includes
+// Ignore warnings
 #include <PushIgnore.h>
+
+// Qt Includes
 #include <QWidget>
+
+// Stop ignoring warnings
 #include <PopIgnore.h>
 
-namespace Ui
-{
+namespace Ui {
 
 class ActionSpecialDirection;
 
-} // namespace Ui
+}  // namespace Ui
 
 class MainWindow;
 
-class ActionSpecialDirection : public Action
-{
-    Q_OBJECT
+class ActionSpecialDirection : public Action {
+  Q_OBJECT
 
-public:
-    explicit ActionSpecialDirection(ActionList *pList, MainWindow *pMainWindow,
-        QWidget *pParent = 0);
-    virtual ~ActionSpecialDirection();
+ public:
+  explicit ActionSpecialDirection(ActionList *pList, MainWindow *pMainWindow,
+                                  QWidget *pParent = 0);
+  virtual ~ActionSpecialDirection();
 
-    void Load(const std::shared_ptr<objects::Action>& act) override;
-    std::shared_ptr<objects::Action> Save() const override;
+  void Load(const std::shared_ptr<objects::Action> &act) override;
+  std::shared_ptr<objects::Action> Save() const override;
 
-protected:
-    Ui::ActionSpecialDirection *prop;
+ protected:
+  Ui::ActionSpecialDirection *prop;
 
-    std::shared_ptr<objects::ActionSpecialDirection> mAction;
+  std::shared_ptr<objects::ActionSpecialDirection> mAction;
 };
 
-#endif // TOOLS_CATHEDRAL_SRC_ACTIONSPECIALDIRECTIONUI_H
+#endif  // TOOLS_CATHEDRAL_SRC_ACTIONSPECIALDIRECTIONUI_H

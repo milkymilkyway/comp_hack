@@ -25,47 +25,49 @@
 #ifndef TOOLS_CATHEDRAL_SRC_EVENTREF_H
 #define TOOLS_CATHEDRAL_SRC_EVENTREF_H
 
-// Qt Includes
+// Ignore warnings
 #include <PushIgnore.h>
+
+// Qt Includes
 #include <QWidget>
+
+// Stop ignoring warnings
 #include <PopIgnore.h>
 
 // libcomp Includes
 #include <CString.h>
 
-namespace Ui
-{
+namespace Ui {
 
 class EventRef;
 
-} // namespace Ui
+}  // namespace Ui
 
 class MainWindow;
 
-class EventRef : public QWidget
-{
-    Q_OBJECT
+class EventRef : public QWidget {
+  Q_OBJECT
 
-public:
-    explicit EventRef(QWidget *pParent = 0);
-    virtual ~EventRef();
+ public:
+  explicit EventRef(QWidget *pParent = 0);
+  virtual ~EventRef();
 
-    void SetMainWindow(MainWindow *pMainWindow);
+  void SetMainWindow(MainWindow *pMainWindow);
 
-    void SetEvent(const libcomp::String& event);
-    libcomp::String GetEvent() const;
+  void SetEvent(const libcomp::String &event);
+  libcomp::String GetEvent() const;
 
-    static void RefreshAllEventIDs(MainWindow *pMainWindow);
+  static void RefreshAllEventIDs(MainWindow *pMainWindow);
 
-public slots:
-    void Go();
+ public slots:
+  void Go();
 
-protected:
-    Ui::EventRef *ui;
+ protected:
+  Ui::EventRef *ui;
 
-    MainWindow *mMainWindow;
+  MainWindow *mMainWindow;
 
-    static std::list<libcomp::String> sAllEventIDs;
+  static std::list<libcomp::String> sAllEventIDs;
 };
 
-#endif // TOOLS_CATHEDRAL_SRC_EVENTREF_H
+#endif  // TOOLS_CATHEDRAL_SRC_EVENTREF_H

@@ -25,51 +25,52 @@
 #ifndef TOOLS_CATHEDRAL_SRC_OBJECTPOSITIONUI_H
 #define TOOLS_CATHEDRAL_SRC_OBJECTPOSITIONUI_H
 
-// Qt Includes
+// Ignore warnings
 #include <PushIgnore.h>
+
+// Qt Includes
 #include <QWidget>
+
+// Stop ignoring warnings
 #include <PopIgnore.h>
 
 // Standard C++11 Includes
 #include <memory>
 
-namespace objects
-{
+namespace objects {
 
 class ObjectPosition;
 
-} // namespace objects
+}  // namespace objects
 
-namespace Ui
-{
+namespace Ui {
 
 class ObjectPosition;
 
-} // namespace Ui
+}  // namespace Ui
 
 class MainWindow;
 
-class ObjectPosition : public QWidget
-{
-    Q_OBJECT
+class ObjectPosition : public QWidget {
+  Q_OBJECT
 
-public:
-    explicit ObjectPosition(QWidget *pParent = 0);
-    virtual ~ObjectPosition();
+ public:
+  explicit ObjectPosition(QWidget *pParent = 0);
+  virtual ~ObjectPosition();
 
-    void SetMainWindow(MainWindow *pMainWindow);
+  void SetMainWindow(MainWindow *pMainWindow);
 
-    void Load(const std::shared_ptr<objects::ObjectPosition>& pos);
-    void Load(uint32_t spotID, float x, float y, float rot);
-    std::shared_ptr<objects::ObjectPosition> Save() const;
+  void Load(const std::shared_ptr<objects::ObjectPosition> &pos);
+  void Load(uint32_t spotID, float x, float y, float rot);
+  std::shared_ptr<objects::ObjectPosition> Save() const;
 
-protected slots:
-    void RadioToggle();
+ protected slots:
+  void RadioToggle();
 
-protected:
-    Ui::ObjectPosition *prop;
+ protected:
+  Ui::ObjectPosition *prop;
 
-    MainWindow *mMainWindow;
+  MainWindow *mMainWindow;
 };
 
-#endif // TOOLS_CATHEDRAL_SRC_OBJECTPOSITIONUI_H
+#endif  // TOOLS_CATHEDRAL_SRC_OBJECTPOSITIONUI_H

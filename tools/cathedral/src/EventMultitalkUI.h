@@ -31,35 +31,37 @@
 // objects Includes
 #include <EventMultitalk.h>
 
-// Qt Includes
+// Ignore warnings
 #include <PushIgnore.h>
+
+// Qt Includes
 #include <QWidget>
+
+// Stop ignoring warnings
 #include <PopIgnore.h>
 
-namespace Ui
-{
+namespace Ui {
 
 class EventMultitalk;
 
-} // namespace Ui
+}  // namespace Ui
 
 class MainWindow;
 
-class EventMultitalk : public Event
-{
-    Q_OBJECT
+class EventMultitalk : public Event {
+  Q_OBJECT
 
-public:
-    explicit EventMultitalk(MainWindow *pMainWindow, QWidget *pParent = 0);
-    virtual ~EventMultitalk();
+ public:
+  explicit EventMultitalk(MainWindow *pMainWindow, QWidget *pParent = 0);
+  virtual ~EventMultitalk();
 
-    void Load(const std::shared_ptr<objects::Event>& e) override;
-    std::shared_ptr<objects::Event> Save() const override;
+  void Load(const std::shared_ptr<objects::Event> &e) override;
+  std::shared_ptr<objects::Event> Save() const override;
 
-protected:
-    Ui::EventMultitalk *prop;
+ protected:
+  Ui::EventMultitalk *prop;
 
-    std::shared_ptr<objects::EventMultitalk> mEvent;
+  std::shared_ptr<objects::EventMultitalk> mEvent;
 };
 
-#endif // TOOLS_CATHEDRAL_SRC_EVENTMULTITALKUI_H
+#endif  // TOOLS_CATHEDRAL_SRC_EVENTMULTITALKUI_H

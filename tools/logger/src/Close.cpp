@@ -24,30 +24,31 @@
 
 #include "Close.h"
 
+// Ignore warnings
 #include <PushIgnore.h>
-#include <QSettings>
+
+// Qt Includes
 #include <QApplication>
+#include <QSettings>
+
+// Stop ignoring warnings
 #include <PopIgnore.h>
 
-Close::Close(QWidget *p) : QDialog(p)
-{
-    // Setup the UI.
-    ui.setupUi(this);
+Close::Close(QWidget *p) : QDialog(p) {
+  // Setup the UI.
+  ui.setupUi(this);
 
-    // Connect the buttons to the slots.
-    connect(ui.yesButton, SIGNAL(clicked(bool)), this, SLOT(fuckEm()));
-    connect(ui.noButton, SIGNAL(clicked(bool)), this, SLOT(deleteLater()));
+  // Connect the buttons to the slots.
+  connect(ui.yesButton, SIGNAL(clicked(bool)), this, SLOT(fuckEm()));
+  connect(ui.noButton, SIGNAL(clicked(bool)), this, SLOT(deleteLater()));
 }
 
-Close::~Close()
-{
-}
+Close::~Close() {}
 
-void Close::fuckEm()
-{
-    // Save the setting.
-    QSettings().setValue("noexitwarning", ui.ignoreCheckbox->isChecked());
+void Close::fuckEm() {
+  // Save the setting.
+  QSettings().setValue("noexitwarning", ui.ignoreCheckbox->isChecked());
 
-    // Quit the application.
-    qApp->quit();
+  // Quit the application.
+  qApp->quit();
 }

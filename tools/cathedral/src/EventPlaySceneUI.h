@@ -31,35 +31,37 @@
 // objects Includes
 #include <EventPlayScene.h>
 
-// Qt Includes
+// Ignore warnings
 #include <PushIgnore.h>
+
+// Qt Includes
 #include <QWidget>
+
+// Stop ignoring warnings
 #include <PopIgnore.h>
 
-namespace Ui
-{
+namespace Ui {
 
 class EventPlayScene;
 
-} // namespace Ui
+}  // namespace Ui
 
 class MainWindow;
 
-class EventPlayScene : public Event
-{
-    Q_OBJECT
+class EventPlayScene : public Event {
+  Q_OBJECT
 
-public:
-    explicit EventPlayScene(MainWindow *pMainWindow, QWidget *pParent = 0);
-    virtual ~EventPlayScene();
+ public:
+  explicit EventPlayScene(MainWindow *pMainWindow, QWidget *pParent = 0);
+  virtual ~EventPlayScene();
 
-    void Load(const std::shared_ptr<objects::Event>& e) override;
-    std::shared_ptr<objects::Event> Save() const override;
+  void Load(const std::shared_ptr<objects::Event> &e) override;
+  std::shared_ptr<objects::Event> Save() const override;
 
-protected:
-    Ui::EventPlayScene *prop;
+ protected:
+  Ui::EventPlayScene *prop;
 
-    std::shared_ptr<objects::EventPlayScene> mEvent;
+  std::shared_ptr<objects::EventPlayScene> mEvent;
 };
 
-#endif // TOOLS_CATHEDRAL_SRC_EVENTPLAYSCENEUI_H
+#endif  // TOOLS_CATHEDRAL_SRC_EVENTPLAYSCENEUI_H

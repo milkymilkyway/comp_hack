@@ -25,46 +25,50 @@
 #ifndef TOOLS_CAPGREP_SRC_PACKETFILTERLIST_H
 #define TOOLS_CAPGREP_SRC_PACKETFILTERLIST_H
 
-#include <PushIgnore.h>
-#include <QSortFilterProxyModel>
-#include <PopIgnore.h>
-
+// Standard C Includes
 #include <stdint.h>
 
-class PacketListFilter : public QSortFilterProxyModel
-{
-    Q_OBJECT
+// Ignore warnings
+#include <PushIgnore.h>
 
-public:
-    PacketListFilter(QObject *parent = 0);
+#include <QSortFilterProxyModel>
 
-    QList<uint16_t> white() const;
-    QList<uint16_t> black() const;
+// Stop ignoring warnings
+#include <PopIgnore.h>
 
-    void addWhite(uint16_t cmd);
-    void addBlack(uint16_t cmd);
-    void removeWhite(uint16_t cmd);
-    void removeBlack(uint16_t cmd);
+class PacketListFilter : public QSortFilterProxyModel {
+  Q_OBJECT
 
-    void clear();
-    void clearWhite();
-    void clearBlack();
-    void reset();
+ public:
+  PacketListFilter(QObject* parent = 0);
 
-    void setWhite(const QList<uint16_t>& cmds);
-    void setBlack(const QList<uint16_t>& cmds);
-    void setFilter(const QList<uint16_t>& w, const QList<uint16_t>& b);
+  QList<uint16_t> white() const;
+  QList<uint16_t> black() const;
 
-    int mapRow(int row) const;
+  void addWhite(uint16_t cmd);
+  void addBlack(uint16_t cmd);
+  void removeWhite(uint16_t cmd);
+  void removeBlack(uint16_t cmd);
 
-protected:
-    void saveBoth();
-    void saveWhite();
-    void saveBlack();
+  void clear();
+  void clearWhite();
+  void clearBlack();
+  void reset();
 
-    bool filterAcceptsRow(int row, const QModelIndex& parent) const;
+  void setWhite(const QList<uint16_t>& cmds);
+  void setBlack(const QList<uint16_t>& cmds);
+  void setFilter(const QList<uint16_t>& w, const QList<uint16_t>& b);
 
-    QList<uint16_t> mWhiteList, mBlackList;
+  int mapRow(int row) const;
+
+ protected:
+  void saveBoth();
+  void saveWhite();
+  void saveBlack();
+
+  bool filterAcceptsRow(int row, const QModelIndex& parent) const;
+
+  QList<uint16_t> mWhiteList, mBlackList;
 };
 
-#endif // TOOLS_CAPGREP_SRC_PACKETFILTERLIST_H
+#endif  // TOOLS_CAPGREP_SRC_PACKETFILTERLIST_H

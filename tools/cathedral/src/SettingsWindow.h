@@ -25,44 +25,46 @@
 #ifndef TOOLS_CATHEDRAL_SRC_SETTINGSWINDOW_H
 #define TOOLS_CATHEDRAL_SRC_SETTINGSWINDOW_H
 
-// Qt Includes
+// Ignore warnings
 #include <PushIgnore.h>
+
+// Qt Includes
 #include <QDialog>
+
+// Stop ignoring warnings
 #include <PopIgnore.h>
 
 // libcomp Includes
 #include <CString.h>
 
-namespace Ui
-{
+namespace Ui {
 
 class SettingsWindow;
 
-} // namespace Ui
+}  // namespace Ui
 
 class MainWindow;
 
-class SettingsWindow : public QDialog
-{
-    Q_OBJECT
+class SettingsWindow : public QDialog {
+  Q_OBJECT
 
-public:
-    explicit SettingsWindow(MainWindow* pMainWindow, bool initializing,
-        QWidget *pParent = 0);
-    virtual ~SettingsWindow();
+ public:
+  explicit SettingsWindow(MainWindow* pMainWindow, bool initializing,
+                          QWidget* pParent = 0);
+  virtual ~SettingsWindow();
 
-public slots:
-    void BrowseCrashDump();
-    void BrowseDatastore();
+ public slots:
+  void BrowseCrashDump();
+  void BrowseDatastore();
 
-    void Save();
+  void Save();
 
-protected:
-    Ui::SettingsWindow *ui;
+ protected:
+  Ui::SettingsWindow* ui;
 
-    MainWindow* mMainWindow;
+  MainWindow* mMainWindow;
 
-    bool mInitializing;
+  bool mInitializing;
 };
 
-#endif // TOOLS_CATHEDRAL_SRC_SETTINGSWINDOW_H
+#endif  // TOOLS_CATHEDRAL_SRC_SETTINGSWINDOW_H

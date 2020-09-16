@@ -25,47 +25,49 @@
 #ifndef TOOLS_CATHEDRAL_SRC_EVENTCONDITIONUI_H
 #define TOOLS_CATHEDRAL_SRC_EVENTCONDITIONUI_H
 
-// Qt Includes
+// Ignore warnings
 #include <PushIgnore.h>
+
+// Qt Includes
 #include <QWidget>
+
+// Stop ignoring warnings
 #include <PopIgnore.h>
 
 // objects Includes
 #include <EventCondition.h>
 
-namespace Ui
-{
+namespace Ui {
 
 class EventCondition;
 
-} // namespace Ui
+}  // namespace Ui
 
 class MainWindow;
 
-class EventCondition : public QWidget
-{
-    Q_OBJECT
+class EventCondition : public QWidget {
+  Q_OBJECT
 
-public:
-    explicit EventCondition(MainWindow *pMainWindow, QWidget *pParent = 0);
-    virtual ~EventCondition();
+ public:
+  explicit EventCondition(MainWindow *pMainWindow, QWidget *pParent = 0);
+  virtual ~EventCondition();
 
-    virtual void Load(const std::shared_ptr<objects::EventCondition>& e);
-    virtual std::shared_ptr<objects::EventCondition> Save() const;
+  virtual void Load(const std::shared_ptr<objects::EventCondition> &e);
+  virtual std::shared_ptr<objects::EventCondition> Save() const;
 
-protected slots:
-    void RadioToggle();
-    void CompareModeSelectionChanged();
-    void TypeSelectionChanged();
+ protected slots:
+  void RadioToggle();
+  void CompareModeSelectionChanged();
+  void TypeSelectionChanged();
 
-private:
-    objects::EventCondition::Type_t GetCurrentType() const;
-    void RefreshAvailableOptions();
-    void RefreshTypeContext();
-    void ResetCompareMode(const libcomp::String& defaultCompareTxt);
+ private:
+  objects::EventCondition::Type_t GetCurrentType() const;
+  void RefreshAvailableOptions();
+  void RefreshTypeContext();
+  void ResetCompareMode(const libcomp::String &defaultCompareTxt);
 
-    Ui::EventCondition *ui;
-    MainWindow *mMainWindow;
+  Ui::EventCondition *ui;
+  MainWindow *mMainWindow;
 };
 
-#endif // TOOLS_CATHEDRAL_SRC_EVENTCONDITIONUI_H
+#endif  // TOOLS_CATHEDRAL_SRC_EVENTCONDITIONUI_H

@@ -24,18 +24,18 @@
 
 #include "DynamicListItem.h"
 
-// Qt Includes
+// Ignore warnings
 #include <PushIgnore.h>
+
+// UI Includes
 #include "ui_DynamicListItem.h"
+
+// Stop ignoring warnings
 #include <PopIgnore.h>
 
-DynamicListItem::DynamicListItem(QWidget *pParent) : QWidget(pParent)
-{
-    ui = new Ui::DynamicListItem;
-    ui->setupUi(this);
+DynamicListItem::DynamicListItem(QWidget *pParent) : QWidget(pParent) {
+  ui = new Ui::DynamicListItem;
+  ui->setupUi(this);
 }
 
-DynamicListItem::~DynamicListItem()
-{
-    delete ui;
-}
+DynamicListItem::~DynamicListItem() { delete ui; }

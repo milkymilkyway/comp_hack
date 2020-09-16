@@ -28,10 +28,14 @@
 // Cathedral Includes
 #include "EventBaseUI.h"
 
-// Qt Includes
+// Ignore warnings
 #include <PushIgnore.h>
+
+// Qt Includes
 #include <QGroupBox>
 #include <QWidget>
+
+// Stop ignoring warnings
 #include <PopIgnore.h>
 
 // objects Includes
@@ -41,23 +45,22 @@ class DynamicList;
 class EventMessageRef;
 class ServerScript;
 
-class EventChoice : public EventBase
-{
-    Q_OBJECT
+class EventChoice : public EventBase {
+  Q_OBJECT
 
-public:
-    explicit EventChoice(MainWindow *pMainWindow, bool isITime,
-        QWidget *pParent = 0);
-    virtual ~EventChoice();
+ public:
+  explicit EventChoice(MainWindow *pMainWindow, bool isITime,
+                       QWidget *pParent = 0);
+  virtual ~EventChoice();
 
-    void Load(const std::shared_ptr<objects::EventChoice>& e);
-    std::shared_ptr<objects::EventChoice> Save() const;
+  void Load(const std::shared_ptr<objects::EventChoice> &e);
+  std::shared_ptr<objects::EventChoice> Save() const;
 
-protected:
-    EventMessageRef *mMessage;
-    QGroupBox *mBranchGroup;
-    DynamicList *mBranches;
-    ServerScript *mBranchScript;
+ protected:
+  EventMessageRef *mMessage;
+  QGroupBox *mBranchGroup;
+  DynamicList *mBranches;
+  ServerScript *mBranchScript;
 };
 
-#endif // TOOLS_CATHEDRAL_SRC_EVENTCHOICEUI_H
+#endif  // TOOLS_CATHEDRAL_SRC_EVENTCHOICEUI_H

@@ -31,39 +31,41 @@
 // objects Includes
 #include <ActionUpdatePoints.h>
 
-// Qt Includes
+// Ignore warnings
 #include <PushIgnore.h>
+
+// Qt Includes
 #include <QWidget>
+
+// Stop ignoring warnings
 #include <PopIgnore.h>
 
-namespace Ui
-{
+namespace Ui {
 
 class ActionUpdatePoints;
 
-} // namespace Ui
+}  // namespace Ui
 
 class MainWindow;
 
-class ActionUpdatePoints : public Action
-{
-    Q_OBJECT
+class ActionUpdatePoints : public Action {
+  Q_OBJECT
 
-public:
-    explicit ActionUpdatePoints(ActionList *pList, MainWindow *pMainWindow,
-        QWidget *pParent = 0);
-    virtual ~ActionUpdatePoints();
+ public:
+  explicit ActionUpdatePoints(ActionList *pList, MainWindow *pMainWindow,
+                              QWidget *pParent = 0);
+  virtual ~ActionUpdatePoints();
 
-    void Load(const std::shared_ptr<objects::Action>& act) override;
-    std::shared_ptr<objects::Action> Save() const override;
+  void Load(const std::shared_ptr<objects::Action> &act) override;
+  std::shared_ptr<objects::Action> Save() const override;
 
-protected slots:
-    void PointTypeChanged();
+ protected slots:
+  void PointTypeChanged();
 
-protected:
-    Ui::ActionUpdatePoints *prop;
+ protected:
+  Ui::ActionUpdatePoints *prop;
 
-    std::shared_ptr<objects::ActionUpdatePoints> mAction;
+  std::shared_ptr<objects::ActionUpdatePoints> mAction;
 };
 
-#endif // TOOLS_CATHEDRAL_SRC_ACTIONUPDATEPOINTSUI_H
+#endif  // TOOLS_CATHEDRAL_SRC_ACTIONUPDATEPOINTSUI_H

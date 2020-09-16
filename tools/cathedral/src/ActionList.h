@@ -25,9 +25,13 @@
 #ifndef TOOLS_CATHEDRAL_SRC_ACTIONLIST_H
 #define TOOLS_CATHEDRAL_SRC_ACTIONLIST_H
 
-// Qt Includes
+// Ignore warnings
 #include <PushIgnore.h>
+
+// Qt Includes
 #include <QWidget>
+
+// Stop ignoring warnings
 #include <PopIgnore.h>
 
 // objects Includes
@@ -36,51 +40,48 @@
 // Standard C++11 Includes
 #include <list>
 
-namespace Ui
-{
+namespace Ui {
 
 class ActionList;
 
-} // namespace Ui
+}  // namespace Ui
 
 class Action;
 class MainWindow;
 
-class ActionList : public QWidget
-{
-    Q_OBJECT
+class ActionList : public QWidget {
+  Q_OBJECT
 
-public:
-    explicit ActionList(QWidget *pParent = 0);
-    virtual ~ActionList();
+ public:
+  explicit ActionList(QWidget *pParent = 0);
+  virtual ~ActionList();
 
-    void SetMainWindow(MainWindow *pMainWindow);
+  void SetMainWindow(MainWindow *pMainWindow);
 
-    void Load(const std::list<std::shared_ptr<objects::Action>>& actions);
-    std::list<std::shared_ptr<objects::Action>> Save() const;
+  void Load(const std::list<std::shared_ptr<objects::Action>> &actions);
+  std::list<std::shared_ptr<objects::Action>> Save() const;
 
-    void RemoveAction(Action *pAction);
-    void MoveUp(Action *pAction);
-    void MoveDown(Action *pAction);
+  void RemoveAction(Action *pAction);
+  void MoveUp(Action *pAction);
+  void MoveDown(Action *pAction);
 
-    static std::list<std::pair<libcomp::String, int32_t>> GetActions();
+  static std::list<std::pair<libcomp::String, int32_t>> GetActions();
 
-protected slots:
-    void AddNewAction();
-    void RefreshPositions();
+ protected slots:
+  void AddNewAction();
+  void RefreshPositions();
 
-signals:
-    void rowEdit();
+ signals:
+  void rowEdit();
 
-protected:
-    void AddAction(const std::shared_ptr<objects::Action>& act,
-        Action *pAction);
-    void ClearActions();
+ protected:
+  void AddAction(const std::shared_ptr<objects::Action> &act, Action *pAction);
+  void ClearActions();
 
-    Ui::ActionList *ui;
+  Ui::ActionList *ui;
 
-    MainWindow *mMainWindow;
-    std::list<Action*> mActions;
+  MainWindow *mMainWindow;
+  std::list<Action *> mActions;
 };
 
-#endif // TOOLS_CATHEDRAL_SRC_ACTIONLIST_H
+#endif  // TOOLS_CATHEDRAL_SRC_ACTIONLIST_H

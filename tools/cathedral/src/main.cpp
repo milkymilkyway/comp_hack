@@ -24,37 +24,37 @@
 
 #include "MainWindow.h"
 
-// Qt Includes
+// Ignore warnings
 #include <PushIgnore.h>
+
+// Qt Includes
 #include <QApplication>
+
+// Stop ignoring warnings
 #include <PopIgnore.h>
 
-int main(int argc, char *argv[])
-{
-    QApplication app(argc, argv);
+int main(int argc, char *argv[]) {
+  QApplication app(argc, argv);
 
-    // These settings are used to specify how the settings are stored. On
-    // Windows, there settings are stored in the registry at
-    // HKEY_CURRENT_USER\Software\COMP_hack\COMP_hack Cathedral of Content
-    // On Linux, these settings will be stored in the file
-    // $HOME/.config/COMP_hack/COMP_hack Cathedral of Content.conf
-    // Consult the QSettings documentation in the Qt API reference for more
-    // information on how the settings work (and where they are on Mac OS X).
-    app.setOrganizationName("COMP_hack");
-    app.setOrganizationDomain("comp.hack");
-    app.setApplicationName("COMP_hack Cathedral of Content");
-    //app.setStyle("fusion");
+  // These settings are used to specify how the settings are stored. On
+  // Windows, there settings are stored in the registry at
+  // HKEY_CURRENT_USER\Software\COMP_hack\COMP_hack Cathedral of Content
+  // On Linux, these settings will be stored in the file
+  // $HOME/.config/COMP_hack/COMP_hack Cathedral of Content.conf
+  // Consult the QSettings documentation in the Qt API reference for more
+  // information on how the settings work (and where they are on Mac OS X).
+  app.setOrganizationName("COMP_hack");
+  app.setOrganizationDomain("comp.hack");
+  app.setApplicationName("COMP_hack Cathedral of Content");
+  // app.setStyle("fusion");
 
-    MainWindow *pWindow = new MainWindow;
+  MainWindow *pWindow = new MainWindow;
 
-    if(pWindow->Init())
-    {
-        pWindow->show();
-    }
-    else
-    {
-        return EXIT_SUCCESS;
-    }
+  if (pWindow->Init()) {
+    pWindow->show();
+  } else {
+    return EXIT_SUCCESS;
+  }
 
-    return app.exec();
+  return app.exec();
 }

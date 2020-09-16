@@ -31,35 +31,37 @@
 // objects Includes
 #include <EventITime.h>
 
-// Qt Includes
+// Ignore warnings
 #include <PushIgnore.h>
+
+// Qt Includes
 #include <QWidget>
+
+// Stop ignoring warnings
 #include <PopIgnore.h>
 
-namespace Ui
-{
+namespace Ui {
 
 class EventITime;
 
-} // namespace Ui
+}  // namespace Ui
 
 class MainWindow;
 
-class EventITime : public Event
-{
-    Q_OBJECT
+class EventITime : public Event {
+  Q_OBJECT
 
-public:
-    explicit EventITime(MainWindow *pMainWindow, QWidget *pParent = 0);
-    virtual ~EventITime();
+ public:
+  explicit EventITime(MainWindow *pMainWindow, QWidget *pParent = 0);
+  virtual ~EventITime();
 
-    void Load(const std::shared_ptr<objects::Event>& e) override;
-    std::shared_ptr<objects::Event> Save() const override;
+  void Load(const std::shared_ptr<objects::Event> &e) override;
+  std::shared_ptr<objects::Event> Save() const override;
 
-protected:
-    Ui::EventITime *prop;
+ protected:
+  Ui::EventITime *prop;
 
-    std::shared_ptr<objects::EventITime> mEvent;
+  std::shared_ptr<objects::EventITime> mEvent;
 };
 
-#endif // TOOLS_CATHEDRAL_SRC_EVENTITIMEUI_H
+#endif  // TOOLS_CATHEDRAL_SRC_EVENTITIMEUI_H

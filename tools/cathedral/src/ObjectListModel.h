@@ -25,9 +25,13 @@
 #ifndef TOOLS_CATHEDRAL_SRC_OBJECTLISTMODEL_H
 #define TOOLS_CATHEDRAL_SRC_OBJECTLISTMODEL_H
 
-// Qt Includes
+// Ignore warnings
 #include <PushIgnore.h>
+
+// Qt Includes
 #include <QAbstractListModel>
+
+// Stop ignoring warnings
 #include <PopIgnore.h>
 
 // objects Includes
@@ -35,28 +39,27 @@
 
 class ObjectList;
 
-class ObjectListModel : public QAbstractListModel
-{
-    Q_OBJECT
+class ObjectListModel : public QAbstractListModel {
+  Q_OBJECT
 
-public:
-    explicit ObjectListModel(ObjectList *pList, QObject *pParent = 0);
-    virtual ~ObjectListModel();
+ public:
+  explicit ObjectListModel(ObjectList* pList, QObject* pParent = 0);
+  virtual ~ObjectListModel();
 
-    virtual void SetObjectList(const std::vector<
-        std::shared_ptr<libcomp::Object>>& objs);
+  virtual void SetObjectList(
+      const std::vector<std::shared_ptr<libcomp::Object>>& objs);
 
-    int GetIndex(const std::shared_ptr<libcomp::Object>& obj);
+  int GetIndex(const std::shared_ptr<libcomp::Object>& obj);
 
-    int rowCount(const QModelIndex& parent = QModelIndex()) const override;
-    QVariant data(const QModelIndex& index,
-        int role = Qt::DisplayRole) const override;
+  int rowCount(const QModelIndex& parent = QModelIndex()) const override;
+  QVariant data(const QModelIndex& index,
+                int role = Qt::DisplayRole) const override;
 
-    std::shared_ptr<libcomp::Object> GetObject(const QModelIndex& index) const;
+  std::shared_ptr<libcomp::Object> GetObject(const QModelIndex& index) const;
 
-protected:
-    ObjectList *mList;
-    std::vector<std::shared_ptr<libcomp::Object>> mObjects;
+ protected:
+  ObjectList* mList;
+  std::vector<std::shared_ptr<libcomp::Object>> mObjects;
 };
 
-#endif // TOOLS_CATHEDRAL_SRC_OBJECTLISTMODEL_H
+#endif  // TOOLS_CATHEDRAL_SRC_OBJECTLISTMODEL_H

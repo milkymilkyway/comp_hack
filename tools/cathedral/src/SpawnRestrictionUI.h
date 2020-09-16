@@ -25,41 +25,42 @@
 #ifndef TOOLS_CATHEDRAL_SRC_SPAWNRESTRICTIONUI_H
 #define TOOLS_CATHEDRAL_SRC_SPAWNRESTRICTIONUI_H
 
-// Qt Includes
+// Ignore warnings
 #include <PushIgnore.h>
+
+// Qt Includes
 #include <QWidget>
+
+// Stop ignoring warnings
 #include <PopIgnore.h>
 
 // Standard C++11 Includes
 #include <memory>
 
-namespace objects
-{
+namespace objects {
 
 class SpawnRestriction;
 
-} // namespace objects
+}  // namespace objects
 
-namespace Ui
-{
+namespace Ui {
 
 class SpawnRestriction;
 
-} // namespace Ui
+}  // namespace Ui
 
-class SpawnRestriction : public QWidget
-{
-    Q_OBJECT
+class SpawnRestriction : public QWidget {
+  Q_OBJECT
 
-public:
-    explicit SpawnRestriction(QWidget *pParent = 0);
-    virtual ~SpawnRestriction();
+ public:
+  explicit SpawnRestriction(QWidget *pParent = 0);
+  virtual ~SpawnRestriction();
 
-    void Load(const std::shared_ptr<objects::SpawnRestriction>& restrict);
-    std::shared_ptr<objects::SpawnRestriction> Save() const;
+  void Load(const std::shared_ptr<objects::SpawnRestriction> &restrict);
+  std::shared_ptr<objects::SpawnRestriction> Save() const;
 
-protected:
-    Ui::SpawnRestriction *prop;
+ protected:
+  Ui::SpawnRestriction *prop;
 };
 
-#endif // TOOLS_CATHEDRAL_SRC_SPAWNRESTRICTIONUI_H
+#endif  // TOOLS_CATHEDRAL_SRC_SPAWNRESTRICTIONUI_H

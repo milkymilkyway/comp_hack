@@ -27,12 +27,16 @@
 // Cathedral Includes
 #include "MainWindow.h"
 
-// Qt Includes
+// Ignore warnings
 #include <PushIgnore.h>
+
+// Qt Includes
 #include <QLineEdit>
 
 #include "ui_Event.h"
 #include "ui_EventDirection.h"
+
+// Stop ignoring warnings
 #include <PopIgnore.h>
 
 // libcomp Includes
@@ -40,45 +44,37 @@
 #include <PacketCodes.h>
 
 EventDirection::EventDirection(MainWindow *pMainWindow, QWidget *pParent)
-    : Event(pMainWindow, pParent)
-{
-    QWidget *pWidget = new QWidget;
-    prop = new Ui::EventDirection;
-    prop->setupUi(pWidget);
+    : Event(pMainWindow, pParent) {
+  QWidget *pWidget = new QWidget;
+  prop = new Ui::EventDirection;
+  prop->setupUi(pWidget);
 
-    ui->eventTitle->setText(tr("<b>Direction</b>"));
-    ui->layoutMain->addWidget(pWidget);
+  ui->eventTitle->setText(tr("<b>Direction</b>"));
+  ui->layoutMain->addWidget(pWidget);
 }
 
-EventDirection::~EventDirection()
-{
-    delete prop;
+EventDirection::~EventDirection() { delete prop; }
+
+void EventDirection::Load(const std::shared_ptr<objects::Event> &e) {
+  Event::Load(e);
+
+  mEvent = std::dynamic_pointer_cast<objects::EventDirection>(e);
+
+  if (!mEvent) {
+    return;
+  }
+
+  prop->direction->setValue(mEvent->GetDirection());
 }
 
-void EventDirection::Load(const std::shared_ptr<objects::Event>& e)
-{
-    Event::Load(e);
+std::shared_ptr<objects::Event> EventDirection::Save() const {
+  if (!mEvent) {
+    return nullptr;
+  }
 
-    mEvent = std::dynamic_pointer_cast<objects::EventDirection>(e);
+  Event::Save();
 
-    if(!mEvent)
-    {
-        return;
-    }
+  mEvent->SetDirection(prop->direction->value());
 
-    prop->direction->setValue(mEvent->GetDirection());
-}
-
-std::shared_ptr<objects::Event> EventDirection::Save() const
-{
-    if(!mEvent)
-    {
-        return nullptr;
-    }
-
-    Event::Save();
-
-    mEvent->SetDirection(prop->direction->value());
-
-    return mEvent;
+  return mEvent;
 }

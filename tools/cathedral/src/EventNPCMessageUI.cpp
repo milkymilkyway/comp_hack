@@ -27,12 +27,16 @@
 // Cathedral Includes
 #include "MainWindow.h"
 
-// Qt Includes
+// Ignore warnings
 #include <PushIgnore.h>
+
+// Qt Includes
 #include <QLineEdit>
 
 #include "ui_Event.h"
 #include "ui_EventNPCMessage.h"
+
+// Stop ignoring warnings
 #include <PopIgnore.h>
 
 // libcomp Includes
@@ -40,53 +44,43 @@
 #include <PacketCodes.h>
 
 EventNPCMessage::EventNPCMessage(MainWindow *pMainWindow, QWidget *pParent)
-    : Event(pMainWindow, pParent)
-{
-    QWidget *pWidget = new QWidget;
-    prop = new Ui::EventNPCMessage;
-    prop->setupUi(pWidget);
+    : Event(pMainWindow, pParent) {
+  QWidget *pWidget = new QWidget;
+  prop = new Ui::EventNPCMessage;
+  prop->setupUi(pWidget);
 
-    prop->messages->Setup(DynamicItemType_t::COMPLEX_EVENT_MESSAGE,
-        pMainWindow);
-    prop->messages->SetAddText("Add Message");
+  prop->messages->Setup(DynamicItemType_t::COMPLEX_EVENT_MESSAGE, pMainWindow);
+  prop->messages->SetAddText("Add Message");
 
-    ui->eventTitle->setText(tr("<b>NPC Message</b>"));
-    ui->layoutMain->addWidget(pWidget);
+  ui->eventTitle->setText(tr("<b>NPC Message</b>"));
+  ui->layoutMain->addWidget(pWidget);
 }
 
-EventNPCMessage::~EventNPCMessage()
-{
-    delete prop;
+EventNPCMessage::~EventNPCMessage() { delete prop; }
+
+void EventNPCMessage::Load(const std::shared_ptr<objects::Event> &e) {
+  Event::Load(e);
+
+  mEvent = std::dynamic_pointer_cast<objects::EventNPCMessage>(e);
+
+  if (!mEvent) {
+    return;
+  }
+
+  for (int32_t messageID : mEvent->GetMessageIDs()) {
+    prop->messages->AddInteger(messageID);
+  }
 }
 
-void EventNPCMessage::Load(const std::shared_ptr<objects::Event>& e)
-{
-    Event::Load(e);
+std::shared_ptr<objects::Event> EventNPCMessage::Save() const {
+  if (!mEvent) {
+    return nullptr;
+  }
 
-    mEvent = std::dynamic_pointer_cast<objects::EventNPCMessage>(e);
+  Event::Save();
 
-    if(!mEvent)
-    {
-        return;
-    }
+  auto messageIDs = prop->messages->GetIntegerList();
+  mEvent->SetMessageIDs(messageIDs);
 
-    for(int32_t messageID : mEvent->GetMessageIDs())
-    {
-        prop->messages->AddInteger(messageID);
-    }
-}
-
-std::shared_ptr<objects::Event> EventNPCMessage::Save() const
-{
-    if(!mEvent)
-    {
-        return nullptr;
-    }
-
-    Event::Save();
-
-    auto messageIDs = prop->messages->GetIntegerList();
-    mEvent->SetMessageIDs(messageIDs);
-
-    return mEvent;
+  return mEvent;
 }

@@ -31,35 +31,37 @@
 // objects Includes
 #include <EventPrompt.h>
 
-// Qt Includes
+// Ignore warnings
 #include <PushIgnore.h>
+
+// Qt Includes
 #include <QWidget>
+
+// Stop ignoring warnings
 #include <PopIgnore.h>
 
-namespace Ui
-{
+namespace Ui {
 
 class EventPrompt;
 
-} // namespace Ui
+}  // namespace Ui
 
 class MainWindow;
 
-class EventPrompt : public Event
-{
-    Q_OBJECT
+class EventPrompt : public Event {
+  Q_OBJECT
 
-public:
-    explicit EventPrompt(MainWindow *pMainWindow, QWidget *pParent = 0);
-    virtual ~EventPrompt();
+ public:
+  explicit EventPrompt(MainWindow *pMainWindow, QWidget *pParent = 0);
+  virtual ~EventPrompt();
 
-    void Load(const std::shared_ptr<objects::Event>& e) override;
-    std::shared_ptr<objects::Event> Save() const override;
+  void Load(const std::shared_ptr<objects::Event> &e) override;
+  std::shared_ptr<objects::Event> Save() const override;
 
-protected:
-    Ui::EventPrompt *prop;
+ protected:
+  Ui::EventPrompt *prop;
 
-    std::shared_ptr<objects::EventPrompt> mEvent;
+  std::shared_ptr<objects::EventPrompt> mEvent;
 };
 
-#endif // TOOLS_CATHEDRAL_SRC_EVENTPROMPTUI_H
+#endif  // TOOLS_CATHEDRAL_SRC_EVENTPROMPTUI_H

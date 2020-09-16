@@ -27,12 +27,16 @@
 // Cathedral Includes
 #include "MainWindow.h"
 
-// Qt Includes
+// Ignore warnings
 #include <PushIgnore.h>
+
+// Qt Includes
 #include <QLineEdit>
 
 #include "ui_Event.h"
 #include "ui_EventMultitalk.h"
+
+// Stop ignoring warnings
 #include <PopIgnore.h>
 
 // libcomp Includes
@@ -40,47 +44,39 @@
 #include <PacketCodes.h>
 
 EventMultitalk::EventMultitalk(MainWindow *pMainWindow, QWidget *pParent)
-    : Event(pMainWindow, pParent)
-{
-    QWidget *pWidget = new QWidget;
-    prop = new Ui::EventMultitalk;
-    prop->setupUi(pWidget);
+    : Event(pMainWindow, pParent) {
+  QWidget *pWidget = new QWidget;
+  prop = new Ui::EventMultitalk;
+  prop->setupUi(pWidget);
 
-    ui->eventTitle->setText(tr("<b>Multitalk</b>"));
-    ui->layoutMain->addWidget(pWidget);
+  ui->eventTitle->setText(tr("<b>Multitalk</b>"));
+  ui->layoutMain->addWidget(pWidget);
 }
 
-EventMultitalk::~EventMultitalk()
-{
-    delete prop;
+EventMultitalk::~EventMultitalk() { delete prop; }
+
+void EventMultitalk::Load(const std::shared_ptr<objects::Event> &e) {
+  Event::Load(e);
+
+  mEvent = std::dynamic_pointer_cast<objects::EventMultitalk>(e);
+
+  if (!mEvent) {
+    return;
+  }
+
+  prop->message->setValue(mEvent->GetMessageID());
+  prop->playerSource->setChecked(mEvent->GetPlayerSource());
 }
 
-void EventMultitalk::Load(const std::shared_ptr<objects::Event>& e)
-{
-    Event::Load(e);
+std::shared_ptr<objects::Event> EventMultitalk::Save() const {
+  if (!mEvent) {
+    return nullptr;
+  }
 
-    mEvent = std::dynamic_pointer_cast<objects::EventMultitalk>(e);
+  Event::Save();
 
-    if(!mEvent)
-    {
-        return;
-    }
+  mEvent->SetMessageID(prop->message->value());
+  mEvent->SetPlayerSource(prop->playerSource->isChecked());
 
-    prop->message->setValue(mEvent->GetMessageID());
-    prop->playerSource->setChecked(mEvent->GetPlayerSource());
-}
-
-std::shared_ptr<objects::Event> EventMultitalk::Save() const
-{
-    if(!mEvent)
-    {
-        return nullptr;
-    }
-
-    Event::Save();
-
-    mEvent->SetMessageID(prop->message->value());
-    mEvent->SetPlayerSource(prop->playerSource->isChecked());
-
-    return mEvent;
+  return mEvent;
 }

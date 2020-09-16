@@ -25,43 +25,45 @@
 #ifndef TOOLS_CATHEDRAL_SRC_SPOTREF_H
 #define TOOLS_CATHEDRAL_SRC_SPOTREF_H
 
-// Qt Includes
+// Ignore warnings
 #include <PushIgnore.h>
+
+// Qt Includes
 #include <QWidget>
+
+// Stop ignoring warnings
 #include <PopIgnore.h>
 
 // libcomp Includes
 #include <CString.h>
 
-namespace Ui
-{
+namespace Ui {
 
 class SpotRef;
 
-} // namespace Ui
+}  // namespace Ui
 
 class MainWindow;
 
-class SpotRef : public QWidget
-{
-    Q_OBJECT
+class SpotRef : public QWidget {
+  Q_OBJECT
 
-public:
-    explicit SpotRef(QWidget *pParent = 0);
-    virtual ~SpotRef();
+ public:
+  explicit SpotRef(QWidget *pParent = 0);
+  virtual ~SpotRef();
 
-    void SetMainWindow(MainWindow *pMainWindow);
+  void SetMainWindow(MainWindow *pMainWindow);
 
-    void SetValue(uint32_t spotID);
-    uint32_t GetValue() const;
+  void SetValue(uint32_t spotID);
+  uint32_t GetValue() const;
 
-public slots:
-    void Show();
+ public slots:
+  void Show();
 
-protected:
-    Ui::SpotRef *ui;
+ protected:
+  Ui::SpotRef *ui;
 
-    MainWindow *mMainWindow;
+  MainWindow *mMainWindow;
 };
 
-#endif // TOOLS_CATHEDRAL_SRC_SPOTREF_H
+#endif  // TOOLS_CATHEDRAL_SRC_SPOTREF_H

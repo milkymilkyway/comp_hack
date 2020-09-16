@@ -26,9 +26,13 @@
 #ifndef TOOLS_CATHEDRAL_SRC_OBJECTSELECTORBASE_H
 #define TOOLS_CATHEDRAL_SRC_OBJECTSELECTORBASE_H
 
-// Qt Includes
+// Ignore warnings
 #include <PushIgnore.h>
+
+// Qt Includes
 #include <QWidget>
+
+// Stop ignoring warnings
 #include <PopIgnore.h>
 
 // libcomp Includes
@@ -36,28 +40,27 @@
 
 class MainWindow;
 
-class ObjectSelectorBase : public QWidget
-{
-    Q_OBJECT
+class ObjectSelectorBase : public QWidget {
+  Q_OBJECT
 
-public:
-    explicit ObjectSelectorBase(QWidget *pParent = 0);
-    virtual ~ObjectSelectorBase();
+ public:
+  explicit ObjectSelectorBase(QWidget *pParent = 0);
+  virtual ~ObjectSelectorBase();
 
-    virtual bool Bind(MainWindow *pMainWindow, const libcomp::String& objType);
+  virtual bool Bind(MainWindow *pMainWindow, const libcomp::String &objType);
 
-    virtual void SetValue(uint32_t value) = 0;
-    virtual uint32_t GetValue() const = 0;
+  virtual void SetValue(uint32_t value) = 0;
+  virtual uint32_t GetValue() const = 0;
 
-    libcomp::String GetObjectType() const;
+  libcomp::String GetObjectType() const;
 
-protected slots:
-    void GetItem();
+ protected slots:
+  void GetItem();
 
-protected:
-    MainWindow *mMainWindow;
+ protected:
+  MainWindow *mMainWindow;
 
-    libcomp::String mObjType;
+  libcomp::String mObjType;
 };
 
-#endif // TOOLS_CATHEDRAL_SRC_OBJECTSELECTORBASE_H
+#endif  // TOOLS_CATHEDRAL_SRC_OBJECTSELECTORBASE_H

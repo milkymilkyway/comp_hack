@@ -4,7 +4,8 @@
  *
  * @author HACKfrost
  *
- * @brief Definition for a window that handles drop set viewing and modification.
+ * @brief Definition for a window that handles drop set viewing and
+ * modification.
  *
  * Copyright (C) 2012-2020 COMP_hack Team <compomega@tutanota.com>
  *
@@ -25,9 +26,13 @@
 #ifndef TOOLS_CATHEDRAL_SRC_DROPSETWINDOW_H
 #define TOOLS_CATHEDRAL_SRC_DROPSETWINDOW_H
 
-// Qt Includes
+// Ignore warnings
 #include <PushIgnore.h>
+
+// UI Includes
 #include "ui_DropSetWindow.h"
+
+// Stop ignoring warnings
 #include <PopIgnore.h>
 
 // object Includes
@@ -36,67 +41,64 @@
 // libcomp Includes
 #include <CString.h>
 
-namespace objects
-{
+namespace objects {
 
 class Action;
 
-} // namespace objects
+}  // namespace objects
 
-class FileDropSet : public objects::DropSet
-{
-public:
-    FileDropSet() {}
-    virtual ~FileDropSet() {}
+class FileDropSet : public objects::DropSet {
+ public:
+  FileDropSet() {}
+  virtual ~FileDropSet() {}
 
-    libcomp::String Desc;
+  libcomp::String Desc;
 };
 
 class DropSetFile;
 class FindRefWindow;
 class MainWindow;
 
-class DropSetWindow : public QMainWindow
-{
-    Q_OBJECT
+class DropSetWindow : public QMainWindow {
+  Q_OBJECT
 
-public:
-    explicit DropSetWindow(MainWindow *pMainWindow, QWidget *pParent = 0);
-    virtual ~DropSetWindow();
+ public:
+  explicit DropSetWindow(MainWindow* pMainWindow, QWidget* pParent = 0);
+  virtual ~DropSetWindow();
 
-    void RebuildNamedDataSet();
+  void RebuildNamedDataSet();
 
-    size_t GetLoadedDropSetCount();
+  size_t GetLoadedDropSetCount();
 
-    void closeEvent(QCloseEvent* event) override;
+  void closeEvent(QCloseEvent* event) override;
 
-private slots:
-    void FileSelectionChanged();
-    void NewDropSet();
-    void NewFile();
-    void RemoveDropSet();
-    void LoadDirectory();
-    void LoadFile();
-    void SaveFile();
-    void SaveAllFiles();
-    void Refresh();
-    void SelectDropSet();
+ private slots:
+  void FileSelectionChanged();
+  void NewDropSet();
+  void NewFile();
+  void RemoveDropSet();
+  void LoadDirectory();
+  void LoadFile();
+  void SaveFile();
+  void SaveAllFiles();
+  void Refresh();
+  void SelectDropSet();
 
-    void Find();
+  void Find();
 
-private:
-    bool LoadFileFromPath(const libcomp::String& path);
-    bool SelectFile(const libcomp::String& path);
+ private:
+  bool LoadFileFromPath(const libcomp::String& path);
+  bool SelectFile(const libcomp::String& path);
 
-    void SaveFiles(const std::list<libcomp::String>& paths);
+  void SaveFiles(const std::list<libcomp::String>& paths);
 
-    MainWindow *mMainWindow;
+  MainWindow* mMainWindow;
 
-    FindRefWindow* mFindWindow;
+  FindRefWindow* mFindWindow;
 
-    std::unordered_map<libcomp::String, std::shared_ptr<DropSetFile>> mFiles;
+  std::unordered_map<libcomp::String, std::shared_ptr<DropSetFile>> mFiles;
 
-    Ui::DropSetWindow *ui;
+  Ui::DropSetWindow* ui;
 };
 
-#endif // TOOLS_CATHEDRAL_SRC_DROPSETWINDOW_H
+#endif  // TOOLS_CATHEDRAL_SRC_DROPSETWINDOW_H

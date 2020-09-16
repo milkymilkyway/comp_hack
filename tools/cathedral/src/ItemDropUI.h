@@ -25,48 +25,48 @@
 #ifndef TOOLS_CATHEDRAL_SRC_ITEMDROPUI_H
 #define TOOLS_CATHEDRAL_SRC_ITEMDROPUI_H
 
-// Qt Includes
+// Ignore warnings
 #include <PushIgnore.h>
+
+// Qt Includes
 #include <QWidget>
+
+// Stop ignoring warnings
 #include <PopIgnore.h>
 
 // Standard C++11 Includes
 #include <memory>
 
-namespace objects
-{
+namespace objects {
 
 class ItemDrop;
 
-} // namespace objects
+}  // namespace objects
 
-namespace Ui
-{
+namespace Ui {
 
 class ItemDrop;
 
-} // namespace Ui
+}  // namespace Ui
 
 class MainWindow;
 
-class ItemDrop : public QWidget
-{
-    Q_OBJECT
+class ItemDrop : public QWidget {
+  Q_OBJECT
 
-public:
-    explicit ItemDrop(MainWindow *pMainWindow,
-        QWidget *pParent = 0);
-    virtual ~ItemDrop();
+ public:
+  explicit ItemDrop(MainWindow *pMainWindow, QWidget *pParent = 0);
+  virtual ~ItemDrop();
 
-    void Load(const std::shared_ptr<objects::ItemDrop>& drop);
-    std::shared_ptr<objects::ItemDrop> Save() const;
+  void Load(const std::shared_ptr<objects::ItemDrop> &drop);
+  std::shared_ptr<objects::ItemDrop> Save() const;
 
-protected slots:
-    void MinStackChanged();
-    void TypeChanged();
+ protected slots:
+  void MinStackChanged();
+  void TypeChanged();
 
-protected:
-    Ui::ItemDrop *prop;
+ protected:
+  Ui::ItemDrop *prop;
 };
 
-#endif // TOOLS_CATHEDRAL_SRC_ITEMDROPUI_H
+#endif  // TOOLS_CATHEDRAL_SRC_ITEMDROPUI_H

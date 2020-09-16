@@ -25,27 +25,29 @@
 #ifndef TOOLS_CATHEDRAL_SRC_DYNAMICLISTITEM_H
 #define TOOLS_CATHEDRAL_SRC_DYNAMICLISTITEM_H
 
-// Qt Includes
+// Ignore warnings
 #include <PushIgnore.h>
+
+// Qt Includes
 #include <QWidget>
+
+// Stop ignoring warnings
 #include <PopIgnore.h>
 
-namespace Ui
-{
+namespace Ui {
 
 class DynamicListItem;
 
-} // namespace Ui
+}  // namespace Ui
 
-class DynamicListItem : public QWidget
-{
-    Q_OBJECT
+class DynamicListItem : public QWidget {
+  Q_OBJECT
 
-public:
-    explicit DynamicListItem(QWidget *pParent = 0);
-    virtual ~DynamicListItem();
+ public:
+  explicit DynamicListItem(QWidget *pParent = 0);
+  virtual ~DynamicListItem();
 
-    Ui::DynamicListItem *ui;
+  Ui::DynamicListItem *ui;
 };
 
-#endif // TOOLS_CATHEDRAL_SRC_DYNAMICLISTITEM_H
+#endif  // TOOLS_CATHEDRAL_SRC_DYNAMICLISTITEM_H

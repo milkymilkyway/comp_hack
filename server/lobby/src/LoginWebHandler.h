@@ -43,52 +43,54 @@
 // Standard C++11 Includes
 #include <vector>
 
-// VFS Includes
+// Ignore warnings
 #include "PushIgnore.h"
+
+// VFS Includes
 #include <ttvfs/ttvfs.h>
 #include <ttvfs/ttvfs_zip.h>
+
+// Stop ignoring warnings
 #include "PopIgnore.h"
 
-namespace lobby
-{
+namespace lobby {
 
 class AccountManager;
 
-class LoginHandler : public CivetHandler
-{
-public:
-    LoginHandler(const std::shared_ptr<libcomp::Database>& database);
-    virtual ~LoginHandler();
+class LoginHandler : public CivetHandler {
+ public:
+  LoginHandler(const std::shared_ptr<libcomp::Database> &database);
+  virtual ~LoginHandler();
 
-    virtual bool handleGet(CivetServer *pServer,
-        struct mg_connection *pConnection);
+  virtual bool handleGet(CivetServer *pServer,
+                         struct mg_connection *pConnection);
 
-    virtual bool handlePost(CivetServer *pServer,
-        struct mg_connection *pConnection);
+  virtual bool handlePost(CivetServer *pServer,
+                          struct mg_connection *pConnection);
 
-    void SetConfig(const std::shared_ptr<objects::LobbyConfig>& config);
+  void SetConfig(const std::shared_ptr<objects::LobbyConfig> &config);
 
-    void SetAccountManager(AccountManager *pManager);
+  void SetAccountManager(AccountManager *pManager);
 
-private:
-    std::shared_ptr<objects::LoginScriptRequest> ParsePost(
-        CivetServer *pServer, struct mg_connection *pConnection);
+ private:
+  std::shared_ptr<objects::LoginScriptRequest> ParsePost(
+      CivetServer *pServer, struct mg_connection *pConnection);
 
-    bool HandlePage(CivetServer *pServer, struct mg_connection *pConnection,
-        const std::shared_ptr<objects::LoginScriptRequest>& req);
+  bool HandlePage(CivetServer *pServer, struct mg_connection *pConnection,
+                  const std::shared_ptr<objects::LoginScriptRequest> &req);
 
-    std::vector<char> LoadVfsFile(const libcomp::String& path);
+  std::vector<char> LoadVfsFile(const libcomp::String &path);
 
-    ttvfs::Root mVfs;
+  ttvfs::Root mVfs;
 
-    std::shared_ptr<libcomp::Database> mDatabase;
-    std::shared_ptr<objects::LobbyConfig> mConfig;
+  std::shared_ptr<libcomp::Database> mDatabase;
+  std::shared_ptr<objects::LobbyConfig> mConfig;
 
-    AccountManager *mAccountManager;
+  AccountManager *mAccountManager;
 
-    static thread_local LoginHandlerThread mThreadHandler;
+  static thread_local LoginHandlerThread mThreadHandler;
 };
 
-} // namespace lobby
+}  // namespace lobby
 
-#endif // SERVER_LOBBY_SRC_LOGINWEBHANDLER_H
+#endif  // SERVER_LOBBY_SRC_LOGINWEBHANDLER_H

@@ -31,58 +31,52 @@
 // objects Includes
 #include <MiCEventMessageData.h>
 
-// Qt Includes
+// Ignore warnings
 #include <PushIgnore.h>
+
+// UI Includes
 #include "ui_EventMessageRef.h"
+
+// Stop ignoring warnings
 #include <PopIgnore.h>
 
 EventMessageRef::EventMessageRef(QWidget *pParent)
-    : ObjectSelectorBase(pParent)
-{
-    ui = new Ui::EventMessageRef;
-    ui->setupUi(this);
+    : ObjectSelectorBase(pParent) {
+  ui = new Ui::EventMessageRef;
+  ui->setupUi(this);
 
-    ui->message->setFontPointSize(10);
-    ui->message->setText("[Empty]");
+  ui->message->setFontPointSize(10);
+  ui->message->setText("[Empty]");
 
-    connect(ui->getMessage, SIGNAL(clicked()), this, SLOT(GetItem()));
-    connect(ui->messageID, SIGNAL(valueChanged(int)), this,
-        SLOT(MessageIDChanged()));
+  connect(ui->getMessage, SIGNAL(clicked()), this, SLOT(GetItem()));
+  connect(ui->messageID, SIGNAL(valueChanged(int)), this,
+          SLOT(MessageIDChanged()));
 }
 
-EventMessageRef::~EventMessageRef()
-{
-    delete ui;
-}
+EventMessageRef::~EventMessageRef() { delete ui; }
 
 void EventMessageRef::Setup(MainWindow *pMainWindow,
-    const libcomp::String& objType)
-{
-    Bind(pMainWindow, objType);
+                            const libcomp::String &objType) {
+  Bind(pMainWindow, objType);
 }
 
-void EventMessageRef::SetValue(uint32_t value)
-{
-    ui->messageID->setValue((int32_t)value);
+void EventMessageRef::SetValue(uint32_t value) {
+  ui->messageID->setValue((int32_t)value);
 }
 
-uint32_t EventMessageRef::GetValue() const
-{
-    return (uint32_t)ui->messageID->value();
+uint32_t EventMessageRef::GetValue() const {
+  return (uint32_t)ui->messageID->value();
 }
 
-void EventMessageRef::MessageIDChanged()
-{
-    ui->message->setText("[Empty]");
+void EventMessageRef::MessageIDChanged() {
+  ui->message->setText("[Empty]");
 
-    if(mMainWindow)
-    {
-        auto dataset = std::dynamic_pointer_cast<BinaryDataNamedSet>(
-            mMainWindow->GetBinaryDataSet(GetObjectType()));
-        if(dataset)
-        {
-            ui->message->setText(qs(dataset->GetName(dataset
-                ->GetObjectByID(GetValue()))));
-        }
+  if (mMainWindow) {
+    auto dataset = std::dynamic_pointer_cast<BinaryDataNamedSet>(
+        mMainWindow->GetBinaryDataSet(GetObjectType()));
+    if (dataset) {
+      ui->message->setText(
+          qs(dataset->GetName(dataset->GetObjectByID(GetValue()))));
     }
+  }
 }

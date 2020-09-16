@@ -25,41 +25,44 @@
 #ifndef TOOLS_CAPGREP_SRC_SETTINGS_H
 #define TOOLS_CAPGREP_SRC_SETTINGS_H
 
+// Ignore warnings
 #include <PushIgnore.h>
+
 #include "ui_Settings.h"
+
+// Stop ignoring warnings
 #include <PopIgnore.h>
 
 /**
  * Settings dialog to configure capgrep.
  * @ingroup capgrep
  */
-class Settings : public QDialog
-{
-    Q_OBJECT
+class Settings : public QDialog {
+  Q_OBJECT
 
-public:
-    /**
-     * Default constructor.
-     */
-    Settings(QWidget *parent = 0);
+ public:
+  /**
+   * Default constructor.
+   */
+  Settings(QWidget *parent = 0);
 
-signals:
-    /**
-     * Signal to indicate the packet limit has changed.
-     * @param limit The new packet limit or 0 if there is no limit. Negative
-     * values are not valid for this signal.
-     */
-    void packetLimitChanged(int limit);
+ signals:
+  /**
+   * Signal to indicate the packet limit has changed.
+   * @param limit The new packet limit or 0 if there is no limit. Negative
+   * values are not valid for this signal.
+   */
+  void packetLimitChanged(int limit);
 
-protected slots:
-    /**
-     * Save the current settings and close the dialog.
-     */
-    void save();
+ protected slots:
+  /**
+   * Save the current settings and close the dialog.
+   */
+  void save();
 
-protected:
-    /// Generated user interface object for the dialog.
-    Ui::Settings ui;
+ protected:
+  /// Generated user interface object for the dialog.
+  Ui::Settings ui;
 };
 
-#endif // TOOLS_CAPGREP_SRC_SETTINGS_H
+#endif  // TOOLS_CAPGREP_SRC_SETTINGS_H

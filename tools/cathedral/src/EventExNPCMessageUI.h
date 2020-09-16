@@ -31,35 +31,37 @@
 // objects Includes
 #include <EventExNPCMessage.h>
 
-// Qt Includes
+// Ignore warnings
 #include <PushIgnore.h>
+
+// Qt Includes
 #include <QWidget>
+
+// Stop ignoring warnings
 #include <PopIgnore.h>
 
-namespace Ui
-{
+namespace Ui {
 
 class EventExNPCMessage;
 
-} // namespace Ui
+}  // namespace Ui
 
 class MainWindow;
 
-class EventExNPCMessage : public Event
-{
-    Q_OBJECT
+class EventExNPCMessage : public Event {
+  Q_OBJECT
 
-public:
-    explicit EventExNPCMessage(MainWindow *pMainWindow, QWidget *pParent = 0);
-    virtual ~EventExNPCMessage();
+ public:
+  explicit EventExNPCMessage(MainWindow *pMainWindow, QWidget *pParent = 0);
+  virtual ~EventExNPCMessage();
 
-    void Load(const std::shared_ptr<objects::Event>& e) override;
-    std::shared_ptr<objects::Event> Save() const override;
+  void Load(const std::shared_ptr<objects::Event> &e) override;
+  std::shared_ptr<objects::Event> Save() const override;
 
-protected:
-    Ui::EventExNPCMessage *prop;
+ protected:
+  Ui::EventExNPCMessage *prop;
 
-    std::shared_ptr<objects::EventExNPCMessage> mEvent;
+  std::shared_ptr<objects::EventExNPCMessage> mEvent;
 };
 
-#endif // TOOLS_CATHEDRAL_SRC_EVENTEXNPCMESSAGEUI_H
+#endif  // TOOLS_CATHEDRAL_SRC_EVENTEXNPCMESSAGEUI_H
