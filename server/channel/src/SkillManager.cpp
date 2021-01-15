@@ -3916,10 +3916,10 @@ void SkillManager::ProcessSkillResultFinal(
     HandleNegotiations(source, zone, talkDone);
   }
 
+  auto client =
+      server->GetManagerConnection()->GetEntityClient(source->GetEntityID());
   if (!ctx || !ctx->Executed || !ctx->Finalized) {
     // Send right before finishing execution if we haven't already
-    auto client =
-        server->GetManagerConnection()->GetEntityClient(source->GetEntityID());
     FinalizeSkillExecution(client, ctx, activated);
     FinalizeSkill(ctx, activated);
   }
@@ -4376,6 +4376,30 @@ void SkillManager::ProcessSkillResultFinal(
   if (!skill.InPvP) {
     for (auto entity : durabilityHit) {
       HandleDurabilityDamage(entity, pSkill);
+    }
+  }
+
+  // Update character's expertise, but only if the skill was not nullified or
+  // absorbed by everyone targeted
+  if (client && source->GetEntityType() == EntityType_t::CHARACTER) {
+    bool canGainExpertise = false;
+    // Rushes add the self as a target to facilitate movement, so an extra check
+    // needs to be done to exclude the rush self-target
+    for (SkillTargetResult& target : skill.Targets) {
+      if (((target.Flags1 & FLAG1_BLOCK_PHYS) == 0 &&
+           (target.Flags1 & FLAG1_BLOCK_MAGIC) == 0 &&
+           (target.Flags1 & FLAG1_ABSORB) == 0 &&
+           (target.Flags2 & FLAG2_IMPOSSIBLE) == 0) &&
+          !(doRush && target.EntityState == source)) {
+        canGainExpertise = true;
+        break;
+      }
+    }
+
+    if (canGainExpertise) {
+      characterManager->UpdateExpertise(
+          client, pSkill->SkillID, activated->GetExpertiseBoost(),
+          GetCalculatedState(source, pSkill, false, nullptr));
     }
   }
 
@@ -9275,21 +9299,6 @@ void SkillManager::FinalizeSkillExecution(
   if (pSkill->FunctionID != SVR_CONST.SKILL_REST) {
     SendExecuteSkill(pSkill);
   }
-
-  if (client && source->GetEntityType() == EntityType_t::CHARACTER) {
-    auto calcState = GetCalculatedState(source, pSkill, false, nullptr);
-    float multiplier =
-        (float)(source->GetCorrectValue(CorrectTbl::RATE_EXPERTISE, calcState) *
-                0.01);
-
-    float globalExpertiseBonus =
-        mServer.lock()->GetWorldSharedConfig()->GetExpertiseBonus();
-
-    multiplier = multiplier * (float)(1.f + globalExpertiseBonus);
-
-    characterManager->UpdateExpertise(
-        client, pSkill->SkillID, activated->GetExpertiseBoost(), multiplier);
-  }
 }
 
 std::shared_ptr<objects::ActivatedAbility> SkillManager::FinalizeSkill(
@@ -11326,7 +11335,13 @@ bool SkillManager::SummonDemon(
 
   ProcessSkillResult(activated, ctx);
 
-  mServer.lock()->GetCharacterManager()->SummonDemon(client, demonID);
+  auto characterManager = mServer.lock()->GetCharacterManager();
+  characterManager->SummonDemon(client, demonID);
+
+  // Update the summoner's Summon expertise
+  characterManager->UpdateExpertise(
+      client, activated->GetSkillData()->GetCommon()->GetID(),
+      activated->GetExpertiseBoost(), cState->GetCalculatedState());
 
   LogSkillManagerDebug([cState, dState]() {
     return libcomp::String("%1 summons %2.\n")
