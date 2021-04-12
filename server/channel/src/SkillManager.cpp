@@ -7415,6 +7415,7 @@ void SkillManager::HandleNegotiations(
     auto eState = std::dynamic_pointer_cast<EnemyState>(pair.first);
     if (pair.second != TALK_DONE_1 && pair.second != TALK_DONE_2) {
       auto enemy = eState->GetEntity();
+      bool fGainPossible = false;
 
       std::shared_ptr<objects::LootBox> lBox;
       switch (pair.second) {
@@ -7434,6 +7435,8 @@ void SkillManager::HandleNegotiations(
           } else {
             joined[enemy->GetType()]++;
           }
+
+          fGainPossible = true;
         } break;
         case TALK_GIVE_ITEM_1:
         case TALK_GIVE_ITEM_2: {
@@ -7445,6 +7448,12 @@ void SkillManager::HandleNegotiations(
           auto gifts = drops[(uint8_t)objects::DropSet::Type_t::NORMAL];
           characterManager->CreateLootFromDrops(lBox, gifts, source->GetLUCK(),
                                                 true);
+
+          fGainPossible = true;
+        } break;
+        case TALK_LEAVE_1:
+        case TALK_LEAVE_2: {
+          fGainPossible = true;
         } break;
         default:
           break;
@@ -7460,14 +7469,19 @@ void SkillManager::HandleNegotiations(
 
         zone->AddLootBox(lState);
       }
-    }
 
-    if (fType) {
-      fGain = fGain + (int32_t)fType->GetTalkSuccess();
+      // If a Partner is summoned and they are the same base type as the enemy
+      // negotiation target after a successful negotiation end, increase
+      // the Partner's familiarity.
+      if (fGainPossible && fType &&
+          (partnerDef->GetUnionData()->GetBaseDemonID() ==
+           eState->GetDevilData()->GetUnionData()->GetBaseDemonID())) {
+        fGain = fGain + (int32_t)fType->GetTalkSuccess();
+      }
     }
   }
 
-  // Show each look box and schedule them for cleanup after their
+  // Show each loot box and schedule them for cleanup after their
   // loot time passes
   if (lStates.size() > 0) {
     // Spawned boxes remain lootable for 120 seconds
