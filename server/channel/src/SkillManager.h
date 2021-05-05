@@ -152,6 +152,13 @@ class SkillManager {
                      std::shared_ptr<SkillExecutionContext> ctx = 0);
 
   /**
+   * Reactivate switch skills that were toggled on in a previous login.
+   * @param source Pointer of the source entity
+   */
+  bool ReactivateSavedSwitchSkills(
+      const std::shared_ptr<ActiveEntityState>& source);
+
+  /**
    * Target/retarget the skill of a character or demon. No response is sent
    * to the clients from this request.
    * @param source Pointer of the entity that activated the skill
@@ -352,6 +359,20 @@ class SkillManager {
       int32_t& mpCost, uint16_t& bulletCost,
       std::unordered_map<uint32_t, uint32_t>& itemCosts,
       std::shared_ptr<objects::CalculatedEntityState> calcState = nullptr);
+
+  /**
+   * Pay the costs required to execute a skill, after it was determined they
+   * could be paid.
+   * @param source Pointer to the state of the source entity
+   * @param activated Pointer to the activated ability instance
+   * @param client Pointer to the client connection, can be null if not coming
+   *  from a player entity
+   * @param ctx Special execution state for the skill
+   */
+  void PayCosts(std::shared_ptr<ActiveEntityState> source,
+                std::shared_ptr<objects::ActivatedAbility> activated,
+                const std::shared_ptr<ChannelClientConnection> client,
+                std::shared_ptr<SkillExecutionContext> ctx);
 
   /**
    * Schedule automatic skill cancellation after a set amount of time
