@@ -3653,17 +3653,11 @@ void SkillManager::ProcessSkillResultFinal(
               hpMpSet = true;
             }
             break;
-          case DAMAGE_TYPE_HEALING:
-          case DAMAGE_TYPE_DRAIN:
+          default:
             if (hpMode) {
               hpDamage = (int32_t)(hpDamage + val);
             } else {
               mpDamage = (int32_t)(mpDamage + val);
-            }
-            break;
-          default:
-            if (hpMode) {
-              hpDamage = (int32_t)(hpDamage + val);
             }
             break;
         }
