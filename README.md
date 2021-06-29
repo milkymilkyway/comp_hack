@@ -11,7 +11,7 @@
 
 ## 真・女神転生IMAGINE Private Server ##
 
-The is server software to revive an MMO that has been shutdown (SMT: IMAGINE). It's a complete re-implementation of the server from scratch and fully open source. The best place for documentation is the [Definitive Guide](https://comp-hack.readthedocs.io/en/latest/) so be sure to check it out.
+The is server software to revive an MMO that has been shutdown (SMT: IMAGINE). It's a complete re-implementation of the server from scratch and fully open source. The best place for documentation is the [Definitive Guide](https://comp-hack.readthedocs.io/en/latest/) so be sure to check it out. If you need additional support or have a question, stop by the [Discord](http://discord.gg/9jXeKcJ) server (be sure to read the rules channel to get to the community discussion) or start a [GitHub discussion](https://github.com/comphack/comp_hack/discussions).
 
 ### Building on Linux ###
 
