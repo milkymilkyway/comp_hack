@@ -4256,9 +4256,32 @@ void SkillManager::ProcessSkillResultFinal(
         // AI and skill rules apply
         target.EntityState->SetStatusTimes(STATUS_KNOCKBACK, hitTimings[1]);
 
-        Point rushPoint = zoneManager->MoveRelative(
-            source, primaryTarget->GetCurrentX(), primaryTarget->GetCurrentY(),
-            dist + 250.f, false, now, hitTimings[1]);
+        Point rushPoint;
+
+        if (source->GetEntityType() == EntityType_t::CHARACTER ||
+            source->GetEntityType() == EntityType_t::PARTNER_DEMON) {
+          // Move player source to destination only after Pivot packet is sent
+          rushPoint = zoneManager->GetLinearPoint(
+              source->GetCurrentX(), source->GetCurrentY(),
+              primaryTarget->GetCurrentX(), primaryTarget->GetCurrentY(),
+              dist + 250.f, false, zone);
+
+          server->ScheduleWork(
+              hitTimings[1],
+              [](std::shared_ptr<ActiveEntityState> pSource, Point pRushPoint,
+                 uint64_t endTime) {
+                pSource->SetDestinationX(pRushPoint.x);
+                pSource->SetDestinationY(pRushPoint.y);
+                pSource->SetDestinationTicks(endTime);
+              },
+              source, rushPoint, hitTimings[1]);
+        } else {
+          // Move enemy source immediately
+          rushPoint = zoneManager->MoveRelative(
+              source, primaryTarget->GetCurrentX(),
+              primaryTarget->GetCurrentY(), dist + 250.f, false, now,
+              hitTimings[1]);
+        }
 
         p.WriteFloat(rushPoint.x);
         p.WriteFloat(rushPoint.y);
