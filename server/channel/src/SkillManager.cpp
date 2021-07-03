@@ -9004,32 +9004,35 @@ int32_t SkillManager::AdjustDamageRates(
     dependencyTaken = 0;
   }
 
-  // Get tokusei adjustments
-  double tokuseiBoost =
+  // Get general damage dealt/taken tokusei adjustments
+  double tokuseiDamageDealt =
       adjustPower ? (tokuseiManager->GetAspectSum(
                          source, TokuseiAspectType::EFFECT_POWER, calcState) *
                      0.01)
                   : 0.0;
-  double tokuseiReduction = 0.0;
+  double tokuseiDamageTaken = 1.0;
   if (!isHeal) {
     // Only apply damage adjustments if not healing
     if (source != target) {
-      tokuseiBoost += tokuseiManager->GetAspectSum(
-                          source, TokuseiAspectType::DAMAGE_DEALT, calcState) *
-                      0.01;
+      tokuseiDamageDealt +=
+          tokuseiManager->GetAspectSum(source, TokuseiAspectType::DAMAGE_DEALT,
+                                       calcState) *
+          0.01;
     }
 
-    tokuseiReduction -=
+    // DAMAGE_TAKEN tokusei intended to reduce damage are negative
+    tokuseiDamageTaken +=
         tokuseiManager->GetAspectSum(target, TokuseiAspectType::DAMAGE_TAKEN,
                                      targetState) *
         0.01;
 
-    if (tokuseiBoost < 0.0) {
-      tokuseiBoost = 0.0;
+    if (tokuseiDamageDealt < 0.0) {
+      tokuseiDamageDealt = 0.0;
     }
 
-    if (tokuseiReduction < 0.0) {
-      tokuseiReduction = 0.0;
+    // Cannot take less than 0% damage
+    if (tokuseiDamageTaken < 0.0) {
+      tokuseiDamageTaken = 0.0;
     }
   }
 
@@ -9051,16 +9054,16 @@ int32_t SkillManager::AdjustDamageRates(
     calc = calc * (float)(dependencyDealt * 0.01);
   }
 
-  if (tokuseiBoost != 0.0) {
-    // Multiply by 1 + remaining power boosts/100
-    calc = calc * (float)(1.0 + tokuseiBoost);
+  if (tokuseiDamageDealt != 0.0) {
+    // Multiply by 1 + remaining power increases/100
+    calc = calc * (float)(1.0 + tokuseiDamageDealt);
   }
 
   // Multiply by dependency rate taken
   rateTaken.push_back((float)(dependencyTaken * 0.01));
 
-  // Multiply by 100% + -general rate taken
-  rateTaken.push_back((float)(1.0 + tokuseiReduction));
+  // Multiply by 100% + -general rate taken, calculated earluer
+  rateTaken.push_back((float)tokuseiDamageTaken);
 
   for (float taken : rateTaken) {
     // Apply rate taken if not piercing or rate is not a reduction
