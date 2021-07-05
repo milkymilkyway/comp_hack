@@ -10627,18 +10627,17 @@ bool SkillManager::MinionSpawn(
       return false;
     }
 
-    // Pick one spot ID (default to source spot if its one of them)
-    uint32_t sourceSpotID = source && source->GetEnemyBase()
-                                ? source->GetEnemyBase()->GetSpawnSpotID()
-                                : 0;
-    uint32_t spotID = sourceSpotID && slg->SpotIDsContains(sourceSpotID)
-                          ? sourceSpotID
-                          : libcomp::Randomizer::GetEntry(slg->GetSpotIDs());
+    uint32_t spotID = libcomp::Randomizer::GetEntry(slg->GetSpotIDs());
+    if (spotID) {
+      // Check the supplied spot's validity, just in case.
+      float xCoord = 0.f;
+      float yCoord = 0.f;
+      float rot = 0.f;
 
-    // If no spot currently selected, default to the summoner's spot
-    // regardless
-    if (!spotID) {
-      spotID = sourceSpotID;
+      if (!zoneManager->GetSpotPosition(zoneDef->GetDynamicMapID(), spotID,
+                                        xCoord, yCoord, rot)) {
+        spotID = 0;
+      }
     }
 
     std::list<std::shared_ptr<ActiveEntityState>> enemies;
@@ -10654,8 +10653,38 @@ bool SkillManager::MinionSpawn(
       }
 
       for (uint16_t i = 0; i < spawnPair.second; i++) {
-        auto enemy = zoneManager->CreateEnemy(
-            zone, spawn->GetEnemyType(), spawn->GetID(), spotID, 0.f, 0.f, 0.f);
+        std::shared_ptr<channel::ActiveEntityState> enemy = nullptr;
+
+        if (!spotID) {
+          // Spawn unit based on distance from its summoner.
+          Point center(source->GetCurrentX(), source->GetCurrentY());
+          float spawnDistance = (float)((uint32_t)params[2]);
+          auto spawnLoc = std::make_shared<objects::SpawnLocation>();
+
+          spawnLoc->SetX(center.x - spawnDistance);
+          spawnLoc->SetY(center.y + spawnDistance);
+          spawnLoc->SetWidth(2000.f);
+          spawnLoc->SetHeight(2000.f);
+
+          auto sp = zoneManager->GetRandomPoint(2000.f, 2000.f);
+          sp.x += spawnLoc->GetX();
+          sp.y = spawnLoc->GetY() - sp.y;
+
+          // Make sure we don't spawn out of bounds
+          sp = zoneManager->GetLinearPoint(center.x, center.y, sp.x, sp.y,
+                                           center.GetDistance(sp), false, zone);
+
+          float rot = ZoneManager::GetRandomRotation();
+          enemy =
+              zoneManager->CreateEnemy(zone, spawn->GetEnemyType(), 0, 0, sp.x,
+                                       sp.y, rot, source->GetEntityUUID());
+        } else {
+          // Use the specified spotID.
+          enemy =
+              zoneManager->CreateEnemy(zone, spawn->GetEnemyType(),
+                                       spawn->GetID(), spotID, 0.f, 0.f, 0.f);
+        }
+
         if (enemy) {
           auto eBase = enemy->GetEnemyBase();
           eBase->SetSpawnGroupID(sgID);
