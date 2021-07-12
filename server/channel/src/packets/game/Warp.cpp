@@ -35,11 +35,14 @@
 
 // object Includes
 #include <ActivatedAbility.h>
+#include <CharacterProgress.h>
 #include <Item.h>
+#include <ItemBox.h>
 #include <MiConditionData.h>
 #include <MiSkillBasicData.h>
 #include <MiSkillData.h>
 #include <MiWarpPointData.h>
+#include <MiWarpRestriction.h>
 
 // channel Includes
 #include "ChannelServer.h"
@@ -81,6 +84,11 @@ bool Parsers::Warp::Parse(
   auto definitionManager = server->GetDefinitionManager();
   auto skillManager = server->GetSkillManager();
   auto zoneManager = server->GetZoneManager();
+  auto characterManager = server->GetCharacterManager();
+  auto cState = state->GetCharacterState();
+  auto character = cState->GetEntity();
+  auto inventory = character->GetItemBoxes(0).Get();
+  auto progress = character->GetProgress().Get();
 
   auto activatedAbility = sourceState->GetSpecialActivations(activationID);
   if (!activatedAbility) {
@@ -90,10 +98,69 @@ bool Parsers::Warp::Parse(
         libcomp::PersistentObject::GetObjectByUUID(
             state->GetObjectUUID(activatedAbility->GetActivationObjectID())));
 
-    // Warp is valid if the item was consumed or the skill wasn't an item skill
+    // Warp is valid if required conditions are met, and the item was consumed
+    // or the skill wasn't an item skill
     auto warpDef = definitionManager->GetWarpPointData(warpPointID);
+    bool warpConditionsMet = warpDef ? true : false;
+    if (warpDef) {
+      // Always 3 restrictions
+      auto warpRestrictions = warpDef->GetWarpRestrictions();
+
+      for (size_t i = 0; i < warpDef->WarpRestrictionsCount(); ++i) {
+        switch (warpRestrictions[i]->GetRestrictionType()) {
+          case objects::MiWarpRestriction::RestrictionType_t::
+              HAS_COMPLETED_QUEST: {
+            size_t index;
+            uint8_t shiftVal;
+            characterManager->ConvertIDToMaskValues(
+                (uint16_t)warpRestrictions[i]->GetRestrictionValue(), index,
+                shiftVal);
+
+            uint8_t indexVal = progress->GetCompletedQuests(index);
+
+            if ((indexVal & shiftVal) == 0) {
+              // Quest not completed
+              warpConditionsMet = false;
+            }
+          } break;
+          case objects::MiWarpRestriction::RestrictionType_t::
+              HAS_ITEM_IN_INVENTORY: {
+            if (!characterManager->GetExistingItemCount(
+                    character,
+                    (uint16_t)warpRestrictions[i]->GetRestrictionValue())) {
+              warpConditionsMet = false;
+            }
+          } break;
+          case objects::MiWarpRestriction::RestrictionType_t::HAS_VALUABLE: {
+            if (!characterManager->HasValuable(
+                    character,
+                    (uint16_t)warpRestrictions[i]->GetRestrictionValue())) {
+              warpConditionsMet = false;
+            }
+          } break;
+          case objects::MiWarpRestriction::RestrictionType_t::NONE:
+            break;
+          default: {
+            LogGeneralError([&]() {
+              return libcomp::String(
+                         "WarpPoint ID %1 has an invalid WarpRestriction type "
+                         "that resolves to %2\n")
+                  .Arg(warpDef->GetID())
+                  .Arg(warpRestrictions[i]->GetRestrictionTypeValue());
+            });
+
+            warpConditionsMet = false;
+          } break;
+        }
+
+        if (!warpConditionsMet) {
+          break;
+        }
+      }
+    }
+
     auto skillData = activatedAbility->GetSkillData();
-    if (warpDef &&
+    if (warpConditionsMet &&
         (item ||
          (skillData->GetBasic()->GetFamily() != SkillFamily_t::ITEM &&
           skillData->GetBasic()->GetFamily() != SkillFamily_t::DEMON_SOLO))) {
