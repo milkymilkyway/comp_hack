@@ -313,6 +313,7 @@ class channel::SkillTargetResult {
   int32_t PursuitDamage = 0;
   uint8_t PursuitAffinity = 0;
   StatusEffectChanges AddedStatuses;
+  std::set<uint32_t> CancelAdditionOnDeathStatuses;
   std::set<uint32_t> CancelledStatuses;
   bool HitAvoided = false;
   uint8_t HitNull = 0;     // 0: None, 1: Physical, 2: Magic, 3: Barrier
@@ -3596,8 +3597,6 @@ void SkillManager::ProcessSkillResultFinal(
       return;
     }
 
-    SetFinalNRAFlags(pSkill);
-
     // Now that damage is calculated, apply drain
     uint8_t hpDrainPercent = battleDamage->GetHPDrainPercent();
     uint8_t mpDrainPercent = battleDamage->GetMPDrainPercent();
@@ -3649,8 +3648,6 @@ void SkillManager::ProcessSkillResultFinal(
         selfTarget->Damage2 = mpDrain < 0 ? mpDrain : 0;
       }
     }
-  } else {
-    SetFinalNRAFlags(pSkill);
   }
 
   // Get knockback info
@@ -3788,11 +3785,10 @@ void SkillManager::ProcessSkillResultFinal(
 
     // Now that knockback has been calculated, determine which status
     // effects to apply
-    std::set<uint32_t> cancelOnKill;
     if (!(skill.ExecutionContext &&
           !skill.ExecutionContext->ApplyStatusEffects) &&
         !target.IndirectTarget && !target.HitAbsorb) {
-      cancelOnKill = HandleStatusEffects(source, target, pSkill);
+      HandleStatusEffects(source, target, pSkill);
 
       if (hpMpSet) {
         // Explicitly setting HP/MP stops all ailment damage
@@ -3800,6 +3796,18 @@ void SkillManager::ProcessSkillResultFinal(
       } else {
         hpDamage += target.AilmentDamage;
       }
+    }
+
+    // Now that damage, knockback, and status effects have been calculated,
+    // determine if NRA display flags need to be set. NRA flags are
+    // not set if the skill has no damage formula, applies no knockback,
+    // and applies no statuses. The basic Dodge is an example of one
+    // such skill.
+    if (hasBattleDamage || applyKnockback ||
+        pSkill->Definition->GetDamage()->AddStatusesCount() ||
+        pSkill->FunctionID == SVR_CONST.SKILL_STATUS_RANDOM ||
+        pSkill->FunctionID == SVR_CONST.SKILL_STATUS_RANDOM2) {
+      SetFinalNRAFlags(pSkill);
     }
 
     // Now that damage, knockback, and status effects have been calculated for
@@ -3977,10 +3985,6 @@ void SkillManager::ProcessSkillResultFinal(
     if (targetKilled) {
       target.Flags1 |= FLAG1_LETHAL;
       target.EffectCancellations |= EFFECT_CANCEL_DEATH;
-
-      for (uint32_t effectID : cancelOnKill) {
-        target.AddedStatuses.erase(effectID);
-      }
     }
 
     if (doTalk && !targetKilled &&
@@ -4039,6 +4043,14 @@ void SkillManager::ProcessSkillResultFinal(
       }
 
       if (target.AddedStatuses.size() > 0) {
+        // Remove effects that are canceled on death from statuses to be added
+        // if the target is dead.
+        if (!target.EntityState->IsAlive()) {
+          for (uint32_t effectID : target.CancelAdditionOnDeathStatuses) {
+            target.AddedStatuses.erase(effectID);
+          }
+        }
+
         auto removed = target.EntityState->AddStatusEffects(
             target.AddedStatuses, definitionManager, effectTime, false);
         for (auto r : removed) {
@@ -5806,14 +5818,13 @@ bool SkillManager::HandleSkillInterrupt(
   return false;
 }
 
-std::set<uint32_t> SkillManager::HandleStatusEffects(
+void SkillManager::HandleStatusEffects(
     const std::shared_ptr<ActiveEntityState>& source, SkillTargetResult& target,
     const std::shared_ptr<channel::ProcessingSkill>& pSkill) {
-  std::set<uint32_t> cancelOnKill;
   if ((target.Flags2 & FLAG2_IMPOSSIBLE) != 0) {
     // The target cannot be affected by the skill in any way,
-    // return an empty set
-    return cancelOnKill;
+    // return
+    return;
   }
 
   // Gather status effects from the skill
@@ -5896,7 +5907,7 @@ std::set<uint32_t> SkillManager::HandleStatusEffects(
   }
 
   if (addStatusMap.size() == 0) {
-    return cancelOnKill;
+    return;
   }
 
   auto targetCalc = GetCalculatedState(eState, pSkill, true, source);
@@ -5935,6 +5946,7 @@ std::set<uint32_t> SkillManager::HandleStatusEffects(
     int32_t adjustCategory = (int32_t)(statusCategory * -1) - 1;
 
     // Determine if the effect can be added
+    auto cancelDef = statusDef->GetCancel();
     if (!isRemove) {
       // If its application logic type 1, it cannot be applied if
       // it is already active unless we're replacing (ex: sleep)
@@ -5974,6 +5986,14 @@ std::set<uint32_t> SkillManager::HandleStatusEffects(
         if (nraSuccess) {
           continue;
         }
+      }
+
+      // Don't try to apply the status if the target is dead and it is of the
+      // type that is canceled by death; useful in the case of multiple
+      // simultaneous repels of a status-causing skill
+      if (!target.EntityState->IsAlive() &&
+          (cancelDef->GetCancelTypes() & EFFECT_CANCEL_DEATH)) {
+        continue;
       }
     }
 
@@ -6122,15 +6142,15 @@ std::set<uint32_t> SkillManager::HandleStatusEffects(
         target.AddedStatuses[effectID] =
             StatusEffectChange(effectID, stack, isReplace);
 
-        auto cancelDef = statusDef->GetCancel();
         if (cancelDef->GetCancelTypes() & EFFECT_CANCEL_DEATH) {
-          cancelOnKill.insert(effectID);
+          LogSkillManagerDebug([effectID]() {
+            return libcomp::String("Inserting %1\n").Arg(effectID);
+          });
+          target.CancelAdditionOnDeathStatuses.insert(effectID);
         }
       }
     }
   }
-
-  return cancelOnKill;
 }
 
 void SkillManager::HandleKills(

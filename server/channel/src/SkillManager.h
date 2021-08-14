@@ -675,10 +675,8 @@ class SkillManager {
    * @param source Pointer to the state of the source entity
    * @param target Skill targeted entity
    * @param pSkill Skill processing state of the skill being executed
-   * @return Set of status effects being applied that will be cancelled
-   *  if the entity is killed as a result of the skill
    */
-  std::set<uint32_t> HandleStatusEffects(
+  void HandleStatusEffects(
       const std::shared_ptr<ActiveEntityState>& source,
       SkillTargetResult& target,
       const std::shared_ptr<channel::ProcessingSkill>& pSkill);
