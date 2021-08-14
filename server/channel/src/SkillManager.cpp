@@ -3329,14 +3329,16 @@ bool SkillManager::ProcessSkillResult(
           validType == objects::MiEffectiveRangeData::ValidType_t::DEAD_PARTY;
 
       bool isRevive = false;
-      switch (skillData->GetDamage()->GetBattleDamage()->GetFormula()) {
-        case objects::MiBattleDamageData::Formula_t::HEAL_NORMAL:
-        case objects::MiBattleDamageData::Formula_t::HEAL_STATIC:
-        case objects::MiBattleDamageData::Formula_t::HEAL_MAX_PERCENT:
-          isRevive = true;
-          break;
-        default:
-          break;
+      if (deadOnly) {
+        switch (skillData->GetDamage()->GetBattleDamage()->GetFormula()) {
+          case objects::MiBattleDamageData::Formula_t::HEAL_NORMAL:
+          case objects::MiBattleDamageData::Formula_t::HEAL_STATIC:
+          case objects::MiBattleDamageData::Formula_t::HEAL_MAX_PERCENT:
+            isRevive = true;
+            break;
+          default:
+            break;
+        }
       }
 
       effectiveTargets.remove_if(
