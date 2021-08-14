@@ -54,6 +54,8 @@
 #include <MiSkillData.h>
 #include <MiSkillItemStatusCommonData.h>
 #include <MiSpecialConditionData.h>
+#include <MiStatusBasicData.h>
+#include <MiStatusData.h>
 #include <MiUnionData.h>
 #include <Party.h>
 #include <Tokusei.h>
@@ -1083,8 +1085,15 @@ std::list<std::shared_ptr<objects::Tokusei>> TokuseiManager::GetDirectTokusei(
   for (auto pair : eState->GetStatusEffects()) {
     auto sStatus = definitionManager->GetSStatusData(pair.first);
     if (sStatus) {
+      auto statusData = definitionManager->GetStatusData(pair.first);
+      uint8_t multiplier = (statusData->GetBasic()->GetStackType() == 2)
+                               ? pair.second->GetStack()
+                               : 1;
+
       for (int32_t tokuseiID : sStatus->GetTokusei()) {
-        tokuseiIDs.push_back(tokuseiID);
+        for (uint8_t i = 0; i < multiplier; i++) {
+          tokuseiIDs.push_back(tokuseiID);
+        }
       }
     }
   }
