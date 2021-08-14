@@ -1112,12 +1112,13 @@ class CharacterManager {
    * @param client Pointer to the client connection
    * @param pluginID ID representing both the plugin that was obtained and its
    *  byte shift position in the storage array
-   * @return true if the plugin is valid and was either added or already
-   *  obtained, false it was not
+   * @param remove true if the value should be removed instead of added
+   * @return true if the plugin is valid and was either added, removed, or
+   * already obtained, false it was not
    */
-  bool AddPlugin(
+  bool AddRemovePlugin(
       const std::shared_ptr<channel::ChannelClientConnection>& client,
-      uint16_t pluginID);
+      uint16_t pluginID, bool remove);
 
   /**
    * Send the client character's obtained plugins stored as an array of flags

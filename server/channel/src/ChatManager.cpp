@@ -1912,10 +1912,9 @@ bool ChatManager::GMCommand_Help(
         "Remove all PvP penalties on the character NAME or to",
         "yourself if no NAME is specified."}},
       {"plugin",
-       {
-           "@plugin ID",
-           "Adds plugin for the player with the given ID.",
-       }},
+       {"@valuable ID [REMOVE]",
+        "Grants the player the plugin with the given ID. If",
+        "REMOVE is set to 'remove' the plugin is removed."}},
       {"pos",
        {"@pos [SPOTID|X Y]",
         "Prints out the X, Y position of the player or moves",
@@ -2597,7 +2596,11 @@ bool ChatManager::GMCommand_Plugin(
     return false;
   }
 
-  if (!mServer.lock()->GetCharacterManager()->AddPlugin(client, pluginID)) {
+  libcomp::String removeArg;
+  bool remove =
+      GetStringArg(removeArg, argsCopy) && removeArg.ToLower() == "remove";
+  if (!mServer.lock()->GetCharacterManager()->AddRemovePlugin(client, pluginID,
+                                                              remove)) {
     return SendChatMessage(client, ChatType_t::CHAT_SELF,
                            "Invalid plugin ID supplied for @plugin command");
   }
@@ -3606,7 +3609,9 @@ bool ChatManager::GMCommand_Valuable(
     return false;
   }
 
-  bool remove = argsCopy.size() > 0 && argsCopy.front() == "remove";
+  libcomp::String removeArg;
+  bool remove =
+      GetStringArg(removeArg, argsCopy) && removeArg.ToLower() == "remove";
   if (!mServer.lock()->GetCharacterManager()->AddRemoveValuable(
           client, valuableID, remove)) {
     return SendChatMessage(

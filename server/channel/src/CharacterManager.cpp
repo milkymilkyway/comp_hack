@@ -5192,9 +5192,7 @@ bool CharacterManager::AddRemoveValuable(
 
   auto oldValue = progress->GetValuables(index);
   uint8_t newValue =
-      remove
-          ? ((oldValue & shiftVal) ? (uint8_t)(oldValue ^ shiftVal) : oldValue)
-          : (uint8_t)(oldValue | shiftVal);
+      remove ? (uint8_t)(oldValue & ~shiftVal) : (uint8_t)(oldValue | shiftVal);
 
   if (oldValue != newValue) {
     progress->SetValuables((size_t)index, newValue);
@@ -5272,9 +5270,9 @@ void CharacterManager::SendValuableFlags(
   client->SendPacket(reply);
 }
 
-bool CharacterManager::AddPlugin(
+bool CharacterManager::AddRemovePlugin(
     const std::shared_ptr<channel::ChannelClientConnection>& client,
-    uint16_t pluginID) {
+    uint16_t pluginID, bool remove) {
   auto state = client->GetClientState();
   auto cState = state->GetCharacterState();
   auto character = cState->GetEntity();
@@ -5289,7 +5287,8 @@ bool CharacterManager::AddPlugin(
   }
 
   auto oldValue = progress->GetPlugins(index);
-  uint8_t newValue = static_cast<uint8_t>(oldValue | shiftVal);
+  uint8_t newValue =
+      remove ? (uint8_t)(oldValue & ~shiftVal) : (uint8_t)(oldValue | shiftVal);
 
   if (oldValue != newValue) {
     progress->SetPlugins((size_t)index, newValue);

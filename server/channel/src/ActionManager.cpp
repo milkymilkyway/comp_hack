@@ -1912,16 +1912,8 @@ bool ActionManager::UpdateFlag(ActionContext& ctx) {
       characterManager->AddMap(ctx.Client, act->GetID());
       break;
     case objects::ActionUpdateFlag::FlagType_t::PLUGIN:
-      if (act->GetRemove()) {
-        LogActionManagerError([&]() {
-          return libcomp::String(
-                     "UpdateFlag attempted to remove a plugin: %1\n")
-              .Arg(act->GetID());
-        });
-        return false;
-      } else {
-        characterManager->AddPlugin(ctx.Client, act->GetID());
-      }
+      characterManager->AddRemovePlugin(ctx.Client, act->GetID(),
+                                        act->GetRemove());
       break;
     case objects::ActionUpdateFlag::FlagType_t::VALUABLE:
       characterManager->AddRemoveValuable(ctx.Client, act->GetID(),

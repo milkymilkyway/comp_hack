@@ -638,7 +638,8 @@ void HandleBarter(const std::shared_ptr<ChannelServer> server,
       }
 
       for (int32_t pluginID : pluginIDs) {
-        failed |= !characterManager->AddPlugin(client, (uint16_t)pluginID);
+        failed |= !characterManager->AddRemovePlugin(client, (uint16_t)pluginID,
+                                                     false);
       }
 
       for (uint16_t valuableID : oneTimeValuables) {
