@@ -140,6 +140,19 @@ bool FusionManager::HandleTriFusion(
                                 costItemType, resultDemon, changes);
 
   if (soloFusion) {
+    if (!server->GetWorldDatabase()->ProcessChangeSet(changes)) {
+      LogFusionManagerError([&]() {
+        return libcomp::String(
+                   "Solo Trifusion database changes failed to save for account "
+                   "'%1'. Disconnecting to avoid additional errors.\n")
+            .Arg(state->GetAccountUID().ToString());
+      });
+
+      client->Kill();
+
+      return false;
+    }
+
     libcomp::Packet reply;
     reply.WritePacketCode(ChannelToClientPacketCode_t::PACKET_TRIFUSION_SOLO);
     reply.WriteS8((result != 0 && result != 2) ? 1 : result);
