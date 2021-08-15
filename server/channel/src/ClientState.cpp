@@ -32,6 +32,7 @@
 // libcomp Includes
 #include <Packet.h>
 #include <PacketCodes.h>
+#include <ScriptEngine.h>
 
 // object Includes
 #include <Account.h>
@@ -49,6 +50,30 @@
 #include "Zone.h"
 
 using namespace channel;
+
+namespace libcomp {
+template <>
+BaseScriptEngine& BaseScriptEngine::Using<ClientState>() {
+  if (!BindingExists("ClientState", true)) {
+    Using<CharacterState>();
+    Using<DemonState>();
+    Using<libobjgen::UUID>();
+    Using<objects::AccountWorldData>();
+    Using<objects::ClientStateObject>();
+
+    Sqrat::DerivedClass<ClientState, objects::ClientStateObject,
+                        Sqrat::NoCopy<ClientState>>
+        binding(mVM, "ClientState");
+    binding.Func("GetAccountWorldData", &ClientState::GetAccountWorldData)
+        .StaticFunc("GetEntityClientState", &ClientState::GetEntityClientState)
+        .Func("GetObjectUUID", &ClientState::GetObjectUUID);
+
+    Bind<ClientState>("ClientState", binding);
+  }
+
+  return *this;
+}
+}  // namespace libcomp
 
 std::unordered_map<bool, std::unordered_map<int32_t, ClientState*>>
     ClientState::sEntityClients;

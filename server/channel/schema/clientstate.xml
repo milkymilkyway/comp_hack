@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <objgen>
-    <object name="ClientStateObject" persistent="false">
+    <object name="ClientStateObject" scriptenabled="true" persistent="false">
         <member type="bool" name="Authenticated"/>
         <member type="bool" name="LoggedIn"/>
         <member type="bool" name="LogoutSave" default="true"/>

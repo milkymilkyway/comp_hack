@@ -146,6 +146,7 @@ BaseScriptEngine& BaseScriptEngine::Using<ZoneManager>() {
             const std::shared_ptr<Zone>&, bool, bool, const libcomp::String&)>(
             "AddEnemiesToZone", &ZoneManager::AddEnemiesToZone)
         .Func("LinearReposition", &ZoneManager::LinearReposition)
+        .Func("RemoveEntitiesFromZone", &ZoneManager::RemoveEntitiesFromZone)
         .Func("StartZoneEvent", &ZoneManager::StartZoneEvent);
 
     Bind<ZoneManager>("ZoneManager", binding);
@@ -2963,6 +2964,7 @@ bool ZoneManager::CopyToEnemy(
   cs->SetINTEL(extension->GetCorrectTbl((size_t)CorrectTbl::INT));
   cs->SetSPEED(extension->GetCorrectTbl((size_t)CorrectTbl::SPEED));
   cs->SetLUCK(extension->GetCorrectTbl((size_t)CorrectTbl::LUCK));
+  cs->SetCLSR(extension->GetCorrectTbl((size_t)CorrectTbl::CLSR));
   cs->SetLNGR(extension->GetCorrectTbl((size_t)CorrectTbl::LNGR));
   cs->SetSPELL(extension->GetCorrectTbl((size_t)CorrectTbl::SPELL));
   cs->SetSUPPORT(extension->GetCorrectTbl((size_t)CorrectTbl::SUPPORT));
@@ -2972,6 +2974,10 @@ bool ZoneManager::CopyToEnemy(
   mServer.lock()->GetTokuseiManager()->Recalculate(eState, false);
 
   eState->RecalculateStats(definitionManager);
+
+  // Set current HP/MP to post-recalculation maxima.
+  cs->SetHP(eState->GetMaxHP());
+  cs->SetMP(eState->GetMaxMP());
 
   return true;
 }

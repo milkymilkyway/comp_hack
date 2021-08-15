@@ -3060,6 +3060,7 @@ bool ActionManager::RunScript(ActionContext& ctx) {
     engine->Using<AllyState>();
     engine->Using<ChannelServer>();
     engine->Using<CharacterState>();
+    engine->Using<ClientState>();
     engine->Using<DemonState>();
     engine->Using<EnemyState>();
     engine->Using<Zone>();
@@ -3218,6 +3219,7 @@ bool ActionManager::PrepareTransformScript(
   if (script && script->Type.ToLower() == "actiontransform") {
     // Bind some defaults
     engine->Using<CharacterState>();
+    engine->Using<ClientState>();
     engine->Using<DemonState>();
     engine->Using<EnemyState>();
     engine->Using<Zone>();

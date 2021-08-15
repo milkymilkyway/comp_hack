@@ -111,6 +111,7 @@ BaseScriptEngine& BaseScriptEngine::Using<Zone>() {
         .Func<std::shared_ptr<PlasmaState> (Zone::*)(uint32_t)>(
             "GetPlasma", &Zone::GetPlasma)
         .Func("EnableDisableSpawnGroup", &Zone::EnableDisableSpawnGroup)
+        .Func("RemoveEntity", &Zone::RemoveEntity)
         .Func("RespawnSpawnGroup", &Zone::RespawnSpawnGroup)
         .Func("SpawnedAtSpot", &Zone::SpawnedAtSpot);
 

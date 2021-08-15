@@ -570,6 +570,7 @@ void SkillManager::LoadScripts() {
       script->Using<objects::CalculatedEntityState>();
       script->Using<ChannelServer>();
       script->Using<CharacterState>();
+      script->Using<ClientState>();
       script->Using<DemonState>();
       script->Using<EnemyState>();
       script->Using<Zone>();
@@ -11735,21 +11736,21 @@ bool SkillManager::SummonDemon(
     return false;
   }
 
-  ProcessSkillResult(activated, ctx);
+  if (ProcessSkillResult(activated, ctx)) {
+    auto characterManager = mServer.lock()->GetCharacterManager();
+    characterManager->SummonDemon(client, demonID);
 
-  auto characterManager = mServer.lock()->GetCharacterManager();
-  characterManager->SummonDemon(client, demonID);
+    // Update the summoner's Summon expertise
+    characterManager->UpdateExpertise(
+        client, activated->GetSkillData()->GetCommon()->GetID(),
+        activated->GetExpertiseBoost(), cState->GetCalculatedState());
 
-  // Update the summoner's Summon expertise
-  characterManager->UpdateExpertise(
-      client, activated->GetSkillData()->GetCommon()->GetID(),
-      activated->GetExpertiseBoost(), cState->GetCalculatedState());
-
-  LogSkillManagerDebug([cState, dState]() {
-    return libcomp::String("%1 summons %2.\n")
-        .Arg(cState->GetEntityLabel())
-        .Arg(dState->GetEntityLabel());
-  });
+    LogSkillManagerDebug([cState, dState]() {
+      return libcomp::String("%1 summons %2.\n")
+          .Arg(cState->GetEntityLabel())
+          .Arg(dState->GetEntityLabel());
+    });
+  }
 
   return true;
 }
