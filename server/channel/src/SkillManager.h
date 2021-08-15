@@ -144,12 +144,15 @@ class SkillManager {
    * @param targetType Type of entity/object being targeted by the
    *  activationObjectID (and sometimes targetObjectID as well)
    * @param ctx Special execution state for the skill (ex: free cast, counter)
+   * @param fusionSkillCompDemonIDs Set of unsummoned demons involved in the
+   * skill
    * @return true if the skill was activated successfully, false otherwise
    */
   bool ActivateSkill(const std::shared_ptr<ActiveEntityState> source,
                      uint32_t skillID, int64_t activationObjectID,
                      int64_t targetObjectID, uint8_t targetType,
-                     std::shared_ptr<SkillExecutionContext> ctx = 0);
+                     std::shared_ptr<SkillExecutionContext> ctx = 0,
+                     std::set<int64_t> fusionSkillCompDemonIDs = {});
 
   /**
    * Reactivate switch skills that were toggled on in a previous login.
@@ -292,12 +295,15 @@ class SkillManager {
    *  is activated. Targeted fusion skills require a target is selected
    *  before charging starts.
    * @param mainDemonID Object ID of the demon that is currently summoned
-   * @param compDemonID Object ID of the demon that is in the COMP
+   * @param compDemons Set of IDs of demons involved that are stored in the COMP
+   * @param firstCompDemonID ID of the demon whose icon was clicked to activate
+   * a normal double fusion skill
    * @return false if the fusion skill cannot be used for any reason
    */
   bool PrepareFusionSkill(const std::shared_ptr<ChannelClientConnection> client,
                           uint32_t& skillID, int32_t targetEntityID,
-                          int64_t mainDemonID, int64_t compDemonID);
+                          int64_t mainDemonID, std::set<int64_t> compDemonIDs,
+                          int64_t firstCompDemonID);
 
   /**
    * Begin executing a skill. If skill staggering is enabled and the target

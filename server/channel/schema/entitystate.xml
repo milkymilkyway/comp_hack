@@ -193,6 +193,9 @@
         <member type="float" name="ChargeMoveSpeed"/>
         <member type="float" name="ChargeCompleteMoveSpeed"/>
         <member type="u16" name="ExpertiseBoost"/>
+        <member type="set" name="FusionSkillCompDemonIDs">
+            <element type="s64"/>
+        </member>
 
         <member type="bool" name="Cancelled"/>
         <member type="s8" name="ErrorCode" default="-1"/>

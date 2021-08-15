@@ -87,6 +87,7 @@ bool Parsers::SkillActivate::Parse(
 
   int64_t activationObjectID = -1;
   int64_t targetObjectID = -1;
+  std::set<int64_t> fusionSkillCompDemonIDs = {};
   switch (targetType) {
     case ACTIVATION_NOTARGET:
       // Nothing special to do
@@ -120,6 +121,10 @@ bool Parsers::SkillActivate::Parse(
       activationObjectID = targetObjectID = (int64_t)p.ReadS32Little();
       break;
     case ACTIVATION_FUSION:
+    case ACTIVATION_TRIFUSION:
+    case ACTIVATION_QUADFUSION:
+    case ACTIVATION_PENTAFUSION:
+    case ACTIVATION_HEXFUSION:
       if (source != state->GetCharacterState()) {
         LogSkillManagerError([&]() {
           return libcomp::String(
@@ -134,7 +139,20 @@ bool Parsers::SkillActivate::Parse(
       } else {
         int32_t targetEntityID = p.ReadS32Little();
         int64_t summonedDemonID = p.ReadS64Little();
-        int64_t compDemonID = p.ReadS64Little();
+        // First demon after the summoned one is also the activationObjectID, so
+        // store it separately
+        int64_t firstCompDemonID = p.ReadS64Little();
+
+        // Every set of 8 bytes after this point
+        // except for the last 8 is another involved COMP demon.
+        auto compDemonsNum = (p.Left() - 8) / 8;
+        std::set<int64_t> compDemonIDs;
+        compDemonIDs.insert(firstCompDemonID);
+
+        // Insert the other Comp demons involved into a set.
+        for (size_t i = 0; i < compDemonsNum; ++i) {
+          compDemonIDs.insert(p.ReadS64Little());
+        }
 
         float xPos = p.ReadFloat();
         float yPos = p.ReadFloat();
@@ -149,12 +167,14 @@ bool Parsers::SkillActivate::Parse(
         // "execution skill" that the server needs to convert based
         // on the demons involved
         if (!skillManager->PrepareFusionSkill(client, skillID, targetEntityID,
-                                              summonedDemonID, compDemonID)) {
+                                              summonedDemonID, compDemonIDs,
+                                              firstCompDemonID)) {
           return true;
         }
 
         targetObjectID = (int64_t)targetEntityID;
-        activationObjectID = compDemonID;
+        activationObjectID = firstCompDemonID;
+        fusionSkillCompDemonIDs = compDemonIDs;
       }
       break;
     default: {
@@ -172,12 +192,13 @@ bool Parsers::SkillActivate::Parse(
       [](SkillManager* pSkillManager,
          const std::shared_ptr<ActiveEntityState> pSource, uint32_t pSkillID,
          int64_t pActivationObjectID, int64_t pTargetObjectID,
-         uint8_t pTargetType) {
+         uint8_t pTargetType, std::set<int64_t> pFusionSkillCompDemonIDs) {
         pSkillManager->ActivateSkill(pSource, pSkillID, pActivationObjectID,
-                                     pTargetObjectID, pTargetType);
+                                     pTargetObjectID, pTargetType, 0,
+                                     pFusionSkillCompDemonIDs);
       },
       skillManager, source, skillID, activationObjectID, targetObjectID,
-      (uint8_t)targetType);
+      (uint8_t)targetType, fusionSkillCompDemonIDs);
 
   return true;
 }

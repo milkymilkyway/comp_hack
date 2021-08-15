@@ -49,6 +49,7 @@
 #include <CalculatedEntityState.h>
 #include <ChannelConfig.h>
 #include <CharacterProgress.h>
+#include <DemonBox.h>
 #include <DemonFamiliarityType.h>
 #include <DigitalizeState.h>
 #include <DropSet.h>
@@ -583,7 +584,8 @@ void SkillManager::LoadScripts() {
 bool SkillManager::ActivateSkill(
     const std::shared_ptr<ActiveEntityState> source, uint32_t skillID,
     int64_t activationObjectID, int64_t targetObjectID, uint8_t targetType,
-    std::shared_ptr<SkillExecutionContext> ctx) {
+    std::shared_ptr<SkillExecutionContext> ctx,
+    std::set<int64_t> fusionSkillCompDemonIDs) {
   auto server = mServer.lock();
   auto definitionManager = server->GetDefinitionManager();
   auto tokuseiManager = server->GetTokuseiManager();
@@ -687,6 +689,7 @@ bool SkillManager::ActivateSkill(
   activated->SetTargetObjectID(targetObjectID);
   activated->SetActivationTargetType(targetType);
   activated->SetActivationTime(now);
+  activated->SetFusionSkillCompDemonIDs(fusionSkillCompDemonIDs);
 
   auto pSkill = GetProcessingSkill(activated, nullptr);
   if (!CheckScriptValidation(pSkill, false)) {
@@ -1844,7 +1847,8 @@ std::pair<float, float> SkillManager::GetMovementSpeeds(
 
 bool SkillManager::PrepareFusionSkill(
     const std::shared_ptr<ChannelClientConnection> client, uint32_t& skillID,
-    int32_t targetEntityID, int64_t mainDemonID, int64_t compDemonID) {
+    int32_t targetEntityID, int64_t mainDemonID, std::set<int64_t> compDemonIDs,
+    int64_t firstCompDemonID) {
   if (!client) {
     return false;
   }
@@ -1873,16 +1877,29 @@ bool SkillManager::PrepareFusionSkill(
   auto demon1 = std::dynamic_pointer_cast<objects::Demon>(
       libcomp::PersistentObject::GetObjectByUUID(
           state->GetObjectUUID(mainDemonID)));
-  auto demon2 = std::dynamic_pointer_cast<objects::Demon>(
-      libcomp::PersistentObject::GetObjectByUUID(
-          state->GetObjectUUID(compDemonID)));
+  std::set<std::shared_ptr<objects::Demon>> compDemons;
 
-  // Both demons needed, first summoned, alive, nearby and not using
-  // a skill, second in COMP
+  // All demons needed, first summoned, alive, nearby and not using
+  // a skill, rest must at least be in COMP
   auto comp = state->GetCharacterState()->GetEntity()->GetCOMP();
-  if (!demon1 || !demon2 || dState->GetEntity() != demon1 ||
-      comp.GetUUID() != demon2->GetDemonBox() ||
-      dState->GetActivatedAbility()) {
+  auto allDemonsPresent = (demon1 && dState->GetEntity() == demon1);
+
+  for (auto compDemonID : compDemonIDs) {
+    auto compDemon = std::dynamic_pointer_cast<objects::Demon>(
+        libcomp::PersistentObject::GetObjectByUUID(
+            state->GetObjectUUID(compDemonID)));
+
+    allDemonsPresent &=
+        compDemon && (comp.GetUUID() == compDemon->GetDemonBox());
+
+    if (allDemonsPresent) {
+      compDemons.insert(compDemon);
+    } else {
+      break;
+    }
+  }
+
+  if (!allDemonsPresent || dState->GetActivatedAbility()) {
     SendFailure(cState, skillID, client,
                 (uint8_t)SkillErrorCodes_t::ACTIVATION_FAILURE);
     return false;
@@ -1894,43 +1911,65 @@ bool SkillManager::PrepareFusionSkill(
 
   // Demons in valid state, determine skill type
   uint32_t demonType1 = demon1->GetType();
-  uint32_t demonType2 = demon2->GetType();
-
   auto demon1Data = definitionManager->GetDevilData(demonType1);
-  auto demon2Data = definitionManager->GetDevilData(demonType2);
-
   uint32_t baseDemonType1 = demon1Data->GetUnionData()->GetBaseDemonID();
-  uint32_t baseDemonType2 = demon2Data->GetUnionData()->GetBaseDemonID();
 
-  // If any special pairings exist for the two demons, use that skill
+  std::unordered_map<uint32_t, std::shared_ptr<objects::MiDevilData>>
+      compDemonData;
+  std::set<uint32_t> compDemonBaseTypes;
+  for (auto& compDemon : compDemons) {
+    compDemonData[compDemon->GetType()] =
+        definitionManager->GetDevilData(compDemon->GetType());
+    compDemonBaseTypes.insert(
+        compDemonData[compDemon->GetType()]->GetUnionData()->GetBaseDemonID());
+  }
+
+  // If any special combinations exist for the demons involved, use that skill
   bool specialSkill = false;
-  for (uint32_t fSkillID :
-       definitionManager->GetDevilFusionIDsByDemonID(demonType1)) {
-    bool valid = true;
+  for (auto& compDemon : compDemons) {
+    for (uint32_t fSkillID :
+         definitionManager->GetDevilFusionIDsByDemonID(compDemon->GetType())) {
+      bool valid = true;
 
-    auto fusionData = definitionManager->GetDevilFusionData(fSkillID);
-    for (uint32_t demonType : fusionData->GetRequiredDemons()) {
-      auto demonDef = definitionManager->GetDevilData(demonType);
-      if (demonDef) {
-        uint32_t baseDemonType = demonDef->GetUnionData()->GetBaseDemonID();
-        if (baseDemonType != baseDemonType1 &&
-            baseDemonType != baseDemonType2) {
-          valid = false;
-          break;
+      auto fusionData = definitionManager->GetDevilFusionData(fSkillID);
+      for (uint32_t demonType : fusionData->GetRequiredDemons()) {
+        auto demonDef = definitionManager->GetDevilData(demonType);
+        if (demonDef) {
+          uint32_t baseDemonType = demonDef->GetUnionData()->GetBaseDemonID();
+          if (baseDemonType != baseDemonType1 &&
+              compDemonBaseTypes.find(baseDemonType) ==
+                  compDemonBaseTypes.end()) {
+            valid = false;
+            break;
+          }
         }
+      }
+
+      if (valid) {
+        skillID = fSkillID;
+        specialSkill = true;
+        break;
       }
     }
 
-    if (valid) {
-      skillID = fSkillID;
-      specialSkill = true;
+    if (specialSkill) {
       break;
     }
   }
 
   if (!specialSkill) {
-    // No special skill found, calculate normal fusion skill
-    uint8_t iType = demon2Data->GetGrowth()->GetInheritanceType();
+    // No special skill found, calculate normal fusion skill based on
+    // activation target's inheritance type
+    auto activatingDemon = std::dynamic_pointer_cast<objects::Demon>(
+        libcomp::PersistentObject::GetObjectByUUID(
+            state->GetObjectUUID(firstCompDemonID)));
+    auto activatingDemonData =
+        activatingDemon
+            ? definitionManager->GetDevilData(activatingDemon->GetType())
+            : nullptr;
+    uint8_t iType = activatingDemonData
+                        ? activatingDemonData->GetGrowth()->GetInheritanceType()
+                        : 0;
     if (iType > SVR_CONST.DEMON_FUSION_SKILLS.size()) {
       SendFailure(cState, skillID, client,
                   (uint8_t)SkillErrorCodes_t::ACTIVATION_FAILURE);
@@ -1939,10 +1978,21 @@ bool SkillManager::PrepareFusionSkill(
 
     auto& levels = SVR_CONST.DEMON_FUSION_SKILLS[iType];
 
-    uint8_t magAverage =
-        (uint8_t)floor((float)(demon1Data->GetSummonData()->GetMagModifier() +
-                               demon2Data->GetSummonData()->GetMagModifier()) /
-                       2.f);
+    // Calculate the average magnetite summoning cost and fusion modifier
+    // of all component demons.
+    float magSum = (float)demon1Data->GetSummonData()->GetMagModifier();
+    float fusionSum = (float)demon1Data->GetBasic()->GetFusionModifier();
+    for (auto& compDemon : compDemons) {
+      magSum += (float)compDemonData[compDemon->GetType()]
+                    ->GetSummonData()
+                    ->GetMagModifier();
+      fusionSum += (float)compDemonData[compDemon->GetType()]
+                       ->GetBasic()
+                       ->GetFusionModifier();
+    }
+    float demonCount = (float)(1 + compDemons.size()) * 1.f;
+
+    uint8_t magAverage = (uint8_t)floor(magSum / demonCount);
 
     uint8_t magLevel = 4;
     if (magAverage <= 10) {
@@ -1955,10 +2005,7 @@ bool SkillManager::PrepareFusionSkill(
       magLevel = 3;
     }
 
-    uint8_t fusionAverage =
-        (uint8_t)floor((float)(demon1Data->GetBasic()->GetFusionModifier() +
-                               demon2Data->GetBasic()->GetFusionModifier()) /
-                       2.f);
+    uint8_t fusionAverage = (uint8_t)floor(magSum / demonCount);
 
     uint16_t rankSum = (uint16_t)(magLevel + fusionAverage);
     if (rankSum <= 2) {
@@ -4714,10 +4761,7 @@ bool SkillManager::ProcessFusionExecution(
   }
 
   auto dState = state->GetDemonState();
-  auto otherDemon = std::dynamic_pointer_cast<objects::Demon>(
-      libcomp::PersistentObject::GetObjectByUUID(
-          state->GetObjectUUID(activated->GetActivationObjectID())));
-  if (!dState || !otherDemon) {
+  if (!dState) {
     LogSkillManagerError([source, pSkill]() {
       return libcomp::String(
                  "Fusion skill from %1 attempted with one or more invalid "
@@ -4732,17 +4776,36 @@ bool SkillManager::ProcessFusionExecution(
   auto server = mServer.lock();
   auto definitionManager = server->GetDefinitionManager();
 
-  // Stage the secondary fusion demon and store it on the skill. This version
-  // has just its own stats and effects since it is not "summoned". This is
-  // necessary however to gain benefits from skills and the like.
-  auto dState2 = std::make_shared<DemonState>();
-  dState2->SetEntity(otherDemon, definitionManager);
-
-  server->GetTokuseiManager()->Recalculate(dState2, false);
-  dState2->RecalculateStats(definitionManager);
-
   pSkill->FusionDemons.push_back(dState);
-  pSkill->FusionDemons.push_back(dState2);
+
+  // Stage the other fusion demons and store them on the skill. These version
+  // have just their own stats and effects since they are not "summoned". This
+  // is necessary however to gain benefits from skills and the like.
+  for (auto fusionSkillCompDemonID :
+       pSkill->Activated->GetFusionSkillCompDemonIDs()) {
+    auto otherDemon = std::dynamic_pointer_cast<objects::Demon>(
+        libcomp::PersistentObject::GetObjectByUUID(
+            state->GetObjectUUID(fusionSkillCompDemonID)));
+
+    if (!otherDemon) {
+      LogSkillManagerError([source, pSkill]() {
+        return libcomp::String(
+                   "Fusion skill from %1 attempted with one or more invalid "
+                   "demon(s): %2\n")
+            .Arg(source->GetEntityLabel())
+            .Arg(pSkill->SkillID);
+      });
+
+      return false;
+    }
+
+    auto otherDState = std::make_shared<DemonState>();
+    otherDState->SetEntity(otherDemon, definitionManager);
+
+    server->GetTokuseiManager()->Recalculate(otherDState, false);
+    otherDState->RecalculateStats(definitionManager);
+    pSkill->FusionDemons.push_back(otherDState);
+  }
 
   return true;
 }
