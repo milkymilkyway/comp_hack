@@ -176,8 +176,10 @@ void SendStateData(std::shared_ptr<ChannelServer> server,
       }
     }
 
-    // We don't need the channel login anymore
-    state->SetChannelLogin(nullptr);
+    if (!channelLogin->GetInstanceReconnection()) {
+      // We don't need the channel login anymore
+      state->SetChannelLogin(nullptr);
+    }
   }
 }
 

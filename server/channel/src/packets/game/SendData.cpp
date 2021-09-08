@@ -134,9 +134,11 @@ void SendClientReadyData(
 
         if (channelLogin->GetFromChannel() == -1) {
           // Recovering from an instance disconnect, set last
-          // zone and instance ID to simulate respawn
+          // zone and instance ID to simulate respawn, and
+          // set the flag to fire login events
           state->SetLastZoneID(channelLogin->GetToZoneID());
           state->SetLastInstanceID(instAccess->GetInstanceID());
+          channelLogin->SetInstanceReconnection(true);
         }
       }
     }

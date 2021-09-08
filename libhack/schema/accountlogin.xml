@@ -44,6 +44,7 @@
             <element type="u32"/>
         </member>
         <member type="pref" name="DigitalizeDemon"/>
+        <member type="bool" name="InstanceReconnection" default="false"/>
     </object>
     <object name="InstanceAccess" persistent="false">
         <member type="set" name="AccessCIDs">

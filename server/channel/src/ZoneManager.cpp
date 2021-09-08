@@ -1676,9 +1676,15 @@ bool ZoneManager::SendPopulateZoneData(
   cState->SetStatusEffectsActive(true, definitionManager);
   dState->SetStatusEffectsActive(true, definitionManager);
 
-  // Trigger zone-in actions (and login if starting zone)
-  if (state->GetLastZoneID() == 0) {
+  // Trigger zone-in actions (and fire login events if it is the starting zone
+  // or an instance reconnection)
+  auto channelLogin = state->GetChannelLogin();
+  if (state->GetLastZoneID() == 0 ||
+      (channelLogin && channelLogin->GetInstanceReconnection())) {
     TriggerZoneActions(zone, {cState}, ZoneTrigger_t::ON_LOGIN, client);
+
+    // If it's still here, we don't need the channelLogin anymore
+    state->SetChannelLogin(nullptr);
   }
 
   TriggerZoneActions(zone, {cState, dState}, ZoneTrigger_t::ON_ZONE_IN, client);
