@@ -1798,9 +1798,11 @@ bool ChatManager::GMCommand_Help(
       {"effect",
        {"@effect ID [+/-]STACK [DEMON] [NAME]",
         "Add or sets the stack count for status effect with",
-        "the given ID to the character specified by NAME, or,"
-        "the demon if DEMON is set to 'demon'. IF NAME is",
-        "not set, the current account is targeted."}},
+        "the given ID to the character specified by NAME (case",
+        "sensitive). If NAME is not set, the current account",
+        "is targeted.If DEMON is set to the word \"demon\"",
+        "(case insensitive), the command targets the",
+        "character's currently-summoned demon."}},
       {"enchant",
        {
            "@enchant EQUIP TAROT SOUL",

@@ -3631,9 +3631,18 @@ void SkillManager::ProcessSkillResultFinal(
   auto tokuseiManager = server->GetTokuseiManager();
   auto zoneManager = server->GetZoneManager();
 
+  // Get damage info
   auto damageData = skill.Definition->GetDamage();
   bool hasBattleDamage = damageData->GetBattleDamage()->GetFormula() !=
                          objects::MiBattleDamageData::Formula_t::NONE;
+
+  // Get knockback info, we'll need this here to properly set NRA flags
+  auto skillKnockback = damageData->GetKnockBack();
+  int8_t kbMod = skillKnockback->GetModifier();
+  uint8_t kbType = skillKnockback->GetKnockBackType();
+  float kbDistance = (float)(skillKnockback->GetDistance() * 10);
+  bool knockbackExists = false;
+
   if (hasBattleDamage) {
     auto battleDamage = damageData->GetBattleDamage();
     if (!CalculateDamage(source, pSkill)) {
@@ -3644,6 +3653,8 @@ void SkillManager::ProcessSkillResultFinal(
 
       return;
     }
+
+    SetFinalNRAFlags(pSkill);
 
     // Now that damage is calculated, apply drain
     uint8_t hpDrainPercent = battleDamage->GetHPDrainPercent();
@@ -3696,14 +3707,15 @@ void SkillManager::ProcessSkillResultFinal(
         selfTarget->Damage2 = mpDrain < 0 ? mpDrain : 0;
       }
     }
+  } else if ((kbMod && kbType != 2) ||
+             pSkill->Definition->GetDamage()->AddStatusesCount() ||
+             pSkill->FunctionID == SVR_CONST.SKILL_STATUS_RANDOM ||
+             pSkill->FunctionID == SVR_CONST.SKILL_STATUS_RANDOM2) {
+    // NRA flags are not set if the skill has no damage formula,
+    // applies no knockback, and applies no statuses. The basic
+    // Dodge is an example of one such skill.
+    SetFinalNRAFlags(pSkill);
   }
-
-  // Get knockback info
-  auto skillKnockback = damageData->GetKnockBack();
-  int8_t kbMod = skillKnockback->GetModifier();
-  uint8_t kbType = skillKnockback->GetKnockBackType();
-  float kbDistance = (float)(skillKnockback->GetDistance() * 10);
-  bool knockbackExists = false;
 
   bool doTalk = IsTalkSkill(skill.Definition, false) &&
                 source->StatusRestrictTalkCount() == 0;
@@ -3844,18 +3856,6 @@ void SkillManager::ProcessSkillResultFinal(
       } else {
         hpDamage += target.AilmentDamage;
       }
-    }
-
-    // Now that damage, knockback, and status effects have been calculated,
-    // determine if NRA display flags need to be set. NRA flags are
-    // not set if the skill has no damage formula, applies no knockback,
-    // and applies no statuses. The basic Dodge is an example of one
-    // such skill.
-    if (hasBattleDamage || applyKnockback ||
-        pSkill->Definition->GetDamage()->AddStatusesCount() ||
-        pSkill->FunctionID == SVR_CONST.SKILL_STATUS_RANDOM ||
-        pSkill->FunctionID == SVR_CONST.SKILL_STATUS_RANDOM2) {
-      SetFinalNRAFlags(pSkill);
     }
 
     // Now that damage, knockback, and status effects have been calculated for
