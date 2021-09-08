@@ -8326,7 +8326,7 @@ bool SkillManager::CalculateDamage(
       // Multiplier changes at higher/lower HP
       auto params = skill.Definition->GetSpecial()->GetSpecialParams();
 
-      bool lt = params[0] == 1;
+      bool lt = params[0] == 0;
       float split = (float)(lt ? (100 + params[2]) : (params[2])) * 0.01f;
 
       auto cs = source->GetCoreStats();
