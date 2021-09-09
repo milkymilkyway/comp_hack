@@ -646,6 +646,19 @@ bool ChatManager::GMCommand_Ban(
         "Your user level is lower than the user you tried to ban.");
   }
 
+  auto now = (uint32_t)std::time(0);
+  // Convert ban duration time to seconds.
+  uint32_t banExpiration = GetIntegerArg(banExpiration, argsCopy)
+                               ? (uint32_t)(banExpiration * 3600)
+                               : 0;
+  if (banExpiration) {
+    if (((uint64_t)now + banExpiration) <= UINT32_MAX) {
+      banExpiration += now;
+    } else {
+      banExpiration = 0;
+    }
+  }
+
   libcomp::String reason = libcomp::String::Join(argsCopy, " ");
 
   auto server = mServer.lock();
@@ -653,6 +666,7 @@ bool ChatManager::GMCommand_Ban(
   targetAccount->SetBanReason(reason);
   targetAccount->SetBanInitiator(
       client->GetClientState()->GetAccountLogin()->GetAccount()->GetUsername());
+  targetAccount->SetBanExpiration(banExpiration);
   targetAccount->Update(server->GetLobbyDatabase());
 
   if (targetClient) {
@@ -1759,14 +1773,18 @@ bool ChatManager::GMCommand_Help(
            "Announce a ticker MESSAGE with the specified COLOR.",
        }},
       {"ban",
-       {"@ban NAME [1/2/3] [REASON...]",
+       {"@ban NAME [1/2/3] [DURATION] [REASON...]",
         "Bans the account which owns the character NAME. If the",
         "account is not on the channel, remove them with options",
         "1 (request current channel, default), 2 (request any",
         "channel) or 3 (remove from world/lobby, USE AT OWN RISK).",
-        "Upon success, all open postings belonging to the account",
-        "related to the current channel will be immediately closed.",
-        "Can be used repeatedly for multi-channel setups."}},
+        "DURATION is in hours from the time of command entry. If it",
+        "is not specified, it is assumed to be 0 which means the ban",
+        "is considered permanent. A DURATION must be specified in",
+        "order for a REASON to be written. Upon success, all open",
+        "postings belonging to the account related to the current",
+        "channel will be immediately closed.",
+        "The command can be used repeatedly for multi-channel setups."}},
       {"bethel",
        {"@bethel INDEX AMOUNT",
         "Set the current character's bethel AMOUNT corresponding",

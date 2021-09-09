@@ -159,6 +159,13 @@ class AccountManager {
                           const libcomp::String& machineUUID = {});
 
   /**
+   * Check a ban's expiration on an account.
+   * @param account Pointer to the account to check the ban on.
+   * @return True is account is banned, false if it is not.
+   */
+  static bool CheckBan(const std::shared_ptr<objects::Account>& account);
+
+  /**
    * Set the character associated to the supplied account in preparation
    * for world communication and channel connection.
    * @param username Username of the account to set the character on.

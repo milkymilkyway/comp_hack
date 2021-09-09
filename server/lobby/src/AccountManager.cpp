@@ -193,8 +193,9 @@ ErrorCodes_t AccountManager::WebAuthLogin(const libcomp::String& username,
     return ErrorCodes_t::ACCOUNT_STILL_LOGGED_IN;
   }
 
-  // Now that we know the account is not online check it is enabled.
-  if (!account->GetEnabled()) {
+  // Now that we know the account is not online check it is banned.
+  if (!CheckBan(account.Get())) {
+    // Their sentence has not been served.
     LogAccountManagerDebug([&]() {
       return libcomp::String(
                  "Web auth login for account '%1' failed due to being "
@@ -398,7 +399,7 @@ ErrorCodes_t AccountManager::LobbyLogin(const libcomp::String& username,
   }
 
   // Now that we know the account is not online check it is enabled.
-  if (!account->GetEnabled()) {
+  if (!CheckBan(account.Get())) {
     LogAccountManagerDebug([&]() {
       return libcomp::String(
                  "Classic login for account '%1' failed due to being "
@@ -473,6 +474,28 @@ ErrorCodes_t AccountManager::LobbyLogin(const libcomp::String& username,
   login->SetMachineUUID(machineUUID);
 
   return ErrorCodes_t::SUCCESS;
+}
+
+bool AccountManager::CheckBan(
+    const std::shared_ptr<objects::Account>& account) {
+  if (!account->GetEnabled()) {
+    // Has their sentence been served?
+    auto banExpiration = account->GetBanExpiration();
+    if (banExpiration && banExpiration < (uint32_t)std::time(0)) {
+      // Justice is merciful. Clear the record.
+      account->SetEnabled(true);
+      account->SetBanInitiator("");
+      account->SetBanReason("");
+      account->SetBanExpiration(0);
+
+      return true;
+    } else {
+      // The ban has not expired.
+      return false;
+    }
+  }
+
+  return true;
 }
 
 std::shared_ptr<objects::AccountLogin> AccountManager::StartChannelLogin(

@@ -56,6 +56,7 @@
 #include <WebGameSession.h>
 
 // lobby Includes
+#include "AccountManager.h"
 #include "LobbySyncManager.h"
 #include "ManagerConnection.h"
 #include "World.h"
@@ -191,8 +192,7 @@ bool ApiHandler::Auth_Token(const JsonBox::Object& request,
   // Find the account for the given username.
   session->account = objects::Account::LoadAccountByUsername(db, username);
 
-  // We must have a valid account for this to work.
-  if (!session->account || !session->account->GetEnabled()) {
+  if (!session->account || lobby::AccountManager::CheckBan(session->account)) {
     LogWebAPIError([&]() {
       return libcomp::String("Invalid account (is it disabled?): %1\n")
           .Arg(username);
@@ -255,6 +255,7 @@ bool ApiHandler::Account_GetDetails(
   response["last_login"] = (int)account->GetLastLogin();
   response["ban_reason"] = account->GetBanReason().ToUtf8();
   response["ban_initiator"] = account->GetBanInitiator().ToUtf8();
+  response["ban_expiration"] = (int)account->GetBanExpiration();
 
   int count = 0;
 
@@ -514,6 +515,7 @@ bool ApiHandler::Admin_GetAccounts(const JsonBox::Object& request,
     obj["last_login"] = (int)account->GetLastLogin();
     obj["ban_reason"] = account->GetBanReason().ToUtf8();
     obj["ban_initiator"] = account->GetBanInitiator().ToUtf8();
+    obj["ban_expiration"] = (int)account->GetBanExpiration();
 
     int count = 0;
 
@@ -577,6 +579,7 @@ bool ApiHandler::Admin_GetAccount(const JsonBox::Object& request,
   response["last_login"] = (int)account->GetLastLogin();
   response["ban_reason"] = account->GetBanReason().ToUtf8();
   response["ban_initiator"] = account->GetBanInitiator().ToUtf8();
+  response["ban_expiration"] = (int)account->GetBanExpiration();
 
   int count = 0;
 
