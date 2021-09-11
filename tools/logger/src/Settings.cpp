@@ -55,14 +55,22 @@ Settings::Settings(LoggerServer *server, QWidget *p)
           SLOT(selectedClient()));
 
   // Load the current settings into the GUI.
-  ui.usVersion->setValue(static_cast<int32_t>(server->usVersion()) - 1000);
-  ui.jpVersion->setValue(static_cast<int32_t>(server->jpVersion()) - 1000);
+  ui.loggerLobbyPort->setValue(server->loggerLobbyPort());
+  ui.loggerChannelPort->setValue(server->loggerChannelPort());
+  ui.loggerWebAuthPort->setValue(server->loggerWebAuthPort());
+
+  ui.usVersion->setValue(static_cast<double>(server->usVersion()) / 1000.0);
+  ui.jpVersion->setValue(static_cast<double>(server->jpVersion()) / 1000.0);
 
   ui.usAddress->setText(server->usAddress());
   ui.jpAddress->setText(server->jpAddress());
 
+  ui.usPort->setValue(server->usPort());
+  ui.jpPort->setValue(server->jpPort());
+
   ui.jpWebAuth->setText(server->jpWebAuth());
   ui.jpWebAuthEnabled->setChecked(server->isWebAuthJPEnabled());
+  ui.jpWebAuthPort->setValue(server->webAuthJPPort());
 
   ui.lobbyCheckbox->setChecked(server->isLobbyLogEnabled());
   ui.channelCheckbox->setChecked(server->isChannelLogEnabled());
@@ -91,14 +99,25 @@ Settings::Settings(LoggerServer *server, QWidget *p)
 
 void Settings::saveAndClose() {
   // Save all the settings from the GUI.
-  mServer->setVersionUS(static_cast<uint32_t>(ui.usVersion->value()) + 1000u);
-  mServer->setVersionJP(static_cast<uint32_t>(ui.jpVersion->value()) + 1000u);
+  mServer->setLoggerLobbyPort(
+      static_cast<uint16_t>(ui.loggerLobbyPort->value()));
+  mServer->setLoggerChannelPort(
+      static_cast<uint16_t>(ui.loggerChannelPort->value()));
+  mServer->setLoggerWebAuthPort(
+      static_cast<uint16_t>(ui.loggerWebAuthPort->value()));
+
+  mServer->setVersionUS(static_cast<uint32_t>(ui.usVersion->value() * 1000.0));
+  mServer->setVersionJP(static_cast<uint32_t>(ui.jpVersion->value() * 1000.0));
 
   mServer->setAddressUS(ui.usAddress->text().trimmed());
   mServer->setAddressJP(ui.jpAddress->text().trimmed());
 
+  mServer->setPortUS(static_cast<uint16_t>(ui.usPort->value()));
+  mServer->setPortJP(static_cast<uint16_t>(ui.jpPort->value()));
+
   mServer->setWebAuthJP(ui.jpWebAuth->text().trimmed());
   mServer->setWebAuthJPEnabled(ui.jpWebAuthEnabled->isChecked());
+  mServer->setWebAuthJPPort(static_cast<uint16_t>(ui.jpWebAuthPort->value()));
 
   mServer->setLobbyLogEnabled(ui.lobbyCheckbox->isChecked());
   mServer->setChannelLogEnabled(ui.channelCheckbox->isChecked());

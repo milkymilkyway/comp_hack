@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>324</width>
-    <height>391</height>
+    <width>406</width>
+    <height>512</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -18,33 +18,49 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="QLabel" name="usLabel">
-     <property name="text">
-      <string>&lt;b&gt;US Version&lt;/b&gt;</string>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_5">
-     <item>
+    <layout class="QGridLayout" name="gridLayout">
+     <item row="0" column="0">
+      <widget class="QLabel" name="usLabel">
+       <property name="text">
+        <string>&lt;b&gt;US Version&lt;/b&gt;</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="QLabel" name="usLabel2">
+       <property name="text">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Address&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="2">
+      <widget class="QLabel" name="usLabel3">
+       <property name="text">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Port&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0">
       <layout class="QHBoxLayout" name="horizontalLayout_6">
        <property name="spacing">
         <number>0</number>
        </property>
        <item>
-        <widget class="QLabel" name="oneA">
-         <property name="text">
-          <string>1.</string>
+        <widget class="QDoubleSpinBox" name="usVersion">
+         <property name="decimals">
+          <number>3</number>
          </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QSpinBox" name="usVersion">
          <property name="minimum">
-          <number>270</number>
+          <double>1.000000000000000</double>
          </property>
          <property name="maximum">
-          <number>999</number>
+          <double>999.999000000000024</double>
+         </property>
+         <property name="singleStep">
+          <double>0.001000000000000</double>
+         </property>
+         <property name="value">
+          <double>1.666000000000000</double>
          </property>
         </widget>
        </item>
@@ -57,65 +73,173 @@
        </item>
       </layout>
      </item>
-     <item>
+     <item row="1" column="1">
       <widget class="QLineEdit" name="usAddress"/>
      </item>
-    </layout>
-   </item>
-   <item>
-    <widget class="QLabel" name="jpLabel">
-     <property name="text">
-      <string>&lt;b&gt;JP Version&lt;/b&gt;</string>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_2">
-     <item>
-      <layout class="QHBoxLayout" name="horizontalLayout_4">
-       <property name="spacing">
-        <number>0</number>
+     <item row="1" column="2">
+      <widget class="QSpinBox" name="usPort">
+       <property name="maximum">
+        <number>65535</number>
        </property>
-       <item>
-        <widget class="QLabel" name="oneB">
-         <property name="text">
-          <string>1.</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QSpinBox" name="jpVersion">
-         <property name="minimum">
-          <number>301</number>
-         </property>
-         <property name="maximum">
-          <number>999</number>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </item>
-     <item>
-      <widget class="QLineEdit" name="jpAddress"/>
-     </item>
-    </layout>
-   </item>
-   <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_3">
-     <item>
-      <widget class="QLabel" name="jpWebAuthLabel">
-       <property name="text">
-        <string>WebAuth:</string>
+       <property name="value">
+        <number>10666</number>
        </property>
       </widget>
      </item>
-     <item>
-      <widget class="QLineEdit" name="jpWebAuth"/>
+    </layout>
+   </item>
+   <item>
+    <layout class="QGridLayout" name="gridLayout_2">
+     <item row="0" column="0">
+      <widget class="QLabel" name="jpLabel">
+       <property name="text">
+        <string>&lt;b&gt;JP Version&lt;/b&gt;</string>
+       </property>
+      </widget>
      </item>
-     <item>
-      <widget class="QCheckBox" name="jpWebAuthEnabled"/>
+     <item row="0" column="1">
+      <widget class="QLabel" name="jpLabel2">
+       <property name="text">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Address&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="2">
+      <widget class="QLabel" name="jpLabel3">
+       <property name="text">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Port&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0">
+      <widget class="QDoubleSpinBox" name="jpVersion">
+       <property name="decimals">
+        <number>3</number>
+       </property>
+       <property name="minimum">
+        <double>1.000000000000000</double>
+       </property>
+       <property name="maximum">
+        <double>999.999000000000024</double>
+       </property>
+       <property name="singleStep">
+        <double>0.001000000000000</double>
+       </property>
+       <property name="value">
+        <double>1.666000000000000</double>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QLineEdit" name="jpAddress"/>
+     </item>
+     <item row="1" column="2">
+      <widget class="QSpinBox" name="jpPort">
+       <property name="maximum">
+        <number>65535</number>
+       </property>
+       <property name="value">
+        <number>10666</number>
+       </property>
+      </widget>
      </item>
     </layout>
+   </item>
+   <item>
+    <layout class="QGridLayout" name="gridLayout_3">
+     <item row="0" column="1">
+      <widget class="QLabel" name="jpWebAuthLabel">
+       <property name="text">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;WebAuth Address&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="2">
+      <widget class="QLabel" name="jpWebAuthEnableLabel">
+       <property name="text">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Port&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0">
+      <widget class="QCheckBox" name="jpWebAuthEnabled"/>
+     </item>
+     <item row="1" column="1">
+      <widget class="QLineEdit" name="jpWebAuth"/>
+     </item>
+     <item row="1" column="2">
+      <widget class="QSpinBox" name="jpWebAuthPort">
+       <property name="maximum">
+        <number>65535</number>
+       </property>
+       <property name="value">
+        <number>10999</number>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QGridLayout" name="gridLayout_5">
+     <item row="1" column="0">
+      <widget class="QSpinBox" name="loggerLobbyPort">
+       <property name="maximum">
+        <number>65535</number>
+       </property>
+       <property name="value">
+        <number>10666</number>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="2">
+      <widget class="QLabel" name="loggerChannelPortLabel">
+       <property name="text">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Logger Channel Port&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="2">
+      <widget class="QSpinBox" name="loggerChannelPort">
+       <property name="maximum">
+        <number>65535</number>
+       </property>
+       <property name="value">
+        <number>14666</number>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="0">
+      <widget class="QLabel" name="loggerLobbyPortLabel">
+       <property name="text">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Logger Lobby Port&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="QLabel" name="loggerWebAuthPortLabel">
+       <property name="text">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Logger WebAuth Port&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QSpinBox" name="loggerWebAuthPort">
+       <property name="maximum">
+        <number>65535</number>
+       </property>
+       <property name="value">
+        <number>10999</number>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <widget class="QLabel" name="restartWarningLabel">
+     <property name="text">
+      <string>&lt;b&gt;Note: Changing the logger ports requires a restart!&lt;/b&gt;</string>
+     </property>
+    </widget>
    </item>
    <item>
     <widget class="QGroupBox" name="clientBox">
@@ -186,24 +310,30 @@
    </item>
   </layout>
   <zorder>buttonBox</zorder>
-  <zorder>jpLabel</zorder>
   <zorder>clientBox</zorder>
-  <zorder>usLabel</zorder>
   <zorder>closeWarning</zorder>
   <zorder>lobbyCheckbox</zorder>
   <zorder>channelCheckbox</zorder>
+  <zorder>restartWarningLabel</zorder>
  </widget>
  <tabstops>
   <tabstop>usVersion</tabstop>
   <tabstop>usAddress</tabstop>
+  <tabstop>usPort</tabstop>
   <tabstop>jpVersion</tabstop>
   <tabstop>jpAddress</tabstop>
-  <tabstop>jpWebAuth</tabstop>
+  <tabstop>jpPort</tabstop>
   <tabstop>jpWebAuthEnabled</tabstop>
+  <tabstop>jpWebAuth</tabstop>
+  <tabstop>jpWebAuthPort</tabstop>
+  <tabstop>loggerLobbyPort</tabstop>
+  <tabstop>loggerChannelPort</tabstop>
   <tabstop>clientList</tabstop>
   <tabstop>addClientButton</tabstop>
   <tabstop>removeClientButton</tabstop>
-  <tabstop>buttonBox</tabstop>
+  <tabstop>lobbyCheckbox</tabstop>
+  <tabstop>channelCheckbox</tabstop>
+  <tabstop>closeWarning</tabstop>
  </tabstops>
  <resources/>
  <connections/>

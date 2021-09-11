@@ -127,9 +127,9 @@ void MainWindow::showCaptures() {
 
 #ifdef Q_OS_WIN32
   QProcess::startDetached("explorer", QStringList() << mCapturePath);
-#else   // Q_OS_WIN32
+#else
   QProcess::startDetached("/usr/bin/nautilus", QStringList() << mCapturePath);
-#endif  // Q_OS_WIN32
+#endif
 }
 
 void MainWindow::closeEvent(QCloseEvent *evt) {
@@ -200,7 +200,8 @@ void MainWindow::startGame() {
   QFile serverInfo(tr("%1/ImagineClient.dat").arg(path));
   serverInfo.open(QIODevice::WriteOnly);
   serverInfo.write(QString("-ip %1\r\n").arg(serverLine()).toUtf8());
-  serverInfo.write(QString("-port %1\r\n").arg(10666).toUtf8());
+  serverInfo.write(
+      QString("-port %1\r\n").arg(mServer->loggerLobbyPort()).toUtf8());
   serverInfo.close();
 
   // Patch the webaccess.sdat file to connect to the logger if the WebAuth
@@ -219,7 +220,7 @@ void MainWindow::startGame() {
     QProcess::startDetached(tr("%1\\ImagineClient.exe").arg(path),
                             QStringList(), path);
   }
-#else   // Q_OS_UNIX
+#else
   // Start the client using WINE and change the language to Japanese if the
   // client is Japanese.
   if (isUS) {
@@ -232,7 +233,7 @@ void MainWindow::startGame() {
                                    "ImagineClient.exe &> /dev/null &",
                             path);
   }
-#endif  // Q_OS_WIN32
+#endif
 }
 
 void MainWindow::patchWebAccess(const QString &path) {
@@ -249,7 +250,9 @@ void MainWindow::patchWebAccess(const QString &path) {
 
   // Replace the login URL with the logger.
   xml.replace(QRegExp("\\<login\\s*\\=\\s*[^\\>]+\\>"),
-              tr("<login = http://%1:10999/>").arg(serverLine()));
+              tr("<login = http://%1:%2/>")
+                  .arg(serverLine())
+                  .arg(mServer->loggerWebAuthPort()));
 
   // Convert the string back into binary.
   QByteArray out = xml.toUtf8();

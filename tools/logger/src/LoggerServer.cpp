@@ -117,14 +117,27 @@ LoggerServer::LoggerServer(QObject *p) : QObject(p) {
 
   // Load the saved values for each setting or the default value if no
   // setting
+  mLoggerLobbyPort = static_cast<uint16_t>(
+      settings.value("loggerLobbyPort", PORT_LOBBY_SERVER).toUInt());
+  mLoggerChannelPort = static_cast<uint16_t>(
+      settings.value("loggerChannelPort", PORT_CHANNEL_SERVER).toUInt());
+  mLoggerWebAuthPort = static_cast<uint16_t>(
+      settings.value("loggerWebAuthPort", PORT_WEBAUTH_SERVER).toUInt());
+
   mVersionUS = settings.value("us/version", CLIENT_VERSION_US).toUInt();
   mAddressUS = settings.value("us/address", LOBBY_ADDRESS_US).toString();
+  mPortUS = static_cast<uint16_t>(
+      settings.value("us/port", PORT_LOBBY_SERVER).toUInt());
 
   mVersionJP = settings.value("jp/version", CLIENT_VERSION_JP).toUInt();
   mAddressJP = settings.value("jp/address", LOBBY_ADDRESS_JP).toString();
+  mPortJP = static_cast<uint16_t>(
+      settings.value("jp/port", PORT_LOBBY_SERVER).toUInt());
 
   mWebAuthJP = settings.value("jp/webauth", WEB_AUTH_URL).toString();
   mWebAuthJPEnabled = settings.value("jp/webauthenabled", false).toBool();
+  mWebAuthJPPort = static_cast<uint16_t>(
+      settings.value("jp/webauthport", PORT_WEBAUTH_SERVER).toUInt());
 
   mLobbyLogEnabled = settings.value("savelobby", true).toBool();
   mChannelLogEnabled = settings.value("savechannel", true).toBool();
@@ -164,9 +177,9 @@ void LoggerServer::registerChannelKey(uint32_t key, const QString &addr) {
 
 void LoggerServer::startServer() {
   // Listen on the port for client connections.
-  if (!mLobbyServer->listen(QHostAddress::AnyIPv4, PORT_LOBBY_SERVER)) {
+  if (!mLobbyServer->listen(QHostAddress::AnyIPv4, mLoggerLobbyPort)) {
     QString msg = QString("Lobby server: failed to listen on port %1.")
-                      .arg(PORT_LOBBY_SERVER);
+                      .arg(mLoggerLobbyPort);
 
     addLogMessage(msg);
 
@@ -176,9 +189,9 @@ void LoggerServer::startServer() {
   }
 
   // Listen on the port for client connections.
-  if (!mChannelServer->listen(QHostAddress::AnyIPv4, PORT_CHANNEL_SERVER)) {
+  if (!mChannelServer->listen(QHostAddress::AnyIPv4, mLoggerChannelPort)) {
     QString msg = QString("Channel server: failed to listen on port %1.")
-                      .arg(PORT_CHANNEL_SERVER);
+                      .arg(mLoggerChannelPort);
 
     addLogMessage(msg);
 
@@ -188,9 +201,9 @@ void LoggerServer::startServer() {
   }
 
   // Listen on the port for client connections.
-  if (!mWebAuthServer->listen(QHostAddress::AnyIPv4, PORT_WEBAUTH_SERVER)) {
+  if (!mWebAuthServer->listen(QHostAddress::AnyIPv4, mLoggerWebAuthPort)) {
     QString msg = QString("WebAuth server: failed to listen on port %1.")
-                      .arg(PORT_WEBAUTH_SERVER);
+                      .arg(mLoggerWebAuthPort);
 
     addLogMessage(msg);
 
@@ -203,9 +216,30 @@ void LoggerServer::startServer() {
   std::cout << "Server Ready" << std::endl;
   std::cout << "----------------------------------------"
             << "----------------------------------------" << std::endl;
-#else   // COMP_LOGGER_HEADLESS
+#else
   addLogMessage("Server Ready");
-#endif  // COMP_LOGGER_HEADLESS
+#endif
+}
+
+void LoggerServer::setLoggerLobbyPort(uint16_t port) {
+  // Set the logger lobby port and save the setting.
+  QSettings().setValue("loggerLobbyPort", port);
+
+  mLoggerLobbyPort = port;
+}
+
+void LoggerServer::setLoggerChannelPort(uint16_t port) {
+  // Set the logger channel port and save the setting.
+  QSettings().setValue("loggerChannelPort", port);
+
+  mLoggerChannelPort = port;
+}
+
+void LoggerServer::setLoggerWebAuthPort(uint16_t port) {
+  // Set the logger WebAuth port and save the setting.
+  QSettings().setValue("loggerWebAuthPort", port);
+
+  mLoggerWebAuthPort = port;
 }
 
 void LoggerServer::setVersionUS(uint32_t ver) {
@@ -236,6 +270,20 @@ void LoggerServer::setAddressJP(const QString &addr) {
   mAddressJP = addr;
 }
 
+void LoggerServer::setPortUS(uint16_t port) {
+  // Set the US lobby server port and save the setting.
+  QSettings().setValue("us/port", port);
+
+  mPortUS = port;
+}
+
+void LoggerServer::setPortJP(uint16_t port) {
+  // Set the JP lobby server port and save the setting.
+  QSettings().setValue("jp/port", port);
+
+  mPortJP = port;
+}
+
 void LoggerServer::setWebAuthJP(const QString &url) {
   // Set the web authentication sever URL and save the setting.
   QSettings().setValue("jp/webauth", url);
@@ -253,6 +301,18 @@ void LoggerServer::setWebAuthJPEnabled(bool enabled) {
   QSettings().setValue("jp/webauthenabled", enabled);
 
   mWebAuthJPEnabled = enabled;
+}
+
+uint16_t LoggerServer::webAuthJPPort() const {
+  /// Return port of the target JP WebAuth server.
+  return mWebAuthJPPort;
+}
+
+void LoggerServer::setWebAuthJPPort(uint16_t port) {
+  // Set the port of the target JP WebAuth server and save the setting.
+  QSettings().setValue("jp/webauthport", port);
+
+  mWebAuthJPPort = port;
 }
 
 bool LoggerServer::isLobbyLogEnabled() const {
@@ -279,6 +339,21 @@ void LoggerServer::setChannelLogEnabled(bool enabled) {
   mChannelLogEnabled = enabled;
 }
 
+uint16_t LoggerServer::loggerLobbyPort() const {
+  // Return the port to listen for lobby connections.
+  return mLoggerLobbyPort;
+}
+
+uint16_t LoggerServer::loggerChannelPort() const {
+  // Return the port to listen for channel connections.
+  return mLoggerChannelPort;
+}
+
+uint16_t LoggerServer::loggerWebAuthPort() const {
+  // Return the port to listen for WebAuth connections.
+  return mLoggerWebAuthPort;
+}
+
 uint32_t LoggerServer::usVersion() const {
   // Return the expected US client version.
   return mVersionUS;
@@ -297,6 +372,16 @@ QString LoggerServer::usAddress() const {
 QString LoggerServer::jpAddress() const {
   // Return the address of the JP lobby server.
   return mAddressJP;
+}
+
+uint16_t LoggerServer::usPort() const {
+  // Return the port of the US lobby server.
+  return mPortUS;
+}
+
+uint16_t LoggerServer::jpPort() const {
+  // Return the port of the JP lobby server.
+  return mPortJP;
 }
 
 QString LoggerServer::jpWebAuth() const {

@@ -485,9 +485,9 @@ void LobbyConnection::clientReady() {
 
       // Connect to the server.
       if (mServer->usVersion() == mClientVer)
-        mServerSocket->connectToHost(mServer->usAddress(), 10666);
+        mServerSocket->connectToHost(mServer->usAddress(), mServer->usPort());
       else
-        mServerSocket->connectToHost(mServer->jpAddress(), 10666);
+        mServerSocket->connectToHost(mServer->jpAddress(), mServer->jpPort());
 
       // Set the server state.
       mServerState = Connected;
@@ -714,10 +714,10 @@ void LobbyConnection::logMessage(const QString& msg) {
 #ifdef COMP_LOGGER_HEADLESS
   // Log the message to standard output.
   std::cout << final.toLocal8Bit().constData() << std::endl;
-#else   // COMP_LOGGER_HEADLESS
+#else
   // Add the message into the main window.
   mServer->addLogMessage(final);
-#endif  // COMP_LOGGER_HEADLESS
+#endif
 }
 
 void LobbyConnection::logPacket(libcomp::Packet& p, uint8_t source) {
@@ -761,8 +761,9 @@ void LobbyConnection::parseStartGamePacket(libcomp::Packet& p) {
   mServer->registerChannelKey(sessionKey, origAddr.C());
 
   // Generate the address of the logger server.
-  QString addr =
-      QString("%1:14666").arg(mClientSocket->localAddress().toString());
+  QString addr = QString("%1:%2")
+                     .arg(mClientSocket->localAddress().toString())
+                     .arg(mServer->loggerChannelPort());
 
   // Generate the start game packet.
   libcomp::Packet reply;

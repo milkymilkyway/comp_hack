@@ -933,7 +933,7 @@ Example
 
 .. code-block:: xml
 
-    <member name="LobbyPort">127.0.0.1</member>
+    <member name="LobbyPort">10666</member>
 
 ChannelConnectionTimeOut
 ^^^^^^^^^^^^^^^^^^^^^^^^

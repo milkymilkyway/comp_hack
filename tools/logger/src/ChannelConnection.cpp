@@ -763,8 +763,9 @@ void ChannelConnection::rewriteServerSwitchPacket(libcomp::Packet& p) {
       mServer->registerChannelKey(sessionKey, origAddr.C());
 
       // Generate the new address.
-      QString addr =
-          QString("%1:14666").arg(mClientSocket->localAddress().toString());
+      QString addr = QString("%1:%2")
+                         .arg(mClientSocket->localAddress().toString())
+                         .arg(mServer->loggerChannelPort());
 
       // Log the message.
       logMessage(tr("Sending client to relay..."));
@@ -960,10 +961,10 @@ void ChannelConnection::logMessage(const QString& msg) {
 #ifdef COMP_LOGGER_HEADLESS
   // Log the message to standard output.
   std::cout << final.toLocal8Bit().constData() << std::endl;
-#else   // COMP_LOGGER_HEADLESS
+#else
   // Add the message into the main window.
   mServer->addLogMessage(final);
-#endif  // COMP_LOGGER_HEADLESS
+#endif
 }
 
 void ChannelConnection::logPacket(libcomp::Packet& p, uint8_t source) {

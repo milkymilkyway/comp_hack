@@ -217,6 +217,24 @@ class LoggerServer : public QObject {
   void registerChannelKey(uint32_t key, const QString &addr);
 
   /**
+   * Set the port to listen for lobby connections on.
+   * @param port Port to listen for lobby connections on.
+   */
+  void setLoggerLobbyPort(uint16_t port);
+
+  /**
+   * Set the port to listen for channel connections on.
+   * @param port Port to listen for channel connections on.
+   */
+  void setLoggerChannelPort(uint16_t port);
+
+  /**
+   * Set the port to listen for WebAuth connections on.
+   * @param port Port to listen for WebAuth connections on.
+   */
+  void setLoggerWebAuthPort(uint16_t port);
+
+  /**
    * Set the client version for the US lobby server connection. This version
    * is used to determine which client is connecting and which target lobby
    * server should be used.
@@ -238,17 +256,29 @@ class LoggerServer : public QObject {
 
   /**
    * Set the address of the target US lobby server. The address should be in
-   * the form: "lobby.server.ip.address. The port is assumed to be 10666.
+   * the form: "lobby.server.ip.address".
    * @param addr Address of the target US lobby server.
    */
   void setAddressUS(const QString &addr);
 
   /**
    * Set the address of the target JP lobby server. The address should be in
-   * the form: "lobby.server.ip.address. The port is assumed to be 10666.
+   * the form: "lobby.server.ip.address".
    * @param addr Address of the target JP lobby server.
    */
   void setAddressJP(const QString &addr);
+
+  /**
+   * Set the port of the target US lobby server.
+   * @param port Port of the target US lobby server.
+   */
+  void setPortUS(uint16_t port);
+
+  /**
+   * Set the port of the target JP lobby server.
+   * @param port Port of the target JP lobby server.
+   */
+  void setPortJP(uint16_t port);
 
   /**
    * Set the URL of the target website. The URL should be exactly as it
@@ -270,6 +300,18 @@ class LoggerServer : public QObject {
    * false otherwise.
    */
   void setWebAuthJPEnabled(bool enabled);
+
+  /**
+   * Get the port of the target JP WebAuth server.
+   * @returns Port of the target JP WebAuth server.
+   */
+  uint16_t webAuthJPPort() const;
+
+  /**
+   * Set the port of the target JP WebAuth server.
+   * @param port Port of the target JP WebAuth server.
+   */
+  void setWebAuthJPPort(uint16_t port);
 
   /**
    * Determine if lobby connections will save a capture file.
@@ -300,6 +342,24 @@ class LoggerServer : public QObject {
   void setChannelLogEnabled(bool enabled);
 
   /**
+   * Get the port to listen for lobby connections on.
+   * @returns Port to listen for lobby connections on.
+   */
+  uint16_t loggerLobbyPort() const;
+
+  /**
+   * Get the port to listen for channel connections on.
+   * @returns Port to listen for channel connections on.
+   */
+  uint16_t loggerChannelPort() const;
+
+  /**
+   * Get the port to listen for WebAuth connections on.
+   * @returns Port to listen for WebAuth connections on.
+   */
+  uint16_t loggerWebAuthPort() const;
+
+  /**
    * Retrieve the expected US client version.
    * @returns Version of the US client.
    */
@@ -322,6 +382,18 @@ class LoggerServer : public QObject {
    * @returns IP address of the target JP lobby server.
    */
   QString jpAddress() const;
+
+  /**
+   * Retrieve the target US lobby server port.
+   * @returns Port of the target US lobby server.
+   */
+  uint16_t usPort() const;
+
+  /**
+   * Retrieve the target JP lobby server port.
+   * @returns Port of the target JP lobby server.
+   */
+  uint16_t jpPort() const;
 
   /**
    * Retrieve the target web authentication URL.
@@ -356,6 +428,15 @@ class LoggerServer : public QObject {
   void packet(const QByteArray &p);
 
  private:
+  /// Port to listen for lobby connections.
+  uint16_t mLoggerLobbyPort;
+
+  // Port to listen for channel connections.
+  uint16_t mLoggerChannelPort;
+
+  // Port to listen for WebAuth connections.
+  uint16_t mLoggerWebAuthPort;
+
   /// Expected US client version.
   uint32_t mVersionUS;
 
@@ -368,11 +449,20 @@ class LoggerServer : public QObject {
   /// Address of the target JP lobby server.
   QString mAddressJP;
 
+  /// Port of the target US lobby server.
+  uint16_t mPortUS;
+
+  /// Port of the target JP lobby server.
+  uint16_t mPortJP;
+
   /// URL of the target web authentication server.
   QString mWebAuthJP;
 
   /// Variable to store if the web authentication feature is enabled.
   bool mWebAuthJPEnabled;
+
+  /// Port of the target web authentication server.
+  bool mWebAuthJPPort;
 
   /// Variable to store if lobby connections will save a capture file.
   bool mLobbyLogEnabled;
