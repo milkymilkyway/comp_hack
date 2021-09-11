@@ -192,7 +192,8 @@ bool ApiHandler::Auth_Token(const JsonBox::Object& request,
   // Find the account for the given username.
   session->account = objects::Account::LoadAccountByUsername(db, username);
 
-  if (!session->account || lobby::AccountManager::CheckBan(session->account)) {
+  if (!session->account || !mServer ||
+      !mServer->GetAccountManager()->IsAccountEnabled(session->account)) {
     LogWebAPIError([&]() {
       return libcomp::String("Invalid account (is it disabled?): %1\n")
           .Arg(username);
@@ -260,7 +261,7 @@ bool ApiHandler::Account_GetDetails(
   int count = 0;
 
   for (size_t i = 0; i < account->CharactersCount(); ++i) {
-    if (account->GetCharacters(i)) {
+    if (!account->GetCharacters(i).IsNull()) {
       count++;
     }
   }
@@ -520,7 +521,7 @@ bool ApiHandler::Admin_GetAccounts(const JsonBox::Object& request,
     int count = 0;
 
     for (size_t i = 0; i < account->CharactersCount(); ++i) {
-      if (account->GetCharacters(i)) {
+      if (!account->GetCharacters(i).IsNull()) {
         count++;
       }
     }
@@ -584,7 +585,7 @@ bool ApiHandler::Admin_GetAccount(const JsonBox::Object& request,
   int count = 0;
 
   for (size_t i = 0; i < account->CharactersCount(); ++i) {
-    if (account->GetCharacters(i)) {
+    if (!account->GetCharacters(i).IsNull()) {
       count++;
     }
   }
@@ -691,7 +692,7 @@ bool ApiHandler::Admin_UpdateAccount(
   int count = 0;
 
   for (size_t i = 0; i < account->CharactersCount(); ++i) {
-    if (account->GetCharacters(i)) {
+    if (!account->GetCharacters(i).IsNull()) {
       count++;
     }
   }
@@ -731,6 +732,12 @@ bool ApiHandler::Admin_UpdateAccount(
 
   if (it != request.end()) {
     account->SetEnabled(it->second.getBoolean());
+    if (account->GetEnabled()) {
+      // Clear ban information.
+      account->SetBanInitiator("");
+      account->SetBanReason("");
+      account->SetBanExpiration(0);
+    }
   }
 
   auto db = GetDatabase();

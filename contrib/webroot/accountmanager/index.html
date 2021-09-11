@@ -324,7 +324,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                     $('#edit_ban_initiator').text(data['ban_initiator']);
                 }
                 if ('ban_expiration' in data) {
-                    if (account.enabled) {
+                    if (data['enabled']) {
                         $('#edit_ban_expiration').text("");
                     } else if (data['ban_expiration'] == 0) {
                         $('#edit_ban_expiration').text("Permanent");
@@ -515,6 +515,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                         if('username' in data) {
                             account.username = data['username'];
                         }
+                        if ('enabled' in data) {
+                            account.enabled = data['enabled'];
+                        }
                         if('disp_name' in data) {
                             account.disp_name = data['disp_name'];
                         }
@@ -542,10 +545,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                         }
                         if ('ban_expiration' in data) {
                             if (account.enabled) {
-                                account.ban_expiration.text("");
+                                account.ban_expiration = "";
                             }
                             else if (data['ban_expiration'] == 0) {
-                                account.ban_expiration.text("Permanent");
+                                account.ban_expiration = "Permanent";
                             } else {
                                 account.ban_expiration = new Date(1000 *
                                     data['ban_expiration']);

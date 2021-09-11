@@ -194,7 +194,7 @@ ErrorCodes_t AccountManager::WebAuthLogin(const libcomp::String& username,
   }
 
   // Now that we know the account is not online check it is banned.
-  if (!CheckBan(account.Get())) {
+  if (!IsAccountEnabled(account.Get())) {
     // Their sentence has not been served.
     LogAccountManagerDebug([&]() {
       return libcomp::String(
@@ -399,7 +399,7 @@ ErrorCodes_t AccountManager::LobbyLogin(const libcomp::String& username,
   }
 
   // Now that we know the account is not online check it is enabled.
-  if (!CheckBan(account.Get())) {
+  if (!IsAccountEnabled(account.Get())) {
     LogAccountManagerDebug([&]() {
       return libcomp::String(
                  "Classic login for account '%1' failed due to being "
@@ -476,7 +476,7 @@ ErrorCodes_t AccountManager::LobbyLogin(const libcomp::String& username,
   return ErrorCodes_t::SUCCESS;
 }
 
-bool AccountManager::CheckBan(
+bool AccountManager::IsAccountEnabled(
     const std::shared_ptr<objects::Account>& account) {
   if (!account->GetEnabled()) {
     // Has their sentence been served?
@@ -488,7 +488,15 @@ bool AccountManager::CheckBan(
       account->SetBanReason("");
       account->SetBanExpiration(0);
 
-      return true;
+      if (!account->Update(mServer->GetMainDatabase())) {
+        LogAccountManagerError([&]() {
+          return libcomp::String(
+                     "Expiring ban was unable to be lifted for account: %1\n")
+              .Arg(account->GetUUID().ToString());
+        });
+
+        return false;
+      }
     } else {
       // The ban has not expired.
       return false;
