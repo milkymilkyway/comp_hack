@@ -6331,6 +6331,8 @@ bool CharacterManager::DigitalizeEnd(
   cState->Digitalize(nullptr, nullptr);
 
   int32_t time = 0;
+  auto server = mServer.lock();
+  auto definitionManager = server->GetDefinitionManager();
   if (demon && dgState->GetTimeLimited()) {
     // Add cooldown to demon (in seconds)
     time = (int32_t)SVR_CONST.DIGITALIZE_COOLDOWN;
@@ -6351,7 +6353,7 @@ bool CharacterManager::DigitalizeEnd(
 
       SendDemonBoxData(client, 0, {demon->GetBoxSlot()});
 
-      mServer.lock()->GetWorldDatabase()->QueueChangeSet(dbChanges);
+      server->GetWorldDatabase()->QueueChangeSet(dbChanges);
     }
   }
 
@@ -6369,6 +6371,9 @@ bool CharacterManager::DigitalizeEnd(
 
   client->QueuePacket(p);
 
+  // Recalculate available skills due to Digitalize ending.
+  cState->RecalcDisabledSkills(definitionManager);
+  state->GetDemonState()->UpdateDemonState(definitionManager);
   RecalculateTokuseiAndStats(cState, client);
 
   client->FlushOutgoing();
