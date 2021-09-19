@@ -134,7 +134,7 @@ class ChatManager {
    * @param args List of arguments for the command
    * @return true if the command was handled properly, else false
    */
-  bool GMCommand_AddCP(
+  bool GMCommand_AddRemoveCP(
       const std::shared_ptr<channel::ChannelClientConnection>& client,
       const std::list<libcomp::String>& args);
 

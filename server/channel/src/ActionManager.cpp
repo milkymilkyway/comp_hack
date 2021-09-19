@@ -2001,8 +2001,15 @@ bool ActionManager::UpdatePoints(ActionContext& ctx) {
             ctx.Client->GetClientState()->GetAccountLogin()->GetAccount().Get();
 
         auto accountManager = server->GetAccountManager();
-        if (accountManager->IncreaseCP(account, act->GetValue())) {
+        auto cpChange = accountManager->AddRemoveCP(account, act->GetValue());
+        if (cpChange) {
           accountManager->SendCPBalance(ctx.Client);
+        } else {
+          LogActionManagerError([&]() {
+            return libcomp::String("Event to add %1 CP failed on account: %2\n")
+                .Arg(act->GetValue())
+                .Arg(account->GetUUID().ToString());
+          });
         }
       }
       break;

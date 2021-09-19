@@ -147,12 +147,13 @@ class AccountManager {
   /**
    * Increase the account's current CP balance.
    * @param account Pointer to the account to update
-   * @param addAmount Amount of CP to add to the account
-   * @return true if the amount was updated, false if it
-   *  could not be updated
+   * @param amount Amount of CP to add or remove
+   * @param isRemove Whether this operation is an add or remove
+   * @return The amount by which the targeted account's CP has changed, with 0
+   * indicating failure.
    */
-  bool IncreaseCP(const std::shared_ptr<objects::Account>& account,
-                  int64_t addAmount);
+  int64_t AddRemoveCP(const std::shared_ptr<objects::Account>& account,
+                      int64_t amount, bool isRemove = false);
 
   /**
    * Send the account's current CP balance.

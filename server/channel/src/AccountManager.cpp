@@ -499,10 +499,17 @@ void AccountManager::Authenticate(
   client->SendPacket(reply);
 }
 
-bool AccountManager::IncreaseCP(
-    const std::shared_ptr<objects::Account>& account, int64_t addAmount) {
-  if (addAmount <= 0) {
-    return false;
+int64_t AccountManager::AddRemoveCP(
+    const std::shared_ptr<objects::Account>& account, int64_t amount,
+    bool isRemove) {
+  if (amount <= 0) {
+    return 0;
+  }
+
+  auto balance = account->GetCP();
+  if (isRemove && (balance < amount)) {
+    // Ensure that any reduction does not take the target's CP below 0.
+    amount = balance;
   }
 
   auto server = mServer.lock();
@@ -510,21 +517,46 @@ bool AccountManager::IncreaseCP(
 
   auto opChangeset = std::make_shared<libcomp::DBOperationalChangeSet>();
   auto expl = std::make_shared<libcomp::DBExplicitUpdate>(account);
-  expl->Add<int64_t>("CP", addAmount);
-  opChangeset->AddOperation(expl);
+  bool invalidBalance = false;
+  if (isRemove) {
+    if (!expl->SubtractFrom<int64_t>("CP", amount, balance)) {
+      invalidBalance = true;
+    }
+  } else if (!expl->AddFrom<int64_t>("CP", amount, balance)) {
+    invalidBalance = true;
+  }
 
-  if (lobbyDB->ProcessChangeSet(opChangeset)) {
-    LogAccountManagerDebug([account, addAmount]() {
-      return libcomp::String("Player CP increased by %1: %2\n")
-          .Arg(addAmount)
+  if (invalidBalance) {
+    LogAccountManagerDebug([account, balance]() {
+      return libcomp::String("Player had an unexpected CP balance of %1: %2\n")
+          .Arg(balance)
           .Arg(account->GetUUID().ToString());
     });
 
-    server->GetChannelSyncManager()->SyncRecordUpdate(account, "Account");
-    return true;
+    amount = 0;
+  } else {
+    opChangeset->AddOperation(expl);
+
+    if (lobbyDB->ProcessChangeSet(opChangeset)) {
+      if (isRemove) {
+        LogAccountManagerDebug([account, amount]() {
+          return libcomp::String("Player CP reduced by %1: %2\n")
+              .Arg(amount)
+              .Arg(account->GetUUID().ToString());
+        });
+      } else {
+        LogAccountManagerDebug([account, amount]() {
+          return libcomp::String("Player CP increased by %1: %2\n")
+              .Arg(amount)
+              .Arg(account->GetUUID().ToString());
+        });
+      }
+
+      server->GetChannelSyncManager()->SyncRecordUpdate(account, "Account");
+    }
   }
 
-  return false;
+  return amount;
 }
 
 void AccountManager::SendCPBalance(

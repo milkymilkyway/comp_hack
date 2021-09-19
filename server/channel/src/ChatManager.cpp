@@ -92,7 +92,7 @@ using namespace channel;
 
 ChatManager::ChatManager(const std::weak_ptr<ChannelServer>& server)
     : mServer(server) {
-  mGMands["addcp"] = &ChatManager::GMCommand_AddCP;
+  mGMands["cp"] = &ChatManager::GMCommand_AddRemoveCP;
   mGMands["announce"] = &ChatManager::GMCommand_Announce;
   mGMands["ban"] = &ChatManager::GMCommand_Ban;
   mGMands["bethel"] = &ChatManager::GMCommand_Bethel;
@@ -498,7 +498,7 @@ bool ChatManager::ExecuteGMCommand(
   return false;
 }
 
-bool ChatManager::GMCommand_AddCP(
+bool ChatManager::GMCommand_AddRemoveCP(
     const std::shared_ptr<channel::ChannelClientConnection>& client,
     const std::list<libcomp::String>& args) {
   if (!HaveUserLevel(client, SVR_CONST.GM_CMD_LVL_ADD_CP)) {
@@ -513,10 +513,10 @@ bool ChatManager::GMCommand_AddCP(
   auto server = mServer.lock();
 
   int64_t amount = 0;
-  if (!GetIntegerArg<int64_t>(amount, argsCopy) || amount <= 0) {
+  if (!GetIntegerArg<int64_t>(amount, argsCopy) || amount == 0) {
     return SendChatMessage(
         client, ChatType_t::CHAT_SELF,
-        libcomp::String("@addcp requires a positive amount be specified"));
+        libcomp::String("@cp needs a non-zero integer amount specified."));
   }
 
   libcomp::String name;
@@ -527,27 +527,48 @@ bool ChatManager::GMCommand_AddCP(
       return SendChatMessage(
           client, ChatType_t::CHAT_SELF,
           libcomp::String(
-              "Invalid character name supplied for add CP command: %1")
+              "Invalid character name supplied for CP modification command: %1")
               .Arg(name));
     }
   }
 
+  bool isRemove = false;
+  if (amount < 0) {
+    isRemove = true;
+    amount = -amount;
+  }
+
   auto accountManager = server->GetAccountManager();
-  if (accountManager->IncreaseCP(targetAccount, amount)) {
+  auto cpChange = accountManager->AddRemoveCP(targetAccount, amount, isRemove);
+  if (cpChange) {
     if (targetClient) {
       if (targetClient != client) {
         // Notify the other player
         auto character =
             client->GetClientState()->GetCharacterState()->GetEntity();
-        SendChatMessage(targetClient, ChatType_t::CHAT_SELF,
-                        libcomp::String("You have received %1 CP from %2!\n")
-                            .Arg(amount)
-                            .Arg(character ? character->GetName() : "a GM"));
+        if (!isRemove) {
+          SendChatMessage(targetClient, ChatType_t::CHAT_SELF,
+                          libcomp::String("You have received %1 CP from %2!\n")
+                              .Arg(cpChange)
+                              .Arg(character ? character->GetName() : "a GM"));
+        } else {
+          SendChatMessage(targetClient, ChatType_t::CHAT_SELF,
+                          libcomp::String("%1 CP has been removed by %2.\n")
+                              .Arg(cpChange)
+                              .Arg(character ? character->GetName() : "a GM"));
+        }
       } else {
-        SendChatMessage(
-            targetClient, ChatType_t::CHAT_SELF,
-            libcomp::String("Your available CP has increased by %1!\n")
-                .Arg(amount));
+        if (!isRemove) {
+          SendChatMessage(
+              targetClient, ChatType_t::CHAT_SELF,
+              libcomp::String("Your available CP has increased by %1!\n")
+                  .Arg(cpChange));
+        } else {
+          SendChatMessage(
+              targetClient, ChatType_t::CHAT_SELF,
+              libcomp::String("Your available CP has been reduced by %1.\n")
+                  .Arg(cpChange));
+        }
       }
 
       accountManager->SendCPBalance(targetClient);
@@ -555,7 +576,8 @@ bool ChatManager::GMCommand_AddCP(
   } else {
     return SendChatMessage(
         client, ChatType_t::CHAT_SELF,
-        libcomp::String("Failed to add CP to target character account: %1\n")
+        libcomp::String(
+            "Failed to modify the CP of the target character account: %1\n")
             .Arg(name));
   }
 
@@ -1761,12 +1783,10 @@ bool ChatManager::GMCommand_Help(
     const std::shared_ptr<channel::ChannelClientConnection>& client,
     const std::list<libcomp::String>& args) {
   static std::map<std::string, std::vector<std::string>> usage = {
-      {"addcp",
-       {
-           "@addcp AMOUNT [NAME]",
-           "Gives AMOUNT of CP to the character NAME or to yourself",
-           "if no NAME is specified.",
-       }},
+      {"cp",
+       {"@cp AMOUNT [NAME]", "Adds AMOUNT of CP to the character NAME,",
+        "or to yourself if no NAME is specified.",
+        "Use negative values to remove CP."}},
       {"announce",
        {
            "@announce COLOR MESSAGE...",
