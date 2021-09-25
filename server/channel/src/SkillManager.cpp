@@ -3266,16 +3266,11 @@ bool SkillManager::ProcessSkillResult(
           // Half width on each side
           float lineWidth = (float)(skillRange->GetAoeLineWidth() * 10) * 0.5f;
 
-          // If not rushing, max length can go beyond the target
-          if (skill.Definition->GetBasic()->GetActionType() !=
-              objects::MiSkillBasicData::ActionType_t::RUSH) {
-            // AoE range is extended by the hitbox size of the source
-            aoeRange =
-                aoeRange + (double)(effectiveSource->GetHitboxSize() * 10.0);
-
-            dest = server->GetZoneManager()->GetLinearPoint(
-                srcPoint.x, srcPoint.y, dest.x, dest.y, (float)aoeRange, false);
-          }
+          // AoE range is extended by the hitbox size of the source
+          aoeRange =
+              aoeRange + (double)(effectiveSource->GetHitboxSize() * 10.0);
+          dest = server->GetZoneManager()->GetLinearPoint(
+              srcPoint.x, srcPoint.y, dest.x, dest.y, (float)aoeRange, false);
 
           std::list<Point> rect;
           if (dest.y != srcPoint.y) {
