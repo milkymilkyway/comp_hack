@@ -231,6 +231,10 @@ static bool CheckWhitespace(const libcomp::String& path) {
       }
     }
 
+    if (next == data.end()) {
+      break;
+    }
+
     it = ++next;
   }
 
