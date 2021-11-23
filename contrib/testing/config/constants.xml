@@ -1670,6 +1670,11 @@
         <element>1301</element>
         <element>1403</element>
     </constant>
+	<constant name="WARPDISABLED_EXEMPT_SKILLIDS">
+        <!-- Format: skill ID -->
+        <element>8079</element><!-- GM Send Homeward -->
+        <element>8080</element><!-- GM Warp -->
+    </constant>
 
     <!-- API Admin Levels -->
     <constant name="API_ADMIN_LVL_CREATE_PROMO">300</constant>

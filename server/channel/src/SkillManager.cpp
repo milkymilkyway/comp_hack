@@ -617,11 +617,13 @@ bool SkillManager::ActivateSkill(
   }
 
   // Check additional restrictions
+  auto zone = source->GetZone();
+  auto functionID = def->GetDamage()->GetFunctionID();
   if (SkillRestricted(source, def, activationObjectID, ctx)) {
     SendFailure(source, skillID, client, (uint8_t)SkillErrorCodes_t::GENERIC);
     return false;
-  } else if (SkillZoneRestricted(skillID, source->GetZone())) {
-    if (def->GetDamage()->GetFunctionID() == SVR_CONST.SKILL_SPAWN) {
+  } else if (SkillZoneRestricted(skillID, zone)) {
+    if (functionID == SVR_CONST.SKILL_SPAWN) {
       // Special error message
       SendFailure(source, skillID, client,
                   (uint8_t)SkillErrorCodes_t::NOTHING_HAPPENED_HERE);
@@ -636,6 +638,17 @@ bool SkillManager::ActivateSkill(
     SendFailure(source, skillID, client,
                 (uint8_t)SkillErrorCodes_t::RESTRICED_USE);
     return false;
+  } else if (zone->GetDefinition()->GetWarpDisabled()) {
+    // Check if the skill is exempt from being disallowed. Broken up for
+    // readability.
+    if ((functionID == SVR_CONST.SKILL_TRAESTO ||
+         functionID == SVR_CONST.SKILL_WARP) &&
+        SVR_CONST.WARPDISABLED_EXEMPT_SKILLIDS.find(skillID) ==
+            SVR_CONST.WARPDISABLED_EXEMPT_SKILLIDS.end()) {
+      SendFailure(source, skillID, client,
+                  (uint8_t)SkillErrorCodes_t::LOCATION_RESTRICT);
+      return false;
+    }
   }
 
   auto cast = def->GetCast();

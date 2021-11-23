@@ -1678,6 +1678,30 @@ bool ServerConstants::Initialize(const String& filePath) {
     return false;
   }
 
+  complexIter = complexConstants.find("WARPDISABLED_EXEMPT_SKILLIDS");
+  if (complexIter != complexConstants.end()) {
+    std::list<String> strList;
+    if (!LoadStringList(complexIter->second, strList)) {
+      LogServerConstantsErrorMsg(
+          "Failed to load WARPDISABLED_EXEMPT_SKILLIDS\n");
+      return false;
+    } else {
+      for (auto elemStr : strList) {
+        uint32_t entry = 0;
+        if (LoadInteger(elemStr.C(), entry)) {
+          sConstants.WARPDISABLED_EXEMPT_SKILLIDS.insert(entry);
+        } else {
+          LogServerConstantsErrorMsg(
+              "Failed to load an element in WARPDISABLED_EXEMPT_SKILLIDS\n");
+          return false;
+        }
+      }
+    }
+  } else {
+    LogServerConstantsErrorMsg("WARPDISABLED_EXEMPT_SKILLIDS not found\n");
+    return false;
+  }
+
   //
   // API Admin Levels
   //

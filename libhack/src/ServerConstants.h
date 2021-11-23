@@ -637,6 +637,10 @@ class ServerConstants {
     /// IDs of valid weapons in char creation
     std::set<uint32_t> CHAR_CREATION_WEAPON;
 
+    /// Skill IDs that are exempt from WarpDisabled being set in server zone
+    /// definitions
+    std::set<uint32_t> WARPDISABLED_EXEMPT_SKILLIDS;
+
     //
     // API Admin Levels
     //

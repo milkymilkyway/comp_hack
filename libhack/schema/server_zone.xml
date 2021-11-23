@@ -66,6 +66,7 @@
         <member type="bool" name="MountDisabled"/>
         <member type="bool" name="BikeDisabled"/>
         <member type="bool" name="BikeBoostEnabled"/>
+        <member type="bool" name="WarpDisabled"/>
         <member type="set" name="ValidTeamTypes">
             <element type="s8"/>
         </member>
