@@ -43,8 +43,49 @@ using namespace channel;
 
 #define PART_SIZE (1024)
 
-void DumpAccount(AccountManager* accountManager,
-                 const std::shared_ptr<ChannelClientConnection> client) {
+void SendPart(const std::shared_ptr<ChannelClientConnection> client,
+              int partNumber) {
+  // Don't bother if the client is no longer connected.
+  if (libcomp::TcpConnection::ConnectionStatus_t::STATUS_ENCRYPTED !=
+      client->GetStatus()) {
+    return;
+  }
+
+  auto state = client->GetClientState();
+
+  auto partOffset = state->GetNextAccountDumpOffset();
+  auto dumpSize = state->GetAccountDumpSize();
+  auto szDumpData = state->GetAccountDumpData();
+
+  // Sanity check the account dump data.
+  if (!szDumpData || 0 == dumpSize || 0 > partOffset) {
+    return;
+  }
+
+  uint32_t partSize = (uint32_t)dumpSize - (uint32_t)partOffset;
+
+  if (PART_SIZE < partSize) {
+    partSize = PART_SIZE;
+  }
+
+  libcomp::Packet reply;
+  reply.WritePacketCode(
+      ChannelToClientPacketCode_t::PACKET_AMALA_ACCOUNT_DUMP_PART);
+  reply.WriteS32Little(partNumber);
+  reply.WriteU32Little(partSize);
+  reply.WriteArray(&szDumpData[partOffset], partSize);
+
+  client->SendPacket(reply);
+
+  if (!state->HaveNextAccountDumpOffset()) {
+    state->ClearAccountDumpData();
+  }
+}
+
+void DumpAccount(std::shared_ptr<ChannelServer> server,
+                 AccountManager* accountManager,
+                 const std::shared_ptr<ChannelClientConnection> client,
+                 bool throttleParts, bool waitForRequest) {
   auto state = client->GetClientState();
 
   std::string dump = accountManager->DumpAccount(state).ToUtf8();
@@ -52,6 +93,7 @@ void DumpAccount(AccountManager* accountManager,
   // Send the account dump to the client.
   if (!dump.empty()) {
     std::vector<char> dumpData(dump.c_str(), dump.c_str() + dump.size());
+    auto partCount = ((uint32_t)dumpData.size() + PART_SIZE - 1) / PART_SIZE;
 
     {
       auto accountName = state->GetAccountLogin()->GetAccount()->GetUsername();
@@ -60,7 +102,7 @@ void DumpAccount(AccountManager* accountManager,
       reply.WritePacketCode(
           ChannelToClientPacketCode_t::PACKET_AMALA_ACCOUNT_DUMP_HEADER);
       reply.WriteU32Little((uint32_t)dump.size());
-      reply.WriteU32Little(((uint32_t)dump.size() + PART_SIZE - 1) / PART_SIZE);
+      reply.WriteU32Little(partCount);
       reply.WriteString16Little(libcomp::Convert::Encoding_t::ENCODING_UTF8,
                                 libcomp::Crypto::SHA1(dumpData), true);
       reply.WriteString16Little(libcomp::Convert::Encoding_t::ENCODING_UTF8,
@@ -69,28 +111,28 @@ void DumpAccount(AccountManager* accountManager,
       client->SendPacket(reply);
     }
 
-    const char* szNextPart = &dumpData[0];
-    const char* szEnd = szNextPart + dump.size();
+    auto startStamp = server->GetServerTime();
 
-    uint32_t partNumber = 1;
+    std::list<int32_t> parts;
+    parts.push_back(0);
 
-    while (szNextPart < szEnd) {
-      uint32_t partSize = (uint32_t)(szEnd - szNextPart);
+    for (uint32_t i = 1; i < partCount; ++i) {
+      parts.push_back((int)(i * PART_SIZE));
 
-      if (partSize > PART_SIZE) {
-        partSize = PART_SIZE;
+      // Send another part of the account dump every 2 ms.
+      if (throttleParts) {
+        server->ScheduleWork(startStamp + i * 2000ULL, SendPart, client, i + 1);
       }
+    }
 
-      libcomp::Packet reply;
-      reply.WritePacketCode(
-          ChannelToClientPacketCode_t::PACKET_AMALA_ACCOUNT_DUMP_PART);
-      reply.WriteU32Little(partNumber++);
-      reply.WriteU32Little(partSize);
-      reply.WriteArray(szNextPart, partSize);
+    state->SetAccountDumpData(std::move(dumpData), std::move(parts));
 
-      client->SendPacket(reply);
+    SendPart(client, 1);
 
-      szNextPart += partSize;
+    if (!throttleParts && !waitForRequest) {
+      for (uint32_t i = 1; i < partCount; ++i) {
+        SendPart(client, (int)(i + 1));
+      }
     }
   }
 }
@@ -99,15 +141,34 @@ bool Parsers::AmalaAccountDumpRequest::Parse(
     libcomp::ManagerPacket* pPacketManager,
     const std::shared_ptr<libcomp::TcpConnection>& connection,
     libcomp::ReadOnlyPacket& p) const {
-  if (0 != p.Size()) {
+  if (0 != p.Size() && 1 != p.Size()) {
     return false;
+  }
+
+  bool throttleParts = true;
+  bool waitForRequest = false;
+
+  if (1 == p.Size()) {
+    switch (p.ReadU8()) {
+      case 1:
+        throttleParts = false;
+        waitForRequest = false;
+        break;
+      case 2:
+        throttleParts = false;
+        waitForRequest = true;
+        break;
+      default:
+        break;
+    }
   }
 
   auto client = std::dynamic_pointer_cast<ChannelClientConnection>(connection);
   auto server =
       std::dynamic_pointer_cast<ChannelServer>(pPacketManager->GetServer());
 
-  server->QueueWork(DumpAccount, server->GetAccountManager(), client);
+  server->QueueWork(DumpAccount, server, server->GetAccountManager(), client,
+                    throttleParts, waitForRequest);
 
   return true;
 }

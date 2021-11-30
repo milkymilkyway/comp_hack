@@ -83,19 +83,25 @@ bool ManagerConnection::ProcessMessage(
           dynamic_cast<const libcomp::Message::ConnectionClosed*>(cMessage);
 
       auto connection = closed->GetConnection();
-
       auto server = mServer.lock();
-      server->RemoveConnection(connection);
 
-      auto clientConnection =
-          std::dynamic_pointer_cast<ChannelClientConnection>(connection);
-      RemoveClientConnection(clientConnection);
+      server->QueueWork(
+          [](ManagerConnection* pManager,
+             std::shared_ptr<libcomp::BaseServer> _server,
+             std::shared_ptr<libcomp::TcpConnection> _connection) {
+            _server->RemoveConnection(_connection);
 
-      if (mWorldConnection == connection) {
-        LogConnectionInfoMsg("World connection closed. Shutting down.\n");
+            auto clientConnection =
+                std::dynamic_pointer_cast<ChannelClientConnection>(_connection);
+            pManager->RemoveClientConnection(clientConnection);
 
-        server->Shutdown();
-      }
+            if (pManager->GetWorldConnection() == _connection) {
+              LogConnectionInfoMsg("World connection closed. Shutting down.\n");
+
+              _server->Shutdown();
+            }
+          },
+          this, server, connection);
 
       return true;
     } break;

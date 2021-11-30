@@ -108,13 +108,17 @@ bool AmalaManager::ProcessClientMessage(
     const libcomp::Message::MessageClient *pMessage) {
   switch (to_underlying(pMessage->GetMessageClientType())) {
     case to_underlying(MessageClientType::REQUEST_ACCOUNT_DUMP): {
+      libcomp::Packet p;
+      p.WriteU16Little(to_underlying(
+          ClientToChannelPacketCode_t::PACKET_AMALA_REQ_ACCOUNT_DUMP));
+      p.WriteU8(1);  // no throttle, no wait for request
+
       auto pAccountDump =
           reinterpret_cast<const MessageAccountDump *>(pMessage);
       mAccountDumpPath = pAccountDump->GetPath();
 
       // Request the character dump.
-      mLogicWorker->SendBlankPacket(to_underlying(
-          ClientToChannelPacketCode_t::PACKET_AMALA_REQ_ACCOUNT_DUMP));
+      mLogicWorker->SendPacket(p);
 
       return true;
     }

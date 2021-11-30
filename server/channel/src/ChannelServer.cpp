@@ -710,6 +710,9 @@ bool ChannelServer::Initialize() {
   clientPacketManager->AddParser<Parsers::AmalaAccountDumpRequest>(
       to_underlying(
           ClientToChannelPacketCode_t::PACKET_AMALA_REQ_ACCOUNT_DUMP));
+  clientPacketManager->AddParser<Parsers::AmalaAccountDumpPartRequest>(
+      to_underlying(
+          ClientToChannelPacketCode_t::PACKET_AMALA_REQ_ACCOUNT_DUMP_PART));
 
   // Map the Unsupported packet parser to unsupported packets or packets that
   // the server does not need to react to

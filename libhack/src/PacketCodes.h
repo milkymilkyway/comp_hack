@@ -643,6 +643,8 @@ enum class ClientToChannelPacketCode_t : uint16_t {
   //
   /// Request a dump of the account data.
   PACKET_AMALA_REQ_ACCOUNT_DUMP = 0x1000,
+  /// Request the next part of the account dump data.
+  PACKET_AMALA_REQ_ACCOUNT_DUMP_PART = 0x1001,
 };
 
 /**

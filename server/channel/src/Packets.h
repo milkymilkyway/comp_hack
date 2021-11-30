@@ -287,7 +287,8 @@ PACKET_PARSER_DECL(ReunionPoints);           // 0x0432
 PACKET_PARSER_DECL(ReunionExtract);          // 0x0434
 PACKET_PARSER_DECL(ReunionInject);           // 0x0436
 
-PACKET_PARSER_DECL(AmalaAccountDumpRequest);  // 0x1000
+PACKET_PARSER_DECL(AmalaAccountDumpRequest);      // 0x1000
+PACKET_PARSER_DECL(AmalaAccountDumpPartRequest);  // 0x1001
 
 PACKET_PARSER_DECL(SetWorldInfo);         // 0x1002
 PACKET_PARSER_DECL(SetOtherChannelInfo);  // 0x1003

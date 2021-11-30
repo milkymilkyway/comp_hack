@@ -1,6 +1,8 @@
 #!/bin/bash
 set -e
 
+clang-format --version
+
 while read f
 do
 	echo $f

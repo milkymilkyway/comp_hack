@@ -323,6 +323,59 @@ class ClientState : public objects::ClientStateObject {
   std::list<std::shared_ptr<objects::ClientCostAdjustment>> GetCostAdjustments(
       int32_t entityID);
 
+  /**
+   * Set the account dump data for this account.
+   * @param data Account dump data
+   * @param parts List of bytes offsets for each part of the account dump
+   */
+  void SetAccountDumpData(const std::vector<char>&& data,
+                          const std::list<int32_t>&& parts) {
+    mAccountDumpData = std::move(data);
+    mAccountDumpParts = std::move(parts);
+  }
+
+  /**
+   * Clear the account dump data.
+   */
+  void ClearAccountDumpData() {
+    mAccountDumpData.clear();
+    mAccountDumpParts.clear();
+  }
+
+  /**
+   * Get a pointer to the account dump data.
+   * @returns Pointer to the account dump data.
+   */
+  const char* GetAccountDumpData() const { return mAccountDumpData.data(); }
+
+  /**
+   * Return the size (in bytes) of the account dump data.
+   * @returns Size (in bytes) of the account dump data.
+   */
+  size_t GetAccountDumpSize() const { return mAccountDumpData.size(); }
+
+  /**
+   * Get the byte offset for the next part of the account dump.
+   * @returns Byte offset for the next part of the account dump or -1 if there
+   * is no next part.
+   */
+  int32_t GetNextAccountDumpOffset() {
+    if (mAccountDumpParts.empty()) {
+      return -1;
+    } else {
+      auto ret = mAccountDumpParts.front();
+      mAccountDumpParts.pop_front();
+
+      return ret;
+    }
+  }
+
+  /**
+   * Check if there is another account dump offset.
+   * @returns true if there is another account dump offset; false otherwise.
+   */
+  bool HaveNextAccountDumpOffset() const { return !mAccountDumpParts.empty(); }
+
  private:
   /// Static registry of all client states sorted as world (true) or
   /// local entity IDs (false) and their respective IDs
@@ -364,6 +417,12 @@ class ClientState : public objects::ClientStateObject {
 
   /// Next available local object ID
   int32_t mNextLocalObjectID;
+
+  /// Account dump data
+  std::vector<char> mAccountDumpData;
+
+  /// Account dump parts
+  std::list<int32_t> mAccountDumpParts;
 
   /// Server lock for shared resources
   std::mutex mLock;
