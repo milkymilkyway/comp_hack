@@ -2510,10 +2510,13 @@ bool SkillManager::DetermineCosts(
   uint32_t fGaugeCost = 0;
   uint16_t bulletCost = 0;
   std::unordered_map<uint32_t, uint32_t> itemCosts;
+  std::unordered_map<uint32_t, uint64_t> compressibleItemCosts;
+  const static bool autoDecompressForSkillUses =
+      server->GetWorldSharedConfig()->GetAutoDecompressForSkillUses();
 
   // Gather the normal costs first
   if (!DetermineNormalCosts(source, pSkill->Definition, hpCost, mpCost,
-                            bulletCost, itemCosts,
+                            bulletCost, itemCosts, compressibleItemCosts,
                             pSkill->SourceExecutionState)) {
     SendFailure(activated, client, (uint8_t)SkillErrorCodes_t::GENERIC);
     return false;
@@ -2561,7 +2564,11 @@ bool SkillManager::DetermineCosts(
 
         uint32_t cost = (uint32_t)round(mag);
         if (cost) {
-          itemCosts[SVR_CONST.ITEM_MAGNETITE] = cost;
+          if (autoDecompressForSkillUses) {
+            compressibleItemCosts[SVR_CONST.ITEM_MAGNETITE] = cost;
+          } else {
+            itemCosts[SVR_CONST.ITEM_MAGNETITE] = cost;
+          }
         }
       }
     } else if (pSkill->FunctionID == SVR_CONST.SKILL_DEMON_FUSION) {
@@ -2572,7 +2579,12 @@ bool SkillManager::DetermineCosts(
         int8_t stockCount = fusionData->GetStockCost();
         fGaugeCost = (uint32_t)(stockCount * 10000);
 
-        itemCosts[SVR_CONST.ITEM_MAGNETITE] = fusionData->GetMagCost();
+        if (autoDecompressForSkillUses) {
+          compressibleItemCosts[SVR_CONST.ITEM_MAGNETITE] =
+              fusionData->GetMagCost();
+        } else {
+          itemCosts[SVR_CONST.ITEM_MAGNETITE] = fusionData->GetMagCost();
+        }
       }
     } else if (pSkill->FunctionID == SVR_CONST.SKILL_DIGITALIZE) {
       auto demon = std::dynamic_pointer_cast<objects::Demon>(
@@ -2605,7 +2617,11 @@ bool SkillManager::DetermineCosts(
 
       uint32_t dgCost = (uint32_t)floor(lncCost + levelCost + dLevelCost);
       if (dgCost) {
-        itemCosts[SVR_CONST.ITEM_MAGNETITE] = dgCost;
+        if (autoDecompressForSkillUses) {
+          compressibleItemCosts[SVR_CONST.ITEM_MAGNETITE] = dgCost;
+        } else {
+          itemCosts[SVR_CONST.ITEM_MAGNETITE] = dgCost;
+        }
       }
     } else if (pSkill->FunctionID == SVR_CONST.SKILL_GEM_COST) {
       // Add one crystal matching target race
@@ -2653,6 +2669,7 @@ bool SkillManager::DetermineCosts(
   activated->SetMPCost(mpCost);
   activated->SetBulletCost(bulletCost);
   activated->SetItemCosts(itemCosts);
+  activated->SetCompressibleItemCosts(compressibleItemCosts);
 
   if (!AdjustScriptCosts(pSkill)) {
     // Clear costs
@@ -2660,6 +2677,7 @@ bool SkillManager::DetermineCosts(
     activated->SetMPCost(0);
     activated->SetBulletCost(0);
     activated->ClearItemCosts();
+    activated->ClearCompressibleItemCosts();
 
     SendFailure(activated, client, (uint8_t)SkillErrorCodes_t::GENERIC);
     return false;
@@ -2673,8 +2691,29 @@ bool SkillManager::DetermineCosts(
   bool canPay = sourceStats &&
                 ((hpCost == 0) || hpCost < sourceStats->GetHP()) &&
                 ((mpCost == 0) || mpCost <= sourceStats->GetMP());
-  if (activated->ItemCostsCount() > 0 || activated->GetBulletCost() > 0) {
+
+  if (canPay && (activated->ItemCostsCount() > 0 ||
+                 activated->CompressibleItemCostsCount() > 0 ||
+                 activated->GetBulletCost() > 0)) {
     if (client && character) {
+      // First, determine macca and magnetite costs.
+      compressibleItemCosts = activated->GetCompressibleItemCosts();
+
+      if (autoDecompressForSkillUses && (compressibleItemCosts.size() > 0)) {
+        std::list<std::shared_ptr<objects::Item>> compressibleItemInserts;
+        std::unordered_map<std::shared_ptr<objects::Item>, uint16_t>
+            compressibleItemStackAdjusts;
+
+        if (!characterManager->CalculateCompressibleItemPayment(
+                client, compressibleItemCosts, compressibleItemInserts,
+                compressibleItemStackAdjusts) ||
+            !characterManager->UpdateItems(
+                client, true, compressibleItemInserts,
+                compressibleItemStackAdjusts, false)) {
+          canPay = false;
+        }
+      }
+
       for (auto itemCost : activated->GetItemCosts()) {
         uint32_t itemCount =
             characterManager->GetExistingItemCount(character, itemCost.first);
@@ -2707,7 +2746,8 @@ bool SkillManager::DetermineCosts(
     }
   }
 
-  if (fGaugeCost && (!character || character->GetFusionGauge() < fGaugeCost)) {
+  if (canPay && fGaugeCost &&
+      (!character || character->GetFusionGauge() < fGaugeCost)) {
     canPay = false;
   }
 
@@ -2718,6 +2758,7 @@ bool SkillManager::DetermineCosts(
     activated->SetMPCost(0);
     activated->SetBulletCost(0);
     activated->ClearItemCosts();
+    activated->ClearCompressibleItemCosts();
 
     SendFailure(activated, client, (uint8_t)SkillErrorCodes_t::GENERIC_COST);
     return false;
@@ -2731,11 +2772,15 @@ bool SkillManager::DetermineNormalCosts(
     const std::shared_ptr<objects::MiSkillData>& skillData, int32_t& hpCost,
     int32_t& mpCost, uint16_t& bulletCost,
     std::unordered_map<uint32_t, uint32_t>& itemCosts,
+    std::unordered_map<uint32_t, uint64_t>& compressibleItemCosts,
     std::shared_ptr<objects::CalculatedEntityState> calcState) {
   hpCost = 0;
   mpCost = 0;
   bulletCost = 0;
   itemCosts.clear();
+  compressibleItemCosts.clear();
+  auto server = mServer.lock();
+  auto tokuseiManager = server->GetTokuseiManager();
 
   // Only characters and partner demons have to pay item costs
   bool noItem = source->GetEntityType() != EntityType_t::CHARACTER &&
@@ -2769,10 +2814,55 @@ bool SkillManager::DetermineNormalCosts(
             return false;
           } else {
             auto itemID = cost->GetItem();
-            if (itemCosts.find(itemID) == itemCosts.end()) {
-              itemCosts[itemID] = 0;
+
+            const static bool autoDecompressForSkillUses =
+                server->GetWorldSharedConfig()->GetAutoDecompressForSkillUses();
+
+            if (autoDecompressForSkillUses) {
+              // Macca and magnetite are compressible, so they need special
+              // processing.
+              bool isCompressible = false;
+              bool isCompressed = false;
+
+              auto compressibleIter = SVR_CONST.ITEM_COMPRESSIONS.begin();
+              for (; compressibleIter != SVR_CONST.ITEM_COMPRESSIONS.end();
+                   compressibleIter++) {
+                if ((*compressibleIter)->GetBaseItem() == itemID) {
+                  isCompressible = true;
+                  break;
+                } else if ((*compressibleIter)->GetCompressedItem() == itemID) {
+                  isCompressed = true;
+                  break;
+                }
+              }
+
+              if (isCompressible || isCompressed) {
+                auto baseItemID = (*compressibleIter)->GetBaseItem();
+
+                if (compressibleItemCosts.find(baseItemID) ==
+                    compressibleItemCosts.end()) {
+                  compressibleItemCosts[baseItemID] = 0;
+                }
+
+                if (isCompressible) {
+                  compressibleItemCosts[baseItemID] += (uint64_t)num;
+                } else if (isCompressed) {
+                  compressibleItemCosts[baseItemID] +=
+                      ((uint64_t)num *
+                       (*compressibleIter)->GetCompressorValue());
+                }
+              } else {
+                if (itemCosts.find(itemID) == itemCosts.end()) {
+                  itemCosts[itemID] = 0;
+                }
+                itemCosts[itemID] = (uint64_t)(itemCosts[itemID] + num);
+              }
+            } else {
+              if (itemCosts.find(itemID) == itemCosts.end()) {
+                itemCosts[itemID] = 0;
+              }
+              itemCosts[itemID] = (uint64_t)(itemCosts[itemID] + num);
             }
-            itemCosts[itemID] = (uint32_t)(itemCosts[itemID] + num);
           }
         }
         break;
@@ -2805,8 +2895,7 @@ bool SkillManager::DetermineNormalCosts(
     double multiplier = 1.0;
     if ((skillData->GetCast()->GetBasic()->GetAdjustRestrictions() &
          SKILL_FIXED_HP_COST) == 0) {
-      for (double adjust :
-           mServer.lock()->GetTokuseiManager()->GetAspectValueList(
+      for (double adjust : tokuseiManager->GetAspectValueList(
                source, TokuseiAspectType::HP_COST_ADJUST, calcState)) {
         multiplier =
             adjust <= -100.0 ? 0.0 : (multiplier * (1.0 + adjust * 0.01));
@@ -2828,8 +2917,7 @@ bool SkillManager::DetermineNormalCosts(
     double multiplier = 1.0;
     if ((skillData->GetCast()->GetBasic()->GetAdjustRestrictions() &
          SKILL_FIXED_MP_COST) == 0) {
-      for (double adjust :
-           mServer.lock()->GetTokuseiManager()->GetAspectValueList(
+      for (double adjust : tokuseiManager->GetAspectValueList(
                source, TokuseiAspectType::MP_COST_ADJUST, calcState)) {
         multiplier =
             adjust <= -100.0 ? 0.0 : (multiplier * (1.0 + adjust * 0.01));
@@ -2883,8 +2971,8 @@ void SkillManager::PayCosts(
     uint16_t bulletCost = activated->GetBulletCost();
 
     int64_t targetItem = activated->GetActivationObjectID();
+    auto character = state->GetCharacterState()->GetEntity();
     if (bulletCost > 0) {
-      auto character = state->GetCharacterState()->GetEntity();
       auto bullets = character->GetEquippedItems(
           (size_t)objects::MiItemBasicData::EquipType_t::EQUIP_TYPE_BULLETS);
       if (bullets) {
@@ -2895,6 +2983,20 @@ void SkillManager::PayCosts(
 
     if (itemCosts.size() > 0) {
       characterManager->AddRemoveItems(client, itemCosts, false, targetItem);
+    }
+
+    const static bool autoDecompressForSkillUses =
+        server->GetWorldSharedConfig()->GetAutoDecompressForSkillUses();
+    if (autoDecompressForSkillUses) {
+      // Pay the skill's outstanding macca and magnetite costs.
+      auto compressibleItemCosts = activated->GetCompressibleItemCosts();
+
+      if (compressibleItemCosts.size() > 0) {
+        std::shared_ptr<libcomp::DatabaseChangeSet> compressibleItemChanges =
+            libcomp::DatabaseChangeSet::Create(character->GetAccount());
+        characterManager->PayCompressibleItems(client, compressibleItemCosts,
+                                               compressibleItemChanges);
+      }
     }
 
     if (pSkill->FunctionID &&
@@ -9708,6 +9810,7 @@ std::shared_ptr<objects::ActivatedAbility> SkillManager::FinalizeSkill(
     activated->SetMPCost(0);
     activated->SetBulletCost(0);
     activated->ClearItemCosts();
+    activated->ClearCompressibleItemCosts();
 
     // Reset times
     activated->SetExecutionTime(0);

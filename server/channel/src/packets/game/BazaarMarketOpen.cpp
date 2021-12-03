@@ -31,6 +31,9 @@
 #include <ManagerPacket.h>
 #include <Packet.h>
 #include <PacketCodes.h>
+#include <ServerConstants.h>
+#include <ServerDataManager.h>
+#include <math.h>
 
 // object Includes
 #include <AccountWorldData.h>
@@ -100,8 +103,11 @@ bool Parsers::BazaarMarketOpen::Parse(
 
       success = false;
     } else if (maccaCost > 0) {
-      success =
-          server->GetCharacterManager()->PayMacca(client, (uint64_t)maccaCost);
+      std::unordered_map<uint32_t, uint64_t> compressibleItemCosts;
+      compressibleItemCosts[SVR_CONST.ITEM_MACCA] = (uint64_t)maccaCost;
+
+      success = server->GetCharacterManager()->PayCompressibleItems(
+          client, compressibleItemCosts);
     }
   }
 

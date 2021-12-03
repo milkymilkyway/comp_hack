@@ -2158,9 +2158,12 @@ void AIManager::RefreshSkillMap(
         int32_t hpCost = 0, mpCost = 0;
         uint16_t bulletCost = 0;
         std::unordered_map<uint32_t, uint32_t> itemCosts;
-        if (!skillManager->DetermineNormalCosts(
-                eState, skillData, hpCost, mpCost, bulletCost, itemCosts) ||
-            bulletCost || itemCosts.size() > 0) {
+        std::unordered_map<uint32_t, uint64_t> compressibleItemCosts;
+        if (!skillManager->DetermineNormalCosts(eState, skillData, hpCost,
+                                                mpCost, bulletCost, itemCosts,
+                                                compressibleItemCosts) ||
+            bulletCost || (itemCosts.size() > 0) ||
+            (compressibleItemCosts.size() > 0)) {
           continue;
         }
 
@@ -2379,8 +2382,10 @@ bool AIManager::PrepareSkillUsage(
           int32_t hpCost = 0, mpCost = 0;
           uint16_t bulletCost = 0;
           std::unordered_map<uint32_t, uint32_t> itemCosts;
-          if (!skillManager->DetermineNormalCosts(
-                  eState, skillData, hpCost, mpCost, bulletCost, itemCosts) ||
+          std::unordered_map<uint32_t, uint64_t> compressibleItemCosts;
+          if (!skillManager->DetermineNormalCosts(eState, skillData, hpCost,
+                                                  mpCost, bulletCost, itemCosts,
+                                                  compressibleItemCosts) ||
               hpCost >= cs->GetHP() || mpCost > cs->GetMP()) {
             continue;
           }

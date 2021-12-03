@@ -95,7 +95,9 @@ bool Parsers::BazaarItemBuy::Parse(
     auto inventory = character->GetItemBoxes(0).Get();
     auto market = bState->GetCurrentMarket(marketID);
 
-    uint64_t totalMacca = characterManager->GetTotalMacca(character);
+    bool compressible;
+    uint64_t totalMacca = characterManager->GetTotalInInventory(
+        character, SVR_CONST.ITEM_MACCA, compressible);
 
     std::set<size_t> freeSlots;
     bItem = bState->TryBuyItem(state, marketID, slot, itemID, price);
@@ -128,7 +130,11 @@ bool Parsers::BazaarItemBuy::Parse(
       });
     } else if (bState->BuyItem(bItem)) {
       uint64_t cost = (uint64_t)bItem->GetCost();
-      if (!characterManager->PayMacca(client, cost)) {
+      std::unordered_map<uint32_t, uint64_t> compressibleItemCosts;
+      compressibleItemCosts[SVR_CONST.ITEM_MACCA] = cost;
+
+      if (!characterManager->PayCompressibleItems(client,
+                                                  compressibleItemCosts)) {
         // Undo sale
         bItem->SetSold(false);
       } else {

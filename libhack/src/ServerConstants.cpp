@@ -30,6 +30,9 @@
 // Standard C++ Includes
 #include <unordered_map>
 
+// object includes
+#include <ItemCompression.h>
+
 // Ignore warnings
 #include <PushIgnore.h>
 
@@ -1675,6 +1678,65 @@ bool ServerConstants::Initialize(const String& filePath) {
     }
   } else {
     LogServerConstantsErrorMsg("CHAR_CREATION_WEAPON not found\n");
+    return false;
+  }
+
+  complexIter = complexConstants.find("ITEM_COMPRESSIONS");
+  if (complexIter != complexConstants.end()) {
+    std::unordered_map<std::string, std::string> map;
+    if (!LoadKeyValueStrings(complexIter->second, map)) {
+      LogServerConstantsErrorMsg("Failed to load ITEM_COMPRESSIONS\n");
+      return false;
+    }
+
+    for (auto pair : map) {
+      uint32_t key = 0;
+      if (!LoadInteger(pair.first, key)) {
+        LogServerConstantsErrorMsg("Failed to load ITEM_COMPRESSIONS key\n");
+        return false;
+      } else {
+        if (!pair.second.empty()) {
+          std::list<String> strList = libcomp::String(pair.second).Split(",");
+
+          if (strList.size() != 2) {
+            LogServerConstantsErrorMsg(
+                "ITEM_COMPRESSIONS must specify both a compressed item and"
+                "compression ratio for each compressible item entry\n");
+            return false;
+          } else {
+            uint32_t compressor = 0;
+            if (!LoadInteger<uint32_t>(strList.front().C(), compressor)) {
+              LogServerConstantsErrorMsg(
+                  "Failed to load a compressor in a ITEM_COMPRESSIONS "
+                  "entry\n");
+              return false;
+            }
+
+            uint16_t compressorValue = 0;
+            if (!LoadInteger<uint16_t>(strList.back().C(), compressorValue)) {
+              LogServerConstantsErrorMsg(
+                  "Failed to load a compressor value in a "
+                  "ITEM_COMPRESSIONS entry\n");
+              return false;
+            }
+
+            std::shared_ptr<objects::ItemCompression> itemCompression =
+                std::make_shared<objects::ItemCompression>();
+            itemCompression->SetBaseItem(key);
+            itemCompression->SetCompressedItem(compressor);
+            itemCompression->SetCompressorValue(compressorValue);
+
+            sConstants.ITEM_COMPRESSIONS.push_back(itemCompression);
+          }
+        } else {
+          LogServerConstantsErrorMsg(
+              "Failed to load ITEM_COMPRESSIONS value\n");
+          return false;
+        }
+      }
+    }
+  } else {
+    LogServerConstantsErrorMsg("ITEM_COMPRESSIONS not found\n");
     return false;
   }
 

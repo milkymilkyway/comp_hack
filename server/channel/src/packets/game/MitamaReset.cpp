@@ -73,7 +73,10 @@ void HandleMitamaReset(const std::shared_ptr<ChannelServer> server,
     }
 
     // Pay the cost
-    success = characterManager->PayMacca(client, (uint64_t)(cleared * 30000));
+    std::unordered_map<uint32_t, uint64_t> compressibleItemCosts;
+    compressibleItemCosts[SVR_CONST.ITEM_MACCA] = (uint64_t)(cleared * 30000);
+    success =
+        characterManager->PayCompressibleItems(client, compressibleItemCosts);
 
     if (success) {
       // Clear type and save

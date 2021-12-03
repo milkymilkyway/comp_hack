@@ -250,8 +250,11 @@ void HandleShopPurchase(const std::shared_ptr<ChannelServer> server,
 
     price = price * quantity;
 
-    if (!characterManager->CalculateMaccaPayment(
-            client, (uint64_t)price, insertItems, stackAdjustItems)) {
+    std::unordered_map<uint32_t, uint64_t> compressibleItemCosts;
+    compressibleItemCosts[SVR_CONST.ITEM_MACCA] = (uint64_t)price;
+
+    if (!characterManager->CalculateCompressibleItemPayment(
+            client, compressibleItemCosts, insertItems, stackAdjustItems)) {
       auto accountUID = state->GetAccountUID();
       LogGeneralError([accountUID]() {
         return libcomp::String(

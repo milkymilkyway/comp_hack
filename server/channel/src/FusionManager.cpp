@@ -1467,9 +1467,14 @@ int8_t FusionManager::ProcessFusion(
       maccaCost = (uint32_t)floor(0.5 * pow(baseLevel, 2));
     }
 
+    std::unordered_map<uint32_t, uint64_t> compressibleItemCosts;
+    if (maccaCost) {
+      compressibleItemCosts[SVR_CONST.ITEM_MACCA] = maccaCost;
+    }
+
     paymentSuccess =
-        maccaCost == 0 ||
-        characterManager->PayMacca(client, (uint64_t)maccaCost, changes);
+        maccaCost == 0 || characterManager->PayCompressibleItems(
+                              client, compressibleItemCosts, changes);
   } else if (costItemType == SVR_CONST.ITEM_KREUZ) {
     std::unordered_map<uint32_t, uint32_t> itemCost;
 

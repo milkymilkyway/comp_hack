@@ -221,8 +221,10 @@ bool Parsers::EquipmentSpiritFuse::Parse(
 
   std::list<std::shared_ptr<objects::Item>> insertItems;
   std::unordered_map<std::shared_ptr<objects::Item>, uint16_t> updateItems;
-  if (!error && !characterManager->CalculateMaccaPayment(
-                    client, (uint64_t)cost, insertItems, updateItems)) {
+  std::unordered_map<uint32_t, uint64_t> compressibleItemCosts;
+  compressibleItemCosts[SVR_CONST.ITEM_MACCA] = (uint64_t)cost;
+  if (!error && !characterManager->CalculateCompressibleItemPayment(
+                    client, compressibleItemCosts, insertItems, updateItems)) {
     LogItemError([&]() {
       return libcomp::String(
                  "EquipmentSpiritFuse request attempted with insufficient "

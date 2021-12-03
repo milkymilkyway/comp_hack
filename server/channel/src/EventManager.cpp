@@ -1346,9 +1346,15 @@ bool EventManager::EvaluateCondition(
         // [value 2] in the character's inventory
         auto character =
             client->GetClientState()->GetCharacterState()->GetEntity();
+
+        auto itemType = (uint32_t)condition->GetValue1();
+
+        // Might be compressible, if so allow the potential use of a compressor.
+        bool compressible = true;
         uint32_t count =
-            mServer.lock()->GetCharacterManager()->GetExistingItemCount(
-                character, (uint32_t)condition->GetValue1());
+            (uint32_t)mServer.lock()
+                ->GetCharacterManager()
+                ->GetTotalInInventory(character, itemType, compressible);
 
         return Compare((int32_t)count, condition->GetValue2(), 0, compareMode,
                        EventCompareMode::GTE, EVENT_COMPARE_NUMERIC);

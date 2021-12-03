@@ -193,7 +193,11 @@ bool Parsers::ShopRepair::Parse(
       payment[SVR_CONST.ITEM_KREUZ] = cost;
       paid = characterManager->AddRemoveItems(client, payment, false);
     } else {
-      paid = characterManager->PayMacca(client, (uint64_t)cost);
+      std::unordered_map<uint32_t, uint64_t> compressibleItemCosts;
+      compressibleItemCosts[SVR_CONST.ITEM_MACCA] = cost;
+
+      paid =
+          characterManager->PayCompressibleItems(client, compressibleItemCosts);
     }
 
     if (paid) {

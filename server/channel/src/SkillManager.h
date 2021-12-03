@@ -354,8 +354,10 @@ class SkillManager {
    *  for tokusei
    * @param bulletCost Output parameter containing how many bullets
    *  would be consumed by the skill
-   * @param itemCosts Output parameter containing how many items would
-   *  be consumed by the skill (type to count)
+   * @param itemCosts Output parameter containing how many uncompressible items
+   * would be consumed by the skill (type to count)
+   * @param compressibleItemCosts Output parameter containing how many
+   * compressible items would be consumed by the skill (type to count)
    * @return true if no errors were encountered in the costs, false if
    *  an error occurred
    */
@@ -364,6 +366,7 @@ class SkillManager {
       const std::shared_ptr<objects::MiSkillData>& skillData, int32_t& hpCost,
       int32_t& mpCost, uint16_t& bulletCost,
       std::unordered_map<uint32_t, uint32_t>& itemCosts,
+      std::unordered_map<uint32_t, uint64_t>& compressibleItemCosts,
       std::shared_ptr<objects::CalculatedEntityState> calcState = nullptr);
 
   /**

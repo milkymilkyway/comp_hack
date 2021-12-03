@@ -1434,6 +1434,11 @@ void CharacterManager::SummonDemon(
       server->GetZoneManager()->GetZoneConnections(client, false);
   SendOtherPartnerData(otherClients, state);
 
+  // If the entire demon box is not sent out after a summon, a bug can be
+  // triggered that causes the client to display that a previously-summoned
+  // demon can be re-summoned even with insufficient magnetite.
+  SendDemonBoxData(client, 0);
+
   if (updatePartyState && state->GetPartyID()) {
     libcomp::Packet request;
     state->GetPartyDemonPacket(request);
@@ -1813,41 +1818,28 @@ bool CharacterManager::AddRemoveItems(
 
   bool autoCompress = add && autoCompressCurrency;
   if (autoCompress) {
-    // Compress macca
-    auto it = itemCounts.find(SVR_CONST.ITEM_MACCA);
-    if (it != itemCounts.end() && it->second >= ITEM_MACCA_NOTE_AMOUNT) {
-      uint32_t maccaCount = it->second;
-      uint32_t noteCount = (uint32_t)(maccaCount / ITEM_MACCA_NOTE_AMOUNT);
-      maccaCount = (uint32_t)(maccaCount -
-                              (uint32_t)(noteCount * ITEM_MACCA_NOTE_AMOUNT));
+    for (auto compressibleItem : SVR_CONST.ITEM_COMPRESSIONS) {
+      auto baseItem = compressibleItem->GetBaseItem();
+      auto compressorValue = compressibleItem->GetCompressorValue();
 
-      if (noteCount > 0) {
-        itemCounts[SVR_CONST.ITEM_MACCA_NOTE] = noteCount;
-      }
+      auto it = itemCounts.find(baseItem);
+      if (it != itemCounts.end() && it->second >= compressorValue) {
+        uint32_t baseItemCount = it->second;
+        uint32_t compressedItemCount =
+            (uint32_t)(baseItemCount / compressorValue);
+        baseItemCount = (uint32_t)(
+            baseItemCount - (uint32_t)(compressedItemCount * compressorValue));
 
-      if (maccaCount == 0) {
-        itemCounts.erase(SVR_CONST.ITEM_MACCA);
-      } else {
-        itemCounts[SVR_CONST.ITEM_MACCA] = maccaCount;
-      }
-    }
+        if (compressedItemCount > 0) {
+          itemCounts[compressibleItem->GetCompressedItem()] =
+              compressedItemCount;
+        }
 
-    // Compress mag
-    it = itemCounts.find(SVR_CONST.ITEM_MAGNETITE);
-    if (it != itemCounts.end() && it->second >= ITEM_MAG_PRESSER_AMOUNT) {
-      uint32_t magCount = it->second;
-      uint32_t presserCount = (uint32_t)(magCount / ITEM_MAG_PRESSER_AMOUNT);
-      magCount = (uint32_t)(magCount -
-                            (uint32_t)(presserCount * ITEM_MAG_PRESSER_AMOUNT));
-
-      if (presserCount > 0) {
-        itemCounts[SVR_CONST.ITEM_MAG_PRESSER] = presserCount;
-      }
-
-      if (magCount == 0) {
-        itemCounts.erase(SVR_CONST.ITEM_MAGNETITE);
-      } else {
-        itemCounts[SVR_CONST.ITEM_MAGNETITE] = magCount;
+        if (baseItemCount == 0) {
+          itemCounts.erase(baseItem);
+        } else {
+          itemCounts[baseItem] = baseItemCount;
+        }
       }
     }
   }
@@ -1870,9 +1862,17 @@ bool CharacterManager::AddRemoveItems(
     auto existing = GetExistingItems(character, itemType);
     uint32_t maxStack = (uint32_t)def->GetPossession()->GetStackSize();
     if (add) {
-      bool compressible =
-          autoCompress && (itemType == SVR_CONST.ITEM_MACCA ||
-                           itemType == SVR_CONST.ITEM_MAGNETITE);
+      bool compressible = false;
+      auto compressibleIter = SVR_CONST.ITEM_COMPRESSIONS.begin();
+      if (autoCompress) {
+        for (; compressibleIter != SVR_CONST.ITEM_COMPRESSIONS.end();
+             compressibleIter++) {
+          if ((*compressibleIter)->GetBaseItem() == itemType) {
+            compressible = true;
+            break;
+          }
+        }
+      }
 
       uint32_t quantityLeft = quantity;
       for (auto item : existing) {
@@ -1902,17 +1902,11 @@ bool CharacterManager::AddRemoveItems(
 
           if (added < quantity && free > 0) {
             if (compressible) {
-              uint32_t increaseItem = 0;
-              if (itemType == SVR_CONST.ITEM_MACCA &&
-                  (uint32_t)(item->GetStackSize() + (quantity - added)) >=
-                      ITEM_MACCA_NOTE_AMOUNT) {
-                increaseItem = SVR_CONST.ITEM_MACCA_NOTE;
-              } else if (itemType == SVR_CONST.ITEM_MAGNETITE &&
-                         (uint32_t)(item->GetStackSize() +
-                                    (quantity - added)) >=
-                             ITEM_MAG_PRESSER_AMOUNT) {
-                increaseItem = SVR_CONST.ITEM_MAG_PRESSER;
-              }
+              uint32_t increaseItem =
+                  ((uint32_t)(item->GetStackSize() + (quantity - added)) >=
+                   (*compressibleIter)->GetCompressorValue())
+                      ? (*compressibleIter)->GetCompressedItem()
+                      : 0;
 
               if (increaseItem) {
                 // Remove the current item and add the compressed item
@@ -2092,28 +2086,53 @@ bool CharacterManager::AddRemoveItems(
   return true;
 }
 
-uint64_t CharacterManager::GetTotalMacca(
-    const std::shared_ptr<objects::Character>& character) {
-  auto macca = GetExistingItems(character, SVR_CONST.ITEM_MACCA,
-                                character->GetItemBoxes(0).Get());
-  auto maccaNotes = GetExistingItems(character, SVR_CONST.ITEM_MACCA_NOTE,
-                                     character->GetItemBoxes(0).Get());
+uint64_t CharacterManager::GetTotalInInventory(
+    const std::shared_ptr<objects::Character>& character, uint32_t itemType,
+    bool& isCompressible) {
+  auto inventory = character->GetItemBoxes(0).Get();
 
-  uint64_t totalMacca = 0;
-  for (auto m : macca) {
-    totalMacca += m->GetStackSize();
+  uint32_t compressedItemType = 0;
+  uint16_t compressorValue = 0;
+
+  if (isCompressible) {
+    isCompressible = false;
+    for (auto compressibleIter = SVR_CONST.ITEM_COMPRESSIONS.begin();
+         compressibleIter != SVR_CONST.ITEM_COMPRESSIONS.end();
+         compressibleIter++) {
+      if ((*compressibleIter)->GetBaseItem() == itemType) {
+        isCompressible = true;
+        compressedItemType = (*compressibleIter)->GetCompressedItem();
+        compressorValue = (*compressibleIter)->GetCompressorValue();
+        break;
+      }
+    }
   }
 
-  for (auto m : maccaNotes) {
-    totalMacca += (uint64_t)(m->GetStackSize() * ITEM_MACCA_NOTE_AMOUNT);
+  uint64_t totalBaseItem = 0;
+  if (isCompressible) {
+    auto baseItems = GetExistingItems(character, itemType, inventory);
+    auto compressedItems =
+        GetExistingItems(character, compressedItemType, inventory);
+
+    for (auto baseItem : baseItems) {
+      totalBaseItem += baseItem->GetStackSize();
+    }
+
+    for (auto compressedItem : compressedItems) {
+      totalBaseItem +=
+          (uint64_t)(compressedItem->GetStackSize() * compressorValue);
+    }
+  } else {
+    totalBaseItem =
+        (uint64_t)GetExistingItemCount(character, itemType, inventory);
   }
 
-  return totalMacca;
+  return totalBaseItem;
 }
 
-bool CharacterManager::PayMacca(
+bool CharacterManager::PayCompressibleItems(
     const std::shared_ptr<channel::ChannelClientConnection>& client,
-    uint64_t amount,
+    std::unordered_map<uint32_t, uint64_t>& compressibleItemCosts,
     const std::shared_ptr<libcomp::DatabaseChangeSet>& changes) {
   auto state = client->GetClientState();
   auto cState = state->GetCharacterState();
@@ -2123,14 +2142,16 @@ bool CharacterManager::PayMacca(
   std::list<std::shared_ptr<objects::Item>> insertItems;
   std::unordered_map<std::shared_ptr<objects::Item>, uint16_t> stackAdjustItems;
 
-  return CalculateMaccaPayment(client, amount, insertItems, stackAdjustItems) &&
+  return CalculateCompressibleItemPayment(client, compressibleItemCosts,
+                                          insertItems, stackAdjustItems) &&
          UpdateItems(client, false, insertItems, stackAdjustItems, true,
                      changes);
 }
 
-bool CharacterManager::CalculateMaccaPayment(
+bool CharacterManager::CalculateCompressibleItemPayment(
     const std::shared_ptr<channel::ChannelClientConnection>& client,
-    uint64_t amount, std::list<std::shared_ptr<objects::Item>>& insertItems,
+    std::unordered_map<uint32_t, uint64_t>& compressibleItemCosts,
+    std::list<std::shared_ptr<objects::Item>>& insertItems,
     std::unordered_map<std::shared_ptr<objects::Item>, uint16_t>&
         stackAdjustItems) {
   auto state = client->GetClientState();
@@ -2138,75 +2159,93 @@ bool CharacterManager::CalculateMaccaPayment(
   auto character = cState->GetEntity();
   auto inventory = character->GetItemBoxes(0).Get();
 
-  auto macca = GetExistingItems(character, SVR_CONST.ITEM_MACCA, inventory);
-  auto maccaNotes =
-      GetExistingItems(character, SVR_CONST.ITEM_MACCA_NOTE, inventory);
+  for (auto& compressibleItemCost : compressibleItemCosts) {
+    auto baseItemType = compressibleItemCost.first;
+    auto baseItemCost = compressibleItemCost.second;
 
-  uint64_t totalMacca = 0;
-  for (auto m : macca) {
-    totalMacca += m->GetStackSize();
-  }
-
-  for (auto m : maccaNotes) {
-    totalMacca += (uint64_t)(m->GetStackSize() * ITEM_MACCA_NOTE_AMOUNT);
-  }
-
-  if (totalMacca < amount) {
-    return false;
-  }
-
-  // Remove last first, starting with macca
-  macca.reverse();
-  maccaNotes.reverse();
-
-  uint16_t stackDecrease = 0;
-  std::shared_ptr<objects::Item> updateItem;
-
-  uint64_t amountLeft = amount;
-  for (auto m : macca) {
-    if (amountLeft == 0) break;
-
-    auto stack = (uint64_t)m->GetStackSize();
-    if (stack > amountLeft) {
-      stackDecrease = (uint16_t)(stack - amountLeft);
-      amountLeft = 0;
-      updateItem = m;
-    } else {
-      amountLeft = (uint64_t)(amountLeft - stack);
-      stackAdjustItems[m] = 0;
+    uint32_t compressedItemType = 0;
+    uint16_t compressorValue = 0;
+    for (auto compressibleIter = SVR_CONST.ITEM_COMPRESSIONS.begin();
+         compressibleIter != SVR_CONST.ITEM_COMPRESSIONS.end();
+         compressibleIter++) {
+      if ((*compressibleIter)->GetBaseItem() == baseItemType) {
+        compressedItemType = (*compressibleIter)->GetCompressedItem();
+        compressorValue = (*compressibleIter)->GetCompressorValue();
+        break;
+      }
     }
-  }
 
-  for (auto m : maccaNotes) {
-    if (amountLeft == 0) break;
+    auto baseItems = GetExistingItems(character, baseItemType, inventory);
+    auto compressedItems =
+        GetExistingItems(character, compressedItemType, inventory);
 
-    auto stack = m->GetStackSize();
-    uint64_t stackAmount = (uint64_t)(stack * ITEM_MACCA_NOTE_AMOUNT);
-    if (stackAmount > amountLeft) {
-      int32_t maccaLeft = (int32_t)(stackAmount - amountLeft);
+    uint64_t totalBaseItem = 0;
+    for (auto baseItem : baseItems) {
+      totalBaseItem += baseItem->GetStackSize();
+    }
 
-      stackDecrease = (uint16_t)(maccaLeft / ITEM_MACCA_NOTE_AMOUNT);
-      maccaLeft = (int32_t)(maccaLeft % ITEM_MACCA_NOTE_AMOUNT);
-      amountLeft = 0;
+    for (auto compressedItem : compressedItems) {
+      totalBaseItem +=
+          (uint64_t)(compressedItem->GetStackSize() * compressorValue);
+    }
 
-      if (stackDecrease == 0) {
-        stackAdjustItems[m] = 0;
+    if (totalBaseItem < baseItemCost) {
+      return false;
+    }
+
+    // Remove last first, starting with macca
+    baseItems.reverse();
+    compressedItems.reverse();
+
+    uint16_t stackDecrease = 0;
+    std::shared_ptr<objects::Item> updateItem;
+
+    uint64_t amountLeft = baseItemCost;
+    for (auto baseItem : baseItems) {
+      if (amountLeft == 0) break;
+
+      auto stack = (uint64_t)baseItem->GetStackSize();
+      if (stack > amountLeft) {
+        stackDecrease = (uint16_t)(stack - amountLeft);
+        amountLeft = 0;
+        updateItem = baseItem;
       } else {
-        updateItem = m;
+        amountLeft = (uint64_t)(amountLeft - stack);
+        stackAdjustItems[baseItem] = 0;
       }
-
-      if (maccaLeft) {
-        insertItems.push_back(
-            GenerateItem(SVR_CONST.ITEM_MACCA, (uint16_t)maccaLeft));
-      }
-    } else {
-      amountLeft = (uint64_t)(amountLeft - stackAmount);
-      stackAdjustItems[m] = 0;
     }
-  }
 
-  if (updateItem) {
-    stackAdjustItems[updateItem] = stackDecrease;
+    for (auto compressedItem : compressedItems) {
+      if (amountLeft == 0) break;
+
+      auto stack = compressedItem->GetStackSize();
+      uint64_t stackAmount = (uint64_t)(stack * compressorValue);
+      if (stackAmount > amountLeft) {
+        int32_t baseItemLeft = (int32_t)(stackAmount - amountLeft);
+
+        stackDecrease = (uint16_t)(baseItemLeft / compressorValue);
+        baseItemLeft = (int32_t)(baseItemLeft % compressorValue);
+        amountLeft = 0;
+
+        if (stackDecrease == 0) {
+          stackAdjustItems[compressedItem] = 0;
+        } else {
+          updateItem = compressedItem;
+        }
+
+        if (baseItemLeft) {
+          insertItems.push_back(
+              GenerateItem(baseItemType, (uint16_t)baseItemLeft));
+        }
+      } else {
+        amountLeft = (uint64_t)(amountLeft - stackAmount);
+        stackAdjustItems[compressedItem] = 0;
+      }
+    }
+
+    if (updateItem) {
+      stackAdjustItems[updateItem] = stackDecrease;
+    }
   }
 
   return true;
@@ -3455,9 +3494,11 @@ bool CharacterManager::ReunionDemon(
       std::list<std::shared_ptr<objects::Item>> inserts;
       std::unordered_map<std::shared_ptr<objects::Item>, uint16_t> cost;
 
-      uint64_t maccaCost =
+      std::unordered_map<uint32_t, uint64_t> compressibleItemCosts;
+      compressibleItemCosts[SVR_CONST.ITEM_MACCA] =
           (uint64_t)((rank > 0 ? rank : 1) * 500 * cs->GetLevel());
-      success = CalculateMaccaPayment(client, maccaCost, inserts, cost);
+      success = CalculateCompressibleItemPayment(client, compressibleItemCosts,
+                                                 inserts, cost);
 
       if (costItemType) {
         success &= CalculateItemRemoval(client, costItemType,

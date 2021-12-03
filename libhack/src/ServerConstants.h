@@ -32,6 +32,8 @@
 #include "CString.h"
 
 // Standard C++11 Includes
+#include <ItemCompression.h>
+
 #include <array>
 #include <set>
 #include <unordered_map>
@@ -636,6 +638,10 @@ class ServerConstants {
 
     /// IDs of valid weapons in char creation
     std::set<uint32_t> CHAR_CREATION_WEAPON;
+
+    /// Map of compressible items and the set of pairs of what they can
+    /// compress to alongside the compression ratio
+    std::list<std::shared_ptr<objects::ItemCompression>> ITEM_COMPRESSIONS;
 
     /// Skill IDs that are exempt from WarpDisabled being set in server zone
     /// definitions

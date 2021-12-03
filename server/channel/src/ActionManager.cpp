@@ -32,6 +32,7 @@
 #include <Log.h>
 #include <PacketCodes.h>
 #include <Randomizer.h>
+#include <ServerConstants.h>
 #include <ServerDataManager.h>
 
 // Standard C++11 Includes
@@ -870,9 +871,24 @@ bool ActionManager::AddRemoveItems(ActionContext& ctx) {
 
   std::unordered_map<uint32_t, uint32_t> adds;
   std::unordered_map<uint32_t, uint32_t> removes;
+  std::unordered_map<uint32_t, uint64_t> compressibleRemoves;
   for (auto itemPair : items) {
     if (itemPair.second < 0) {
-      removes[itemPair.first] = (uint32_t)(-itemPair.second);
+      // Check if it is compressible.
+      bool compressible = false;
+      for (auto compressibleIter = SVR_CONST.ITEM_COMPRESSIONS.begin();
+           compressibleIter != SVR_CONST.ITEM_COMPRESSIONS.end();
+           compressibleIter++) {
+        if ((*compressibleIter)->GetBaseItem() == itemPair.first) {
+          compressibleRemoves[itemPair.first] = (uint64_t)(-itemPair.second);
+          compressible = true;
+          break;
+        }
+      }
+
+      if (!compressible) {
+        removes[itemPair.first] = (uint32_t)(-itemPair.second);
+      }
     } else if (itemPair.second > 0 ||
                (act->GetFromDropSet() && itemPair.second == 0)) {
       adds[itemPair.first] = (uint32_t)itemPair.second;
@@ -882,7 +898,7 @@ bool ActionManager::AddRemoveItems(ActionContext& ctx) {
   if (act->GetFromDropSet()) {
     // Keys are actually drop set IDs and values are the maximum number of
     // drops that can pull from the set, removes are not valid
-    if (removes.size() > 0) {
+    if (removes.size() > 0 || compressibleRemoves.size() > 0) {
       LogActionManagerErrorMsg(
           "Attempted to remove items via drop set based action\n");
 
@@ -943,7 +959,9 @@ bool ActionManager::AddRemoveItems(ActionContext& ctx) {
       }
 
       if (!characterManager->AddRemoveItems(ctx.Client, adds, true) ||
-          !characterManager->AddRemoveItems(ctx.Client, removes, false)) {
+          !characterManager->AddRemoveItems(ctx.Client, removes, false) ||
+          !characterManager->PayCompressibleItems(ctx.Client,
+                                                  compressibleRemoves)) {
         return false;
       }
 

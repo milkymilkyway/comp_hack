@@ -1112,6 +1112,26 @@ Example
 .. code-block:: xml
 
     <member name="AutoCompressCurrency">true</member>
+	
+AutoDecompressForSkillUses
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Type:** boolean
+
+**Default:** false
+
+When set to true with the MagPressersInTotal client patch
+enabled, Magnetite Pressers in the inventory will be
+opened to pay for skills and demon summoning if
+there is not enough regular Magnetite in the
+inventory to pay.
+
+Example
+"""""""
+
+.. code-block:: xml
+
+    <member name="AutoDecompressForSkillUses">true</member>
 
 PerfMonitorEnabled
 ^^^^^^^^^^^^^^^^^^

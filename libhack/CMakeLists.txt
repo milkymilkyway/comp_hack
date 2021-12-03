@@ -125,6 +125,7 @@ SET(${PROJECT_NAME}_SCHEMA
     schema/registeredchannel.xml
     schema/registeredworld.xml
     schema/reportedplayer.xml
+    schema/server_constants.xml
     schema/server_npc.xml
     schema/server_object.xml
     schema/server_shop.xml
@@ -341,6 +342,8 @@ OBJGEN_XML(${PROJECT_NAME}_STRUCTS
     EventCounter.cpp
     Item.h
     Item.cpp
+    ItemCompression.h
+    ItemCompression.cpp
     Demon.h
     Demon.cpp
     Quest.h

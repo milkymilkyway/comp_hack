@@ -8,6 +8,7 @@
            default="Welcome to the COMP Shop!"/>
         <member type="bool" name="MoveCorrection" default="true"/>
         <member type="bool" name="AutoCompressCurrency"/>
+        <member type="bool" name="AutoDecompressForSkillUses"/>
         <member type="bool" name="NRAStatusNull" default="true"/>
         <member type="enum" name="RebirthExtractionMode" default="REVERT_MITAMA_DEMONS_TO_BASE">
             <value>REVERT_MITAMA_DEMONS_TO_BASE</value>

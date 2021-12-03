@@ -1670,7 +1670,18 @@
         <element>1301</element>
         <element>1403</element>
     </constant>
-	<constant name="WARPDISABLED_EXEMPT_SKILLIDS">
+    <constant name="ITEM_COMPRESSIONS">
+        <!-- Format: base item ID (key) => compressor item ID, compressor-to-base-item conversion rate (value) -->
+        <pair>
+            <key>799</key><!-- Macca -->
+            <value>699,50000</value><!-- 50000 Macca Note -->
+        </pair>
+        <pair>
+            <key>800</key><!-- Magnetite -->
+            <value>27375,50000</value><!-- Mag Presser α -->
+        </pair>
+    </constant>
+    <constant name="WARPDISABLED_EXEMPT_SKILLIDS">
         <!-- Format: skill ID -->
         <element>8079</element><!-- GM Send Homeward -->
         <element>8080</element><!-- GM Warp -->

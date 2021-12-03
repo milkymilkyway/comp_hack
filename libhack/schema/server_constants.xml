@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objgen>
+    <object name="ItemCompression" persistent="false" scriptenabled="true">
+        <member type="u32" name="BaseItem"/>
+        <member type="u32" name="CompressedItem"/>
+        <member type="u16" name="CompressorValue"/>
+    </object>
+</objgen>

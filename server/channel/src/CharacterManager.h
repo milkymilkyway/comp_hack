@@ -414,36 +414,43 @@ class CharacterManager {
       const std::shared_ptr<libcomp::DatabaseChangeSet>& changes = {});
 
   /**
-   * Get the total macca amount from the supplied character's inventory
+   * Get the total amount of an item in the inventory compressible or not.
    * @param character Pointer to the character to calculate macca for
-   * @return Total macca
+   * @param itemType ID of item whose total to find
+   * @param isCompressible if true, checks if item is compressible; also returns
+   * if the returned count is including compressors
+   * @return Total macca or magnetite
    */
-  uint64_t GetTotalMacca(const std::shared_ptr<objects::Character>& character);
+  uint64_t GetTotalInInventory(
+      const std::shared_ptr<objects::Character>& character, uint32_t itemType,
+      bool& isCompressible);
 
   /**
-   * Pay a specified macca amount
-   * @param client Pointer to the client connection to pay macca
-   * @param amount Amount of macca to pay
-   * @param changes Optional database changeset to add the macca change to
+   * Pay a specified amount of compressible items
+   * @param client Pointer to the client connection to pay macca or magnetite
+   * @param compressibleItemCosts Map of compressible item costs to pay
+   * @param changes Optional database changeset to add the change to
    * @return true if the amount was paid, false it was not
    */
-  bool PayMacca(
+  bool PayCompressibleItems(
       const std::shared_ptr<channel::ChannelClientConnection>& client,
-      uint64_t amount,
+      std::unordered_map<uint32_t, uint64_t>& compressibleItemCosts,
       const std::shared_ptr<libcomp::DatabaseChangeSet>& changes = {});
 
   /**
-   * Calculate the item updates needed to pay a specified macca amount
-   * @param client Pointer to the client connection to pay macca
-   * @param amount Amount of macca to pay
+   * Calculate the item updates needed to pay a specified amount of compressible
+   * items
+   * @param client Pointer to the client connection to pay the items
+   * @param compressibleItemCosts Map of compressible item costs to pay
    * @param insertItems Output list of new items to insert
    * @param stackAdjustItems Output map of items to adjust the stack size of
    *  including deletes listed with stack size 0
    * @return true if the amount can be paid, false it cannot
    */
-  bool CalculateMaccaPayment(
+  bool CalculateCompressibleItemPayment(
       const std::shared_ptr<channel::ChannelClientConnection>& client,
-      uint64_t amount, std::list<std::shared_ptr<objects::Item>>& insertItems,
+      std::unordered_map<uint32_t, uint64_t>& compressibleItemCosts,
+      std::list<std::shared_ptr<objects::Item>>& insertItems,
       std::unordered_map<std::shared_ptr<objects::Item>, uint16_t>&
           stackAdjustItems);
 

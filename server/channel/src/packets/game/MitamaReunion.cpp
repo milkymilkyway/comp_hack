@@ -32,6 +32,7 @@
 #include <Packet.h>
 #include <PacketCodes.h>
 #include <Randomizer.h>
+#include <ServerConstants.h>
 
 // Standard C++11 Includes
 #include <math.h>
@@ -134,8 +135,12 @@ void HandleMitamaReunion(const std::shared_ptr<ChannelServer> server,
 
     if (success) {
       // Request valid, pay the cost
+      std::unordered_map<uint32_t, uint64_t> compressibleItemCosts;
+      compressibleItemCosts[SVR_CONST.ITEM_MACCA] =
+          (uint64_t)((rTotal + 1) * 50000);
+
       success =
-          characterManager->PayMacca(client, (uint64_t)((rTotal + 1) * 50000));
+          characterManager->PayCompressibleItems(client, compressibleItemCosts);
     }
 
     if (success) {

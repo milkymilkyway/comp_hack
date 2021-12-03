@@ -208,6 +208,10 @@
             <key type="u32"/>
             <value type="u32"/>
         </member>
+        <member type="map" name="CompressibleItemCosts">
+            <key type="u32"/>
+            <value type="u64"/>
+        </member>
     </object>
     <object name="DigitalizeState" scriptenabled="true" persistent="false">
         <member type="Demon*" name="Demon"/>
