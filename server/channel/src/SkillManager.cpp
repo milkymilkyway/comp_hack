@@ -3013,10 +3013,7 @@ void SkillManager::PayCosts(
       auto compressibleItemCosts = activated->GetCompressibleItemCosts();
 
       if (compressibleItemCosts.size() > 0) {
-        std::shared_ptr<libcomp::DatabaseChangeSet> compressibleItemChanges =
-            libcomp::DatabaseChangeSet::Create(character->GetAccount());
-        characterManager->PayCompressibleItems(client, compressibleItemCosts,
-                                               compressibleItemChanges);
+        characterManager->PayCompressibleItems(client, compressibleItemCosts);
       }
     }
 

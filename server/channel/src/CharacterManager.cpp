@@ -1437,7 +1437,9 @@ void CharacterManager::SummonDemon(
   // If the entire demon box is not sent out after a summon, a bug can be
   // triggered that causes the client to display that a previously-summoned
   // demon can be re-summoned even with insufficient magnetite.
-  SendDemonBoxData(client, 0);
+  if (!cState->GetDigitalizeState()) {
+    SendDemonBoxData(client, 0);
+  }
 
   if (updatePartyState && state->GetPartyID()) {
     libcomp::Packet request;
@@ -2193,7 +2195,7 @@ bool CharacterManager::CalculateCompressibleItemPayment(
       return false;
     }
 
-    // Remove last first, starting with macca
+    // Remove last first, starting with base item
     baseItems.reverse();
     compressedItems.reverse();
 
