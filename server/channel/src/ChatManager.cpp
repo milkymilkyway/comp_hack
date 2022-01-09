@@ -45,6 +45,7 @@
 #include <CharacterProgress.h>
 #include <Clan.h>
 #include <CultureData.h>
+#include <DemonBox.h>
 #include <Event.h>
 #include <EventCounter.h>
 #include <EventInstance.h>
@@ -102,6 +103,9 @@ ChatManager::ChatManager(const std::weak_ptr<ChannelServer>& server)
   mGMands["counter"] = &ChatManager::GMCommand_Counter;
   mGMands["cowrie"] = &ChatManager::GMCommand_Cowrie;
   mGMands["crash"] = &ChatManager::GMCommand_Crash;
+  mGMands["dforce"] = &ChatManager::GMCommand_DemonForce;
+  mGMands["drequest"] = &ChatManager::GMCommand_DemonRequest;
+  mGMands["dstreak"] = &ChatManager::GMCommand_DemonRequestStreak;
   mGMands["dxp"] = &ChatManager::GMCommand_DigitalizePoints;
   mGMands["effect"] = &ChatManager::GMCommand_Effect;
   mGMands["enchant"] = &ChatManager::GMCommand_Enchant;
@@ -1026,6 +1030,235 @@ bool ChatManager::GMCommand_Crash(
   abort();
 }
 
+bool ChatManager::GMCommand_DemonForce(
+    const std::shared_ptr<channel::ChannelClientConnection>& client,
+    const std::list<libcomp::String>& args) {
+  if (!HaveUserLevel(client, SVR_CONST.GM_CMD_LVL_EXPERTISE_EXTEND)) {
+    return true;
+  }
+
+  std::list<libcomp::String> argsCopy = args;
+
+  if (argsCopy.size() < 2 || argsCopy.size() > 3) {
+    return SendChatMessage(client, ChatType_t::CHAT_SELF,
+                           "@dforce requires two to three arguments.");
+  }
+
+  int8_t stackSlot;
+  if (!GetIntegerArg<int8_t>(stackSlot, argsCopy) || stackSlot < 1 ||
+      stackSlot > 8) {
+    return SendChatMessage(
+        client, ChatType_t::CHAT_SELF,
+        "Demon Force Stack Slot must be a number between 1 to 8.");
+  }
+
+  uint16_t forceStackID;
+  if (!GetIntegerArg<uint16_t>(forceStackID, argsCopy)) {
+    return SendChatMessage(client, ChatType_t::CHAT_SELF,
+                           "No Demon Force Stack effect ID provided.");
+  }
+
+  auto server = mServer.lock();
+  auto definitionManager = server->GetDefinitionManager();
+  auto forceStackData = definitionManager->GetDevilBoostExtraData(forceStackID);
+
+  if (!forceStackData) {
+    return SendChatMessage(
+        client, ChatType_t::CHAT_SELF,
+        "The Demon Force Stack effect ID provided is not valid.");
+  }
+
+  std::shared_ptr<channel::ChannelClientConnection> targetClient = client;
+  std::shared_ptr<objects::Character> targetCharacter =
+      targetClient->GetClientState()->GetCharacterState()->GetEntity();
+
+  libcomp::String name;
+  if (GetStringArg(name, argsCopy)) {
+    std::shared_ptr<objects::Account> targetAccount;
+    if (!GetTargetCharacterAccount(name, false, targetCharacter, targetAccount,
+                                   targetClient)) {
+      return SendChatMessage(
+          client, ChatType_t::CHAT_SELF,
+          libcomp::String(
+              "Invalid character name supplied for dforce command: %1")
+              .Arg(name));
+    }
+  }
+
+  auto targetState = targetClient->GetClientState();
+
+  if (targetCharacter) {
+    auto characterManager = server->GetCharacterManager();
+    auto login =
+        server->GetAccountManager()->GetActiveLogin(targetCharacter->GetUUID());
+    uint32_t zoneID = login ? login->GetZoneID() : 0;
+
+    if (zoneID) {
+      // Character is online, so attempt to process the update.
+      auto targetDState = targetState->GetDemonState();
+      auto targetDemon = targetDState->GetEntity();
+      if (!targetDemon) {
+        return SendChatMessage(client, ChatType_t::CHAT_SELF,
+                               "Target must have a demon summoned.");
+      } else {
+        targetDemon->SetForceStack((size_t)stackSlot, forceStackID);
+        server->GetWorldDatabase()->QueueUpdate(targetDemon,
+                                                targetState->GetAccountUID());
+        targetDState->UpdateDemonState(definitionManager);
+        server->GetTokuseiManager()->Recalculate(
+            targetState->GetCharacterState(), true,
+            std::set<int32_t>{targetDState->GetEntityID()});
+        characterManager->RecalculateStats(targetDState, client);
+      }
+    }
+
+    return true;
+  }
+
+  return false;
+}
+
+bool ChatManager::GMCommand_DemonRequest(
+    const std::shared_ptr<channel::ChannelClientConnection>& client,
+    const std::list<libcomp::String>& args) {
+  if (!HaveUserLevel(client, SVR_CONST.GM_CMD_LVL_EXPERTISE_EXTEND)) {
+    return true;
+  }
+
+  std::list<libcomp::String> argsCopy = args;
+  std::shared_ptr<channel::ChannelClientConnection> targetClient = client;
+  std::shared_ptr<objects::Character> targetCharacter =
+      targetClient->GetClientState()->GetCharacterState()->GetEntity();
+
+  libcomp::String name;
+  if (GetStringArg(name, argsCopy)) {
+    std::shared_ptr<objects::Account> targetAccount;
+    if (!GetTargetCharacterAccount(name, false, targetCharacter, targetAccount,
+                                   targetClient)) {
+      return SendChatMessage(
+          client, ChatType_t::CHAT_SELF,
+          libcomp::String(
+              "Invalid character name supplied for drequest command: %1")
+              .Arg(name));
+    }
+  }
+
+  auto targetState = targetClient->GetClientState();
+
+  if (targetCharacter) {
+    std::set<std::shared_ptr<objects::Demon>> demons;
+    for (auto& d : targetCharacter->GetCOMP()->GetDemons()) {
+      if (!d.IsNull() && !d->GetHasQuest() &&
+          CharacterManager::GetFamiliarityRank(d->GetFamiliarity()) >= 1) {
+        demons.insert(d.Get());
+      }
+    }
+
+    if (demons.size() > 0) {
+      auto server = mServer.lock();
+      auto dbChanges = libcomp::DatabaseChangeSet::Create();
+
+      for (auto& d : demons) {
+        d->SetHasQuest(true);
+        dbChanges->Update(d);
+      }
+
+      if (!server->GetWorldDatabase()->ProcessChangeSet(dbChanges)) {
+        LogGeneralErrorMsg(
+            "Failed to save demon request reset requested by GM command.\n");
+        return SendChatMessage(
+            client, ChatType_t::CHAT_SELF,
+            libcomp::String(
+                "Failed to save new Demon Requests to the database."));
+      }
+
+      auto login = server->GetAccountManager()->GetActiveLogin(
+          targetCharacter->GetUUID());
+      uint32_t zoneID = login ? login->GetZoneID() : 0;
+
+      if (zoneID) {
+        // Character is online, send the packet notification.
+        libcomp::Packet request;
+        // Packet includes all demons with a quest, not just new ones
+        std::list<std::shared_ptr<objects::Demon>> all;
+        for (auto& d : targetCharacter->GetCOMP()->GetDemons()) {
+          if (!d.IsNull() &&
+              (d->GetHasQuest() || demons.find(d.Get()) != demons.end())) {
+            all.push_back(d.Get());
+          }
+        }
+
+        request.WritePacketCode(
+            ChannelToClientPacketCode_t::PACKET_DEMON_QUEST_LIST_UPDATED);
+
+        request.WriteS8((int8_t)all.size());
+        for (auto& d : all) {
+          request.WriteS64Little(targetState->GetObjectID(d->GetUUID()));
+        }
+
+        targetClient->SendPacket(request);
+      }
+    }
+
+    return true;
+  }
+
+  return false;
+}
+
+bool ChatManager::GMCommand_DemonRequestStreak(
+    const std::shared_ptr<channel::ChannelClientConnection>& client,
+    const std::list<libcomp::String>& args) {
+  if (!HaveUserLevel(client, SVR_CONST.GM_CMD_LVL_EXPERTISE_EXTEND)) {
+    return true;
+  }
+
+  std::list<libcomp::String> argsCopy = args;
+  uint16_t completionStreak;
+  if (!GetIntegerArg<uint16_t>(completionStreak, argsCopy)) {
+    return false;
+  }
+
+  std::shared_ptr<channel::ChannelClientConnection> targetClient = client;
+  std::shared_ptr<objects::Character> targetCharacter =
+      targetClient->GetClientState()->GetCharacterState()->GetEntity();
+
+  libcomp::String name;
+  if (GetStringArg(name, argsCopy)) {
+    std::shared_ptr<objects::Account> targetAccount;
+    if (!GetTargetCharacterAccount(name, false, targetCharacter, targetAccount,
+                                   targetClient)) {
+      return SendChatMessage(
+          client, ChatType_t::CHAT_SELF,
+          libcomp::String(
+              "Invalid character name supplied for drequest command: %1")
+              .Arg(name));
+    }
+  }
+
+  if (targetCharacter) {
+    auto server = mServer.lock();
+    auto progress = targetCharacter->GetProgress().Get();
+    auto dbChanges = libcomp::DatabaseChangeSet::Create();
+    progress->SetDemonQuestSequence(completionStreak);
+    dbChanges->Update(progress);
+
+    if (!server->GetWorldDatabase()->ProcessChangeSet(dbChanges)) {
+      LogGeneralErrorMsg(
+          "Failed to save Demon Request completion streak requested by GM "
+          "command.\n");
+      return SendChatMessage(
+          client, ChatType_t::CHAT_SELF,
+          libcomp::String("Failed to save new Demon Request completion streak "
+                          "to the database."));
+    }
+
+    return true;
+  }
+
+  return false;
+}
+
 bool ChatManager::GMCommand_DigitalizePoints(
     const std::shared_ptr<channel::ChannelClientConnection>& client,
     const std::list<libcomp::String>& args) {
@@ -1830,6 +2063,22 @@ bool ChatManager::GMCommand_Help(
            "@crash",
            "Causes the server to crash for testing the database.",
        }},
+      {"dforce",
+       {"@dforce SLOT EFFECTID [NAME]",
+        "Sets the Demon Force Stack of the currently summoned",
+        "demon of the character specified by NAME to the given"
+        "ID at the given SLOT. If no name is supplied,",
+        "the current character is targeted."}},
+      {"drequest",
+       {"@drequest [NAME]",
+        "Generates Demon Requests for all valid demons in the COMP",
+        "of the character specified by NAME. If no name is",
+        "supplied, the current character is targeted."}},
+      {"drequest",
+       {"@dstreak VALUE [NAME]",
+        "Sets the Demon Request Completion Streak to the number",
+        "specified by VALUE for the character specified by NAME.",
+        "If no name is supplied, the current character is targeted."}},
       {"dxp",
        {"@dxp RACEID POINTS",
         "Gain digitalize XP for the specified demon race ID."}},
@@ -1952,7 +2201,7 @@ bool ChatManager::GMCommand_Help(
         "Remove all PvP penalties on the character NAME or to",
         "yourself if no NAME is specified."}},
       {"plugin",
-       {"@valuable ID [REMOVE]",
+       {"@plugin ID [REMOVE]",
         "Grants the player the plugin with the given ID. If",
         "REMOVE is set to 'remove' the plugin is removed."}},
       {"pos",
@@ -2297,9 +2546,11 @@ bool ChatManager::GMCommand_Kick(
   std::list<libcomp::String> argsCopy = args;
   libcomp::String kickedPlayer;
 
-  if (!GetStringArg(kickedPlayer, argsCopy) || argsCopy.size() > 1) {
+  if (!GetStringArg(kickedPlayer, argsCopy) || argsCopy.size() == 0 ||
+      argsCopy.size() > 2) {
     return SendChatMessage(client, ChatType_t::CHAT_SELF,
-                           "@kick requires one argument, <username>");
+                           "@kick requires at least one argument, <username>, "
+                           "alongside an optional kick level");
   }
 
   int8_t kickLevel = 1;
@@ -2310,7 +2561,7 @@ bool ChatManager::GMCommand_Kick(
   if (!GetTargetCharacterAccount(kickedPlayer, false, target, targetAccount,
                                  targetClient) ||
       (targetAccount && !targetClient)) {
-    if (!GetIntegerArg(kickLevel, argsCopy) || kickLevel == 0 ||
+    if (!GetIntegerArg<int8_t>(kickLevel, argsCopy) || kickLevel < 1 ||
         kickLevel > 3) {
       kickLevel = 1;
     }

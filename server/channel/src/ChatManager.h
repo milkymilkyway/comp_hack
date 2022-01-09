@@ -230,6 +230,36 @@ class ChatManager {
       const std::list<libcomp::String>& args);
 
   /**
+   * GM command to set Demon Force abilities onto the Force Stack.
+   * @param client Pointer to the client that sent the command
+   * @param args List of arguments for the command
+   * @return true if the command was handled properly, else false
+   */
+  bool GMCommand_DemonForce(
+      const std::shared_ptr<channel::ChannelClientConnection>& client,
+      const std::list<libcomp::String>& args);
+
+  /**
+   * GM command to generate Demon Requests.
+   * @param client Pointer to the client that sent the command
+   * @param args List of arguments for the command
+   * @return true if the command was handled properly, else false
+   */
+  bool GMCommand_DemonRequest(
+      const std::shared_ptr<channel::ChannelClientConnection>& client,
+      const std::list<libcomp::String>& args);
+
+  /**
+   * GM command to set the Demon Request Completion Streak.
+   * @param client Pointer to the client that sent the command
+   * @param args List of arguments for the command
+   * @return true if the command was handled properly, else false
+   */
+  bool GMCommand_DemonRequestStreak(
+      const std::shared_ptr<channel::ChannelClientConnection>& client,
+      const std::list<libcomp::String>& args);
+
+  /**
    * GM command to gain digitalize points.
    * @param client Pointer to the client that sent the command
    * @param args List of arguments for the command
