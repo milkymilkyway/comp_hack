@@ -313,6 +313,21 @@ class ZoneManager {
                        const std::shared_ptr<ChannelClientConnection>& client);
 
   /**
+   * Send entity information about an enemy in a zone
+   * @param enemyState Enemy state to use to report enemy data to the clients
+   * @param client Pointer to the client connection to send to if specified
+   *  instead of the whole zone
+   * @param zone Pointer to the zone where the enemy exists
+   * @param isRevival true if this was triggered by a revival
+   * @param queue true if the message should be queued, false if
+   *  it should send right away
+   */
+  void SendEnemyData(const std::shared_ptr<EnemyState>& enemyState,
+                     const std::shared_ptr<ChannelClientConnection>& client,
+                     const std::shared_ptr<Zone>& zone, bool isRevival = false,
+                     bool queue = false);
+
+  /**
    * Send a request to a list of client to show an entity.
    * @param clients List of pointers to client connections
    * @param entityID ID of the entity to show
@@ -1226,19 +1241,6 @@ class ZoneManager {
       const std::shared_ptr<Zone>& zone, uint32_t demonID,
       const std::shared_ptr<objects::Spawn>& spawn, float x, float y, float rot,
       bool asAlly = false, const libobjgen::UUID& responsibleEntity = {});
-
-  /**
-   * Send entity information about an enemy in a zone
-   * @param enemyState Enemy state to use to report enemy data to the clients
-   * @param client Pointer to the client connection to send to if specified
-   *  instead of the whole zone
-   * @param zone Pointer to the zone where the enemy exists
-   * @param queue true if the message should be queued, false if
-   *  it should send right away
-   */
-  void SendEnemyData(const std::shared_ptr<EnemyState>& enemyState,
-                     const std::shared_ptr<ChannelClientConnection>& client,
-                     const std::shared_ptr<Zone>& zone, bool queue = false);
 
   /**
    * Send entity information about an ally in a zone

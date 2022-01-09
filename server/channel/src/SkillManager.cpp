@@ -1629,7 +1629,7 @@ int8_t SkillManager::ValidateSkillTarget(
     case objects::MiTargetData::Type_t::DEAD_ALLY:
       targetInvalid = !allies;
       targetLivingStateInvalid = targetAlive;
-      if (!targetInvalid) {
+      if (!targetInvalid && !targetLivingStateInvalid) {
         // If reviving and the target is a character (or demon in a
         // demon only instance) and they have not accepted revival,
         // stop here
@@ -1647,19 +1647,23 @@ int8_t SkillManager::ValidateSkillTarget(
         auto targetClientState =
             ClientState::GetEntityClientState(target->GetEntityID());
         auto zone = target->GetZone();
-        if (isRevive && targetClientState && zone) {
-          // Target is invalid if either the controlling player has not accepted
-          // revival from others, or if it is a partner demon outside of
-          // demon-only instances and it has been dead for less than
-          // the revival lockout timer.
-          targetInvalid =
-              !targetClientState->GetAcceptRevival() &&
-              (targetClientState->GetCharacterState() == target ||
-               (targetClientState->GetDemonState() == target &&
-                zone->GetInstanceType() == InstanceType_t::DEMON_ONLY));
+        if (isRevive && zone) {
+          if (targetClientState) {
+            // Target is invalid if either the controlling player has not
+            // accepted revival from others, or if it is a partner demon outside
+            // of demon-only instances and it has been dead for less than the
+            // revival lockout timer.
+            targetInvalid =
+                !targetClientState->GetAcceptRevival() &&
+                (targetClientState->GetCharacterState() == target ||
+                 (targetClientState->GetDemonState() == target &&
+                  zone->GetInstanceType() == InstanceType_t::DEMON_ONLY));
 
-          if (targetClientState->GetDemonState() == target &&
-              !targetLivingStateInvalid) {
+            if (targetClientState->GetDemonState() == target) {
+              targetLivingStateInvalid =
+                  target->StatusTimesKeyExists(STATUS_WAITING);
+            }
+          } else {
             targetLivingStateInvalid =
                 target->StatusTimesKeyExists(STATUS_WAITING);
           }
@@ -1686,6 +1690,23 @@ int8_t SkillManager::ValidateSkillTarget(
                       sourceState->GetCharacterState() != source ||
                       sourceState->GetDemonState() != target;
       targetLivingStateInvalid = targetAlive;
+      if (!targetInvalid && !targetLivingStateInvalid) {
+        bool isRevive = false;
+        switch (skillData->GetDamage()->GetBattleDamage()->GetFormula()) {
+          case objects::MiBattleDamageData::Formula_t::HEAL_NORMAL:
+          case objects::MiBattleDamageData::Formula_t::HEAL_STATIC:
+          case objects::MiBattleDamageData::Formula_t::HEAL_MAX_PERCENT:
+            isRevive = true;
+            break;
+          default:
+            break;
+        }
+
+        if (isRevive) {
+          targetLivingStateInvalid =
+              target->StatusTimesKeyExists(STATUS_WAITING);
+        }
+      }
       break;
     case objects::MiTargetData::Type_t::OTHER_PLAYER:
       targetInvalid = targetEntityType != EntityType_t::CHARACTER ||
@@ -3507,20 +3528,24 @@ bool SkillManager::ProcessSkillResult(
             auto targetClientState =
                 ClientState::GetEntityClientState(target->GetEntityID());
 
-            if (isRevive && targetClientState && zone &&
-                !targetInvalidForDeadOnlySkills) {
-              // Target is invalid if either the controlling player has not
-              // accepted revival from others, or if it is a partner demon
-              // outside of demon-only instances and it has been dead for less
-              // than the revival lockout timer.
-              targetInvalidForDeadOnlySkills =
-                  !targetClientState->GetAcceptRevival() &&
-                  (targetClientState->GetCharacterState() == target ||
-                   (targetClientState->GetDemonState() == target &&
-                    zone->GetInstanceType() == InstanceType_t::DEMON_ONLY));
+            if (isRevive && zone && !targetInvalidForDeadOnlySkills) {
+              if (targetClientState) {
+                // Target is invalid if either the controlling player has not
+                // accepted revival from others, or if it is a partner demon
+                // outside of demon-only instances and it has been dead for less
+                // than the revival lockout timer.
+                targetInvalidForDeadOnlySkills =
+                    !targetClientState->GetAcceptRevival() &&
+                    (targetClientState->GetCharacterState() == target ||
+                     (targetClientState->GetDemonState() == target &&
+                      zone->GetInstanceType() == InstanceType_t::DEMON_ONLY));
 
-              if (targetClientState->GetDemonState() == target &&
-                  !targetInvalidForDeadOnlySkills) {
+                if (targetClientState->GetDemonState() == target &&
+                    !targetInvalidForDeadOnlySkills) {
+                  targetInvalidForDeadOnlySkills =
+                      target->StatusTimesKeyExists(STATUS_WAITING);
+                }
+              } else {
                 targetInvalidForDeadOnlySkills =
                     target->StatusTimesKeyExists(STATUS_WAITING);
               }
@@ -6551,6 +6576,21 @@ void SkillManager::HandleKills(
 
       if (eState->GetEnemyBase()->GetCanRevive()) {
         canRevive.insert(eState->GetEntityID());
+
+        // Enemies need a revival lockout timer, if revived too quickly the
+        // client does not set them back as an enemy correctly.
+        if (eState->GetEntityType() == EntityType_t::ENEMY) {
+          auto expireTime = (channel::ServerTime)(
+              ChannelServer::GetServerTime() + 3100000ULL);
+          eState->SetStatusTimes(STATUS_WAITING, expireTime);
+          server->ScheduleWork(
+              expireTime,
+              [](std::shared_ptr<ActiveEntityState> pEntity,
+                 const channel::ServerTime pExpireTime) {
+                pEntity->ExpireStatusTimes(pExpireTime);
+              },
+              eState, expireTime);
+        }
       } else {
         zone->RemoveEntity(eState->GetEntityID(), 1);
         removeIDs.push_back(eState->GetEntityID());
@@ -7220,6 +7260,11 @@ void SkillManager::HandleRevives(
     libcomp::Packet p;
     if (characterManager->GetEntityRevivalPacket(p, entity, 6)) {
       zoneManager->BroadcastPacket(zone, p);
+    }
+
+    if (entity->GetEntityType() == EntityType_t::ENEMY) {
+      auto enemy = std::dynamic_pointer_cast<EnemyState>(entity);
+      zoneManager->SendEnemyData(enemy, nullptr, zone, true, false);
     }
 
     // Clear the death time-out if one exists

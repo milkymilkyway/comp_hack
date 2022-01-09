@@ -1692,7 +1692,7 @@ bool ZoneManager::SendPopulateZoneData(
   // All zone information is queued and sent together to minimize excess
   // communication
   for (auto enemyState : zone->GetEnemies()) {
-    SendEnemyData(enemyState, client, zone, true);
+    SendEnemyData(enemyState, client, zone, false, true);
   }
 
   for (auto npcState : zone->GetNPCs()) {
@@ -2303,7 +2303,7 @@ void ZoneManager::ExpireRentals(const std::shared_ptr<Zone>& zone,
 void ZoneManager::SendEnemyData(
     const std::shared_ptr<EnemyState>& enemyState,
     const std::shared_ptr<ChannelClientConnection>& client,
-    const std::shared_ptr<Zone>& zone, bool queue) {
+    const std::shared_ptr<Zone>& zone, bool isRevival, bool queue) {
   std::list<std::shared_ptr<ChannelClientConnection>> clients;
   if (client) {
     clients.push_back(client);
@@ -2349,8 +2349,8 @@ void ZoneManager::SendEnemyData(
 
   for (auto zClient : clients) {
     zClient->QueuePacketCopy(p);
-    PopEntityForProduction(zClient, enemyState->GetEntityID(), !client ? 3 : 0,
-                           true);
+    PopEntityForProduction(zClient, enemyState->GetEntityID(),
+                           (!client && !isRevival) ? 3 : 0, true);
     ShowEntity(zClient, enemyState->GetEntityID(), true);
   }
 
@@ -2841,7 +2841,7 @@ bool ZoneManager::SpawnEnemy(const std::shared_ptr<Zone>& zone,
       cs->SetMP(eState->GetMaxMP());
     }
 
-    SendEnemyData(eState, nullptr, zone, false);
+    SendEnemyData(eState, nullptr, zone, false, false);
 
     return true;
   } else {
@@ -3123,7 +3123,7 @@ bool ZoneManager::AddEnemiesToZone(
     if (eState->Ready()) {
       if (eState->GetEntityType() == EntityType_t::ENEMY) {
         auto e = std::dynamic_pointer_cast<EnemyState>(eState);
-        SendEnemyData(e, nullptr, zone, false);
+        SendEnemyData(e, nullptr, zone, false, false);
       } else {
         auto a = std::dynamic_pointer_cast<AllyState>(eState);
         SendAllyData(a, nullptr, zone, false);
@@ -3602,7 +3602,7 @@ bool ZoneManager::UpdateStaggeredSpawns(const std::shared_ptr<Zone>& zone,
   for (auto eState : stagger) {
     if (eState->GetEntityType() == EntityType_t::ENEMY) {
       auto e = std::dynamic_pointer_cast<EnemyState>(eState);
-      SendEnemyData(e, nullptr, zone, false);
+      SendEnemyData(e, nullptr, zone, false, false);
     } else {
       auto a = std::dynamic_pointer_cast<AllyState>(eState);
       SendAllyData(a, nullptr, zone, false);
