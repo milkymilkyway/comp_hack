@@ -1162,24 +1162,28 @@ bool ChatManager::GMCommand_DemonRequest(
       }
     }
 
+    auto server = mServer.lock();
+    auto dbChanges = libcomp::DatabaseChangeSet::Create();
+    auto targetProgress = targetCharacter->GetProgress().Get();
+    targetProgress->SetDemonQuestDaily(0);
+    targetProgress->SetDemonQuestResetTime((uint32_t)time(0));
+    dbChanges->Update(targetProgress);
+
+    for (auto& d : demons) {
+      d->SetHasQuest(true);
+      dbChanges->Update(d);
+    }
+
+    if (!server->GetWorldDatabase()->ProcessChangeSet(dbChanges)) {
+      LogGeneralErrorMsg(
+          "Failed to save demon request reset requested by GM command.\n");
+      return SendChatMessage(
+          client, ChatType_t::CHAT_SELF,
+          libcomp::String(
+              "Failed to save new Demon Requests to the database."));
+    }
+
     if (demons.size() > 0) {
-      auto server = mServer.lock();
-      auto dbChanges = libcomp::DatabaseChangeSet::Create();
-
-      for (auto& d : demons) {
-        d->SetHasQuest(true);
-        dbChanges->Update(d);
-      }
-
-      if (!server->GetWorldDatabase()->ProcessChangeSet(dbChanges)) {
-        LogGeneralErrorMsg(
-            "Failed to save demon request reset requested by GM command.\n");
-        return SendChatMessage(
-            client, ChatType_t::CHAT_SELF,
-            libcomp::String(
-                "Failed to save new Demon Requests to the database."));
-      }
-
       auto login = server->GetAccountManager()->GetActiveLogin(
           targetCharacter->GetUUID());
       uint32_t zoneID = login ? login->GetZoneID() : 0;
