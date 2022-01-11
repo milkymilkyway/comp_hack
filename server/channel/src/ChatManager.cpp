@@ -1179,8 +1179,7 @@ bool ChatManager::GMCommand_DemonRequest(
           "Failed to save demon request reset requested by GM command.\n");
       return SendChatMessage(
           client, ChatType_t::CHAT_SELF,
-          libcomp::String(
-              "Failed to save new Demon Requests to the database."));
+          libcomp::String("Failed to process Demon Request reset command."));
     }
 
     if (demons.size() > 0) {
