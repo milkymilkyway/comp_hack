@@ -436,19 +436,27 @@ bool ChatManager::HandleGMand(
   std::string input = message.C();
   static const std::regex toFind("@([^\\s]+)(.*)");
   if (std::regex_match(input, match, toFind)) {
+    libcomp::String sentFrom =
+        state->GetCharacterState()->GetEntity()->GetName();
+
     if (state->GetUserLevel() == 0 && "@version" != message &&
         "@license" != message) {
       // Don't process the message but don't fail
-      LogChatManagerDebug([&]() {
+      LogChatManagerInfo([&]() {
         return libcomp::String(
-                   "Non-GM account attempted to execute a GM command: %1\n")
+                   "[Non-GM] %1: %2\n"
+                   "Non-GM account attempted to execute a GM command: %3\n")
+            .Arg(sentFrom)
+            .Arg(message)
             .Arg(state->GetAccountUID().ToString());
       });
+
+      SendChatMessage(client, ChatType_t::CHAT_SELF,
+                      libcomp::String("The requested command either does not "
+                                      "exist or requires GM privileges."));
+
       return true;
     }
-
-    libcomp::String sentFrom =
-        state->GetCharacterState()->GetEntity()->GetName();
 
     LogChatManagerInfo([&]() {
       return libcomp::String("[GM] %1: %2\n").Arg(sentFrom).Arg(message);
