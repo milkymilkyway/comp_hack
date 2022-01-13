@@ -1316,7 +1316,9 @@ void ChannelServer::HandleDemonQuestReset() {
   // Get all currently logged in characters and reset their demon quests
   for (auto& client : mManagerConnection->GetAllConnections()) {
     auto state = client->GetClientState();
-    if (mEventManager->ResetDemonQuests(client, now, dbChanges)) {
+    auto cState = state->GetCharacterState();
+    auto character = cState->GetEntity();
+    if (mEventManager->ResetDemonQuests(character, client, now, dbChanges)) {
       LogGeneralDebug([&]() {
         return libcomp::String("Resetting demon quests for account: %1\n")
             .Arg(state->GetAccountUID().ToString());

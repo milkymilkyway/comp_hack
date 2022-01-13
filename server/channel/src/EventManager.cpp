@@ -3314,61 +3314,69 @@ bool EventManager::UpdateDemonQuestCount(
 }
 
 bool EventManager::ResetDemonQuests(
+    const std::shared_ptr<objects::Character>& character,
     const std::shared_ptr<ChannelClientConnection>& client, uint32_t now,
     const std::shared_ptr<libcomp::DatabaseChangeSet>& changes) {
-  auto state = client->GetClientState();
-  auto cState = state->GetCharacterState();
-  auto character = cState->GetEntity();
   if (!character) {
-    // Since all connections are being pulled, its possible one isn't
-    // ready yet
+    // Since all connections are being pulled during daily reset, its possible
+    // one isn't ready yet
     return false;
   }
 
+  auto state = client ? client->GetClientState() : nullptr;
   auto progress = character->GetProgress().Get();
-
-  std::set<std::shared_ptr<objects::Demon>> demons;
-  for (auto& d : character->GetCOMP()->GetDemons()) {
-    if (!d.IsNull() && !d->GetHasQuest() &&
-        CharacterManager::GetFamiliarityRank(d->GetFamiliarity()) >= 1) {
-      demons.insert(d.Get());
-    }
-  }
-
   progress->SetDemonQuestDaily(0);
   progress->SetDemonQuestResetTime(now);
-
   changes->Update(progress);
 
-  // Notify the player if any demons have new quests
+  int8_t totalQuestCount = 0;
+  int8_t newQuestCount = 0;
+
+  // New Demon Request notification packet includes all demons with a quest, not
+  // just new ones
   libcomp::Packet request;
-  if (demons.size() > 0) {
-    // Packet includes all demons with a quest, not just new ones
-    std::list<std::shared_ptr<objects::Demon>> all;
-    for (auto& d : character->GetCOMP()->GetDemons()) {
-      if (!d.IsNull() &&
-          (d->GetHasQuest() || demons.find(d.Get()) != demons.end())) {
-        all.push_back(d.Get());
-      }
+  request.WritePacketCode(
+      ChannelToClientPacketCode_t::PACKET_DEMON_QUEST_LIST_UPDATED);
+
+  auto packetCountPos = request.Tell();
+  request.WriteS8(0);
+
+  for (auto& d : character->GetCOMP()->GetDemons()) {
+    if (d.IsNull()) {
+      continue;
     }
 
-    request.WritePacketCode(
-        ChannelToClientPacketCode_t::PACKET_DEMON_QUEST_LIST_UPDATED);
+    auto demon = d.Get();
+    bool hasQuest = false;
 
-    request.WriteS8((int8_t)all.size());
-    for (auto& d : all) {
-      d->SetHasQuest(true);
-      request.WriteS64Little(state->GetObjectID(d->GetUUID()));
+    if (demon->GetHasQuest()) {
+      hasQuest = true;
+    } else if (CharacterManager::GetFamiliarityRank(demon->GetFamiliarity()) >=
+               1) {
+      hasQuest = true;
+      newQuestCount++;
+      demon->SetHasQuest(true);
+      changes->Update(demon);
+    }
 
-      changes->Update(d);
+    if (client && hasQuest) {
+      // We only need the total quest count if a client is being sent a
+      // notifcation packet.
+      totalQuestCount++;
+      request.WriteS64Little(state->GetObjectID(demon->GetUUID()));
     }
   }
 
-  if (demons.size() > 0) {
+  if (client && newQuestCount) {
+    // Notify the player if any demons have new quests
+    request.Seek(packetCountPos);
+    request.WriteS8(totalQuestCount);
+    request.End();
+
     client->SendPacket(request);
   }
 
-  return demons.size() > 0;
+  return newQuestCount > 0;
 }
 
 int8_t EventManager::EndDemonQuest(

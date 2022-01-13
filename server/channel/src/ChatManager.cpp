@@ -1151,61 +1151,23 @@ bool ChatManager::GMCommand_DemonRequest(
     }
   }
 
-  auto targetState = targetClient->GetClientState();
-
   if (targetCharacter) {
-    std::set<std::shared_ptr<objects::Demon>> demons;
-    for (auto& d : targetCharacter->GetCOMP()->GetDemons()) {
-      if (!d.IsNull() && !d->GetHasQuest() &&
-          CharacterManager::GetFamiliarityRank(d->GetFamiliarity()) >= 1) {
-        demons.insert(d.Get());
-      }
-    }
+    auto server = mServer.lock();
+    auto login =
+        server->GetAccountManager()->GetActiveLogin(targetCharacter->GetUUID());
+    uint32_t zoneID = login ? login->GetZoneID() : 0;
+    auto eventManager = server->GetEventManager();
+    uint32_t now = (uint32_t)time(0);
+    auto dbChanges = libcomp::DatabaseChangeSet::Create();
 
-    if (demons.size() > 0) {
-      auto server = mServer.lock();
-      auto dbChanges = libcomp::DatabaseChangeSet::Create();
-
-      for (auto& d : demons) {
-        d->SetHasQuest(true);
-        dbChanges->Update(d);
-      }
-
-      if (!server->GetWorldDatabase()->ProcessChangeSet(dbChanges)) {
-        LogGeneralErrorMsg(
-            "Failed to save demon request reset requested by GM command.\n");
-        return SendChatMessage(
-            client, ChatType_t::CHAT_SELF,
-            libcomp::String(
-                "Failed to save new Demon Requests to the database."));
-      }
-
-      auto login = server->GetAccountManager()->GetActiveLogin(
-          targetCharacter->GetUUID());
-      uint32_t zoneID = login ? login->GetZoneID() : 0;
-
-      if (zoneID) {
-        // Character is online, send the packet notification.
-        libcomp::Packet request;
-        // Packet includes all demons with a quest, not just new ones
-        std::list<std::shared_ptr<objects::Demon>> all;
-        for (auto& d : targetCharacter->GetCOMP()->GetDemons()) {
-          if (!d.IsNull() &&
-              (d->GetHasQuest() || demons.find(d.Get()) != demons.end())) {
-            all.push_back(d.Get());
-          }
-        }
-
-        request.WritePacketCode(
-            ChannelToClientPacketCode_t::PACKET_DEMON_QUEST_LIST_UPDATED);
-
-        request.WriteS8((int8_t)all.size());
-        for (auto& d : all) {
-          request.WriteS64Little(targetState->GetObjectID(d->GetUUID()));
-        }
-
-        targetClient->SendPacket(request);
-      }
+    eventManager->ResetDemonQuests(
+        targetCharacter, zoneID ? targetClient : nullptr, now, dbChanges);
+    if (!server->GetWorldDatabase()->ProcessChangeSet(dbChanges)) {
+      LogGeneralErrorMsg(
+          "Failed to process Demon Request reset requested by GM command.\n");
+      return SendChatMessage(
+          client, ChatType_t::CHAT_SELF,
+          libcomp::String("Failed to process Demon Request reset command."));
     }
 
     return true;
