@@ -1435,6 +1435,7 @@ bool TokuseiManager::EvaluateTokuseiCondition(
       // Only valid during skill processing
       return false;
       break;
+    case TokuseiConditionType::PARTNER_BASE_TYPE:
     case TokuseiConditionType::PARTNER_TYPE:
     case TokuseiConditionType::PARTNER_FAMILY:
     case TokuseiConditionType::PARTNER_RACE:
@@ -1481,8 +1482,12 @@ bool TokuseiManager::EvaluateTokuseiCondition(
 
   int32_t partnerValue = 0;
   switch (condition->GetType()) {
+    case TokuseiConditionType::PARTNER_BASE_TYPE:
+      // Partner matches the specified demon base type
+      partnerValue = (int32_t)demonData->GetUnionData()->GetBaseDemonID();
+      break;
     case TokuseiConditionType::PARTNER_TYPE:
-      // Partner matches the specified demon type
+      // Partner matches the specified demon variant
       partnerValue = (int32_t)partner->GetType();
       break;
     case TokuseiConditionType::PARTNER_FAMILY:

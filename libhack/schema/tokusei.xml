@@ -15,7 +15,7 @@
             <value>STATUS_ACTIVE</value>
 
             <!-- Partner -->
-            <value>PARTNER_TYPE</value>
+            <value>PARTNER_BASE_TYPE</value>
             <value>PARTNER_FAMILY</value>
             <value>PARTNER_RACE</value>
             <value>PARTNER_FAMILIARITY</value>
@@ -27,6 +27,9 @@
             <!-- Time -->
             <value>GAME_TIME</value>
             <value>MOON_PHASE</value>
+
+            <!-- Custom Types: Partner -->
+            <value>PARTNER_TYPE</value>
         </member>
         <member type="s32" name="Value"/>
         <member type="enum" name="Comparator" underlying="int8_t">
