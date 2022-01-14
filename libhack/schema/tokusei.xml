@@ -79,6 +79,8 @@
             <value>MITAMA_DEMON_BOOK_FAMILY_DIVIDE</value>
             <value>MITAMA_DEMON_BOOK_RACE_DIVIDE</value>
             <value>QUEST_BONUS_DIVIDE</value>
+            <value>MULTIPLY</value>
+            <value>DIVIDE</value>
         </member>
         <member type="s32" name="MultiplierValue"/>
         <member type="u8" name="Precision" default="0"/>

@@ -1513,19 +1513,17 @@ double TokuseiManager::CalculateAttributeValue(
         }
         break;
       case objects::TokuseiAttributes::MultiplierType_t::CORRECT_TABLE:
-      case objects::TokuseiAttributes::MultiplierType_t::CORRECT_TABLE_DIVIDE:
-        // Multiply (or divide) the value by a correct table value
+        // Multiply the value by a correct table value
         {
-          bool divide =
-              attributes->GetMultiplierType() !=
-              objects::TokuseiAttributes::MultiplierType_t::CORRECT_TABLE;
-
           int16_t val = calcState->GetCorrectTbl((size_t)multValue);
-          if (divide) {
-            result = val != 0 ? (double)(result / (double)val) : 0;
-          } else {
-            result = (double)(result * (double)val);
-          }
+          result = (double)(result * (double)val);
+        }
+        break;
+      case objects::TokuseiAttributes::MultiplierType_t::CORRECT_TABLE_DIVIDE:
+        // Divide the value by a correct table value
+        {
+          int16_t val = calcState->GetCorrectTbl((size_t)multValue);
+          result = val != 0 ? (double)(result / (double)val) : 0;
         }
         break;
       case objects::TokuseiAttributes::MultiplierType_t::PARTY_SIZE:
@@ -1622,7 +1620,6 @@ double TokuseiManager::CalculateAttributeValue(
           }
         }
         break;
-
       case objects::TokuseiAttributes::MultiplierType_t::
           MITAMA_DEMON_BOOK_DIVIDE:
         // Divide the value times the number of unique entries in the compendium
@@ -1692,6 +1689,14 @@ double TokuseiManager::CalculateAttributeValue(
                                          (double)multValue))
                        : 0.0;
         }
+        break;
+      case objects::TokuseiAttributes::MultiplierType_t::MULTIPLY:
+        // Multiply the value by the multiplierValue
+        result = (double)(result * (double)multValue);
+        break;
+      case objects::TokuseiAttributes::MultiplierType_t::DIVIDE:
+        // Divide the value by the multiplierValue
+        result = multValue != 0 ? (double)(result / (double)multValue) : 0;
         break;
       default:
         result = 0.0;
