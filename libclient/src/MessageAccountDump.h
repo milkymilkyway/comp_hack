@@ -53,6 +53,8 @@ class MessageAccountDump : public libcomp::Message::MessageClient {
    */
   ~MessageAccountDump() override {}
 
+  Message *Clone() const override { return new MessageAccountDump(*this); }
+
   /**
    * Get the path to save the account to.
    * @returns Path to save the account to.
@@ -96,6 +98,10 @@ class MessageAccountDumpStatus : public libcomp::Message::MessageClient {
    * Cleanup the message.
    */
   ~MessageAccountDumpStatus() override {}
+
+  Message *Clone() const override {
+    return new MessageAccountDumpStatus(*this);
+  }
 
   /**
    * Get if the account dump was a success.

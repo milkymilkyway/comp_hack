@@ -121,6 +121,8 @@ class MessageConnectToLobby : public MessageConnectionInfo {
    */
   ~MessageConnectToLobby() override {}
 
+  Message* Clone() const override { return new MessageConnectToLobby(*this); }
+
   /**
    * Get the username for authentication.
    * @returns Username for authentication.
@@ -206,6 +208,8 @@ class MessageConnectToChannel : public MessageConnectionInfo {
    */
   ~MessageConnectToChannel() override {}
 
+  Message* Clone() const override { return new MessageConnectToChannel(*this); }
+
   /**
    * Get the session key passed from the lobby.
    * @returns Session key passed from the lobby.
@@ -253,6 +257,8 @@ class MessageConnectionClose : public libcomp::Message::MessageClient {
    * Cleanup the message.
    */
   ~MessageConnectionClose() override {}
+
+  Message* Clone() const override { return new MessageConnectionClose(*this); }
 
   /**
    * Get the specific client message type.

@@ -53,6 +53,8 @@ class MessageRequestStartGame : public libcomp::Message::MessageClient {
    */
   ~MessageRequestStartGame() override {}
 
+  Message* Clone() const override { return new MessageRequestStartGame(*this); }
+
   /**
    * Get the ID for the character to start the game with.
    * @returns ID for the character to start the game with.

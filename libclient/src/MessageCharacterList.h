@@ -54,6 +54,8 @@ class MessageCharacterList : public libcomp::Message::MessageClient {
    */
   ~MessageCharacterList() override {}
 
+  Message* Clone() const override { return new MessageCharacterList(*this); }
+
   /**
    * Get the specific client message type.
    * @return The message's client message type

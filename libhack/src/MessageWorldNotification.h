@@ -58,6 +58,8 @@ class WorldNotification : public ConnectionMessage {
    */
   virtual ~WorldNotification();
 
+  Message* Clone() const override { return new WorldNotification(*this); }
+
   /**
    * Get the address the connection is coming from.
    * @return The address the connection is coming from

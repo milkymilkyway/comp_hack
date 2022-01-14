@@ -95,6 +95,8 @@ class MessageConnectedToLobby : public MessageConnected {
    */
   ~MessageConnectedToLobby() override {}
 
+  Message *Clone() const override { return new MessageConnectedToLobby(*this); }
+
   /**
    * Get the session ID for this connection.
    * @returns Session ID for this connection.
@@ -144,6 +146,10 @@ class MessageConnectedToChannel : public MessageConnected {
    * Cleanup the message.
    */
   ~MessageConnectedToChannel() override {}
+
+  Message *Clone() const override {
+    return new MessageConnectedToChannel(*this);
+  }
 
   /**
    * Get the specific client message type.
