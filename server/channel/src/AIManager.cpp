@@ -560,8 +560,27 @@ void AIManager::QueueScriptCommand(const std::shared_ptr<AIState>& aiState,
                                    const libcomp::String& functionName,
                                    bool interrupt) {
   if (aiState) {
-    auto cmd = std::make_shared<AIScriptedCommand>(functionName);
-    aiState->QueueCommand(cmd, interrupt);
+    // Check if the command actually exists first.
+    bool functionExists = true;
+    auto script = aiState->GetScript();
+    if (script) {
+      Sqrat::Function f(Sqrat::RootTable(script->GetVM()), functionName.C());
+      if (f.IsNull()) {
+        LogAIManagerError([functionName]() {
+          return libcomp::String("Queued script command does not exist: %1\n")
+              .Arg(functionName);
+        });
+        functionExists = false;
+      }
+    } else {
+      // Silently fail because there is no AI set
+      functionExists = false;
+    }
+
+    if (functionExists) {
+      auto cmd = std::make_shared<AIScriptedCommand>(functionName);
+      aiState->QueueCommand(cmd, interrupt);
+    }
   }
 }
 
