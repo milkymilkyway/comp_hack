@@ -70,9 +70,6 @@ const uint8_t ENTITY_CALC_STAT_WORLD = 0x02;
 /// Recalculation resulted in a modified movement speed
 const uint8_t ENTITY_CALC_MOVE_SPEED = 0x04;
 
-/// Recalculation resulted in a modified skill set (characters only)
-const uint8_t ENTITY_CALC_SKILL = 0x08;
-
 /// Entity is immobile for no specific reason
 const uint8_t STATUS_IMMOBILE = 0x01;
 
@@ -212,7 +209,6 @@ class ActiveEntityState : public objects::ActiveEntityStateObject {
    *  should be communicated to the client or world:
    *  0x01) ENTITY_CALC_STAT_LOCAL = locallly visible stats were changed
    *  0x02) ENTITY_CALC_STAT_WORLD = stats changed that are visible to the world
-   *  0x04) ENTITY_CALC_SKILL = skill set has changed (character only)
    */
   virtual uint8_t RecalculateStats(
       libhack::DefinitionManager* definitionManager,
@@ -815,6 +811,15 @@ class ActiveEntityState : public objects::ActiveEntityStateObject {
    */
   int8_t GetNextActivatedAbilityID();
 
+  /**
+   * Get the set of skill IDs granted by effective tokusei.
+   * @param definitionManager Pointer to the definition manager to use
+   *  for tokusei definitions
+   * @return Set of skill IDs granted by effective tokusei
+   */
+  std::set<uint32_t> GetEffectiveTokuseiSkills(
+      libhack::DefinitionManager* definitionManager);
+
  protected:
   /**
    * Remove the set of supplied status effects from all registered
@@ -1018,15 +1023,6 @@ class ActiveEntityState : public objects::ActiveEntityStateObject {
    * @return Numeric representation of the entity's current alignment
    */
   uint8_t CalculateLNCType(int16_t lncPoints) const;
-
-  /**
-   * Get the set of skill IDs granted by effective tokusei.
-   * @param definitionManager Pointer to the definition manager to use
-   *  for tokusei definitions
-   * @return Set of skill IDs granted by effective tokusei
-   */
-  std::set<uint32_t> GetEffectiveTokuseiSkills(
-      libhack::DefinitionManager* definitionManager);
 
   /**
    * Compare and set the entity's current stats and also keep track of if

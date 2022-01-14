@@ -112,6 +112,11 @@ bool Parsers::ClanUpdate::Parse(
             server->GetSkillManager()->ExecuteSkill(
                 cState, activationID,
                 activatedAbility->GetActivationObjectID());
+
+            // Add the clan skills.
+            auto characterManager = server->GetCharacterManager();
+            characterManager->RecalculateTokuseiAndStats(cState, client);
+            characterManager->SendUpdatedSkillList(client, cState, false);
           } else {
             server->GetSkillManager()->CancelSkill(cState, activationID);
           }
@@ -173,6 +178,7 @@ bool Parsers::ClanUpdate::Parse(
             worldDB->QueueUpdate(character);
 
             characterManager->RecalculateTokuseiAndStats(cState, client);
+            characterManager->SendUpdatedSkillList(client, cState, false);
           }
         }
 
@@ -233,6 +239,7 @@ bool Parsers::ClanUpdate::Parse(
 
             if (!clanUpdated) {
               characterManager->RecalculateTokuseiAndStats(cState, client);
+              characterManager->SendUpdatedSkillList(client, cState, false);
             }
           }
         }

@@ -260,6 +260,31 @@ class CharacterManager {
       bool queue = false);
 
   /**
+   * Send the client the specified charactrer's updated tokusei skill states.
+   * @param client Pointer to the client connection
+   * @param cState Pointer to the character state
+   * @param adds Set of skill IDs to add
+   * @param removes Set of skill IDs to remove
+   * @param queue true if the packet should be queued, false if it
+   *  should be sent right away
+   */
+  void SendUpdatedSkill(
+      const std::shared_ptr<channel::ChannelClientConnection>& client,
+      const std::shared_ptr<CharacterState>& cState, std::set<uint32_t> adds,
+      std::set<uint32_t> removes, bool queue = false);
+
+  /**
+   * Send the client the specified charactrer's updated skill list.
+   * @param client Pointer to the client connection
+   * @param cState Pointer to the character state
+   * @param queue true if the packet should be queued, false if it
+   *  should be sent right away
+   */
+  void SendUpdatedSkillList(
+      const std::shared_ptr<channel::ChannelClientConnection>& client,
+      const std::shared_ptr<CharacterState>& cState, bool queue = false);
+
+  /**
    * Send the client player's auto-recovery settings
    * @param client Pointer to the client connection
    */

@@ -749,24 +749,6 @@ uint8_t CharacterManager::RecalculateStats(
       SendMovementSpeed(client, eState, false);
     }
 
-    if (result & ENTITY_CALC_SKILL) {
-      auto cState = std::dynamic_pointer_cast<CharacterState>(eState);
-      if (cState) {
-        libcomp::Packet p;
-        p.WritePacketCode(
-            ChannelToClientPacketCode_t::PACKET_SKILL_LIST_UPDATED);
-        p.WriteS32Little(cState->GetEntityID());
-
-        auto skills = cState->GetCurrentSkills();
-        p.WriteU32Little((uint32_t)skills.size());
-        for (uint32_t skillID : skills) {
-          p.WriteU32Little(skillID);
-        }
-
-        client->QueuePacket(p);
-      }
-    }
-
     if (result & ENTITY_CALC_STAT_LOCAL) {
       SendEntityStats(client, eState->GetEntityID(), updateSourceClient);
 
@@ -1258,6 +1240,80 @@ void CharacterManager::SendMovementSpeed(
       client->QueuePacket(p);
     } else {
       client->SendPacket(p);
+    }
+  }
+}
+
+void CharacterManager::SendUpdatedSkill(
+    const std::shared_ptr<channel::ChannelClientConnection>& client,
+    const std::shared_ptr<CharacterState>& cState, std::set<uint32_t> adds,
+    std::set<uint32_t> removes, bool queue) {
+  if (client && cState) {
+    libcomp::Packet p;
+    p.WritePacketCode(ChannelToClientPacketCode_t::PACKET_SKILL_STATE);
+    p.WriteS32Little(cState->GetEntityID());
+    p.WriteS16Little((int16_t)adds.size());
+    for (auto addedSkill : adds) {
+      p.WriteU32Little(addedSkill);
+    }
+    p.WriteS16Little((int16_t)removes.size());
+    for (auto removedSkill : removes) {
+      p.WriteU32Little(removedSkill);
+    }
+
+    if (queue) {
+      client->QueuePacket(p);
+    } else {
+      client->SendPacket(p);
+    }
+  }
+}
+
+void CharacterManager::SendUpdatedSkillList(
+    const std::shared_ptr<channel::ChannelClientConnection>& client,
+    const std::shared_ptr<CharacterState>& cState, bool queue) {
+  if (client && cState) {
+    auto entityID = cState->GetEntityID();
+    libcomp::Packet p;
+    p.WritePacketCode(ChannelToClientPacketCode_t::PACKET_SKILL_LIST_UPDATED);
+    p.WriteS32Little(entityID);
+
+    auto skills = cState->GetCurrentSkills();
+    p.WriteU32Little((uint32_t)skills.size());
+    for (uint32_t skillID : skills) {
+      p.WriteU32Little(skillID);
+    }
+
+    if (queue) {
+      client->QueuePacket(p);
+    } else {
+      client->SendPacket(p);
+    }
+
+    // If Digitalized while receiving an updated skill list, a client bug will
+    // manifest causing the character to forget all learned skills shared with
+    // the digitalized demon. This can be corrected by sending out appropriate
+    // PACKET_LEARN_SKILL packets again, so that the skills do not disappear
+    // from the client's Skill selection window.
+    auto dgState = cState->GetDigitalizeState();
+    if (dgState) {
+      auto character = cState->GetEntity();
+      auto dgSkills = dgState->GetDemon()->GetLearnedSkills();
+      for (size_t i = 0; i < 8; i++) {
+        if (character->LearnedSkillsContains(dgSkills[i])) {
+          libcomp::Packet skillRelearn;
+          skillRelearn.WritePacketCode(
+              ChannelToClientPacketCode_t::PACKET_LEARN_SKILL);
+          skillRelearn.WriteS32Little(entityID);
+          skillRelearn.WriteU32Little(dgSkills[i]);
+
+          if (queue) {
+            client->QueuePacket(skillRelearn);
+          } else {
+            client->SendPacket(skillRelearn);
+          }
+        }
+      }
     }
   }
 }
@@ -4885,7 +4941,8 @@ bool CharacterManager::LearnSkill(
     server->GetWorldDatabase()->QueueChangeSet(dbChanges);
   } else {
     // Check if the skill has already been learned
-    auto character = state->GetCharacterState()->GetEntity();
+    auto cState = state->GetCharacterState();
+    auto character = cState->GetEntity();
     if (character->LearnedSkillsContains(skillID)) {
       // Skill already exists
       return true;
@@ -4902,6 +4959,7 @@ bool CharacterManager::LearnSkill(
 
     server->GetWorldDatabase()->QueueUpdate(character, state->GetAccountUID());
 
+    cState->SetCurrentSkills(cState->GetAllSkills(definitionManager, true));
     if (skillID == SVR_CONST.MITAMA_SET_BOOST) {
       dState->UpdateDemonState(definitionManager);
     }
@@ -6373,7 +6431,6 @@ bool CharacterManager::DigitalizeEnd(
 
   int32_t time = 0;
   auto server = mServer.lock();
-  auto definitionManager = server->GetDefinitionManager();
   if (demon && dgState->GetTimeLimited()) {
     // Add cooldown to demon (in seconds)
     time = (int32_t)SVR_CONST.DIGITALIZE_COOLDOWN;
@@ -6412,9 +6469,6 @@ bool CharacterManager::DigitalizeEnd(
 
   client->QueuePacket(p);
 
-  // Recalculate available skills due to Digitalize ending.
-  cState->RecalcDisabledSkills(definitionManager);
-  state->GetDemonState()->UpdateDemonState(definitionManager);
   RecalculateTokuseiAndStats(cState, client);
 
   client->FlushOutgoing();

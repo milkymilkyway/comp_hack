@@ -31,6 +31,7 @@
 #include <DefinitionManager.h>
 #include <Log.h>
 #include <PacketCodes.h>
+#include <Utils.h>
 
 // object Includes
 #include <CalculatedEntityState.h>
@@ -742,6 +743,10 @@ std::unordered_map<int32_t, bool> TokuseiManager::Recalculate(
 
   // Now that all tokusei have been calculated, compare and add them to their
   // respective entities
+  auto server = mServer.lock();
+  auto definitionManager = server->GetDefinitionManager();
+  auto connectionManager = server->GetManagerConnection();
+  auto characterManager = server->GetCharacterManager();
   std::list<std::shared_ptr<ActiveEntityState>> updatedEntities;
   std::unordered_map<int32_t, std::set<int32_t>> expirationTriggers;
   for (auto eState : entities) {
@@ -783,6 +788,9 @@ std::unordered_map<int32_t, bool> TokuseiManager::Recalculate(
         }
       }
 
+      // Gather the available tokusei skills just before we set all this.
+      auto previousTokuseiSkills =
+          eState->GetEffectiveTokuseiSkills(definitionManager);
       calcState->SetEffectiveTokusei(effective);
       calcState->SetPendingSkillTokusei(skillPending);
 
@@ -834,13 +842,40 @@ std::unordered_map<int32_t, bool> TokuseiManager::Recalculate(
 
       updatedEntities.push_back(eState);
 
+      // Calculate and send needed skill updates, if this is a character.
+      if (eState->GetEntityType() == EntityType_t::CHARACTER) {
+        auto cState = std::dynamic_pointer_cast<CharacterState>(eState);
+        auto character = cState ? cState->GetEntity() : nullptr;
+        if (character) {
+          auto newTokuseiSkills =
+              eState->GetEffectiveTokuseiSkills(definitionManager);
+          std::set<uint32_t> tokuseiSkillAdditions;
+          std::set<uint32_t> tokuseiSkillRemovals;
+          set_diff<uint32_t>(newTokuseiSkills, previousTokuseiSkills,
+                             tokuseiSkillAdditions, tokuseiSkillRemovals);
+          characterManager->SendUpdatedSkill(
+              connectionManager->GetEntityClient(cState->GetEntityID(), false),
+              cState, tokuseiSkillAdditions, tokuseiSkillRemovals, false);
+
+          // Remove any switch skills no longer available if skills have been
+          // removed
+          if (!tokuseiSkillRemovals.empty()) {
+            for (uint32_t switchSkillID : cState->GetActiveSwitchSkills()) {
+              if (tokuseiSkillRemovals.find(switchSkillID) !=
+                  tokuseiSkillRemovals.end()) {
+                cState->RemoveActiveSwitchSkills(switchSkillID);
+                character->RemoveSavedSwitchSkills(switchSkillID);
+              }
+            }
+          }
+        }
+      }
+
       RecalcCostAdjustments(eState);
     }
   }
 
   if (recalcStats || expirationTriggers.size() > 0) {
-    auto server = mServer.lock();
-    auto connectionManager = server->GetManagerConnection();
     for (auto eState : updatedEntities) {
       auto expireIter = expirationTriggers.find(eState->GetEntityID());
       bool expired = expireIter != expirationTriggers.end();
@@ -1513,17 +1548,19 @@ double TokuseiManager::CalculateAttributeValue(
         }
         break;
       case objects::TokuseiAttributes::MultiplierType_t::CORRECT_TABLE:
-        // Multiply the value by a correct table value
-        {
-          int16_t val = calcState->GetCorrectTbl((size_t)multValue);
-          result = (double)(result * (double)val);
-        }
-        break;
       case objects::TokuseiAttributes::MultiplierType_t::CORRECT_TABLE_DIVIDE:
-        // Divide the value by a correct table value
+        // Multiply (or divide) the value by a correct table value
         {
+          bool divide =
+              attributes->GetMultiplierType() !=
+              objects::TokuseiAttributes::MultiplierType_t::CORRECT_TABLE;
+
           int16_t val = calcState->GetCorrectTbl((size_t)multValue);
-          result = val != 0 ? (double)(result / (double)val) : 0;
+          if (divide) {
+            result = val != 0 ? (double)(result / (double)val) : 0;
+          } else {
+            result = (double)(result * (double)val);
+          }
         }
         break;
       case objects::TokuseiAttributes::MultiplierType_t::PARTY_SIZE:
@@ -1620,6 +1657,7 @@ double TokuseiManager::CalculateAttributeValue(
           }
         }
         break;
+
       case objects::TokuseiAttributes::MultiplierType_t::
           MITAMA_DEMON_BOOK_DIVIDE:
         // Divide the value times the number of unique entries in the compendium
@@ -1689,14 +1727,6 @@ double TokuseiManager::CalculateAttributeValue(
                                          (double)multValue))
                        : 0.0;
         }
-        break;
-      case objects::TokuseiAttributes::MultiplierType_t::MULTIPLY:
-        // Multiply the value by the multiplierValue
-        result = (double)(result * (double)multValue);
-        break;
-      case objects::TokuseiAttributes::MultiplierType_t::DIVIDE:
-        // Divide the value by the multiplierValue
-        result = multValue != 0 ? (double)(result / (double)multValue) : 0;
         break;
       default:
         result = 0.0;

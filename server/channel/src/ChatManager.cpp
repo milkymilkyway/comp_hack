@@ -3383,6 +3383,7 @@ bool ChatManager::GMCommand_ForgetSkill(
   auto cState = state->GetCharacterState();
   auto character = cState->GetEntity();
   auto definitionManager = server->GetDefinitionManager();
+  auto characterManager = server->GetCharacterManager();
 
   uint32_t skillID;
 
@@ -3404,10 +3405,17 @@ bool ChatManager::GMCommand_ForgetSkill(
   // Remove the skill from the character and update states and DB as
   // appropriate.
   character->RemoveLearnedSkills(skillID);
+  if (cState->ActiveSwitchSkillsContains(skillID)) {
+    cState->RemoveActiveSwitchSkills(skillID);
+    character->RemoveSavedSwitchSkills(skillID);
+  }
 
-  cState->RecalcDisabledSkills(definitionManager);
-  state->GetDemonState()->UpdateDemonState(definitionManager);
+  cState->SetCurrentSkills(cState->GetAllSkills(definitionManager, true));
+  if (skillID == SVR_CONST.MITAMA_SET_BOOST) {
+    state->GetDemonState()->UpdateDemonState(definitionManager);
+  }
   server->GetCharacterManager()->RecalculateTokuseiAndStats(cState, client);
+  characterManager->SendUpdatedSkillList(client, cState, false);
 
   server->GetWorldDatabase()->QueueUpdate(character, state->GetAccountUID());
 

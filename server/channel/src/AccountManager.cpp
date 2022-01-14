@@ -199,11 +199,11 @@ void AccountManager::HandleLoginResponse(
 
     state->Register();
 
-    // Recalculate current character learned skills here in order to rebuild the
-    // demon state properly, because it checks the availability
-    // of the skill that grants extra Mitama Set Bonuses.
+    // Recalculate current character's clan and learned skills here
+    // in order to rebuild the demon state properly, because it
+    // checks the availability of the skill that grants extra
+    // Mitama Set Bonuses.
     cState->SetCurrentSkills(cState->GetAllSkills(definitionManager, true));
-
     dState->UpdateSharedState(character.Get(), definitionManager);
     dState->UpdateDemonState(definitionManager);
 
@@ -214,6 +214,10 @@ void AccountManager::HandleLoginResponse(
 
     cState->RecalculateStats(definitionManager);
     dState->RecalculateStats(definitionManager);
+
+    // This is sent on logging in so that the character has their
+    // skill list immediately.
+    characterManager->SendUpdatedSkillList(client, cState, false);
 
     if (channelLogin) {
       // Remove any switch skills no longer active or valid
@@ -226,6 +230,7 @@ void AccountManager::HandleLoginResponse(
 
       for (uint32_t skillID : removeSkills) {
         channelLogin->RemoveActiveSwitchSkills(skillID);
+        character->RemoveSavedSwitchSkills(skillID);
       }
     }
 

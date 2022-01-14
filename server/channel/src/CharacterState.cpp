@@ -907,7 +907,6 @@ uint8_t CharacterState::RecalculateStats(
         }
       }
     }
-    result = skillsChanged ? ENTITY_CALC_SKILL : 0x00;
 
     // Remove any switch skills no longer available if skills have been changed
     if (skillsChanged) {

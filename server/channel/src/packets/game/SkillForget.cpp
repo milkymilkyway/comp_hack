@@ -32,6 +32,7 @@
 #include <ManagerPacket.h>
 #include <Packet.h>
 #include <PacketCodes.h>
+#include <ServerConstants.h>
 
 // object Includes
 #include <ActivatedAbility.h>
@@ -87,10 +88,18 @@ bool Parsers::SkillForget::Parse(
                                activatedAbility->GetTargetObjectID());
 
     character->RemoveLearnedSkills(skillID);
+    auto characterManager = server->GetCharacterManager();
+    if (cState->ActiveSwitchSkillsContains(skillID)) {
+      cState->RemoveActiveSwitchSkills(skillID);
+      character->RemoveSavedSwitchSkills(skillID);
+    }
 
-    cState->RecalcDisabledSkills(definitionManager);
-    state->GetDemonState()->UpdateDemonState(definitionManager);
-    server->GetCharacterManager()->RecalculateTokuseiAndStats(cState, client);
+    cState->SetCurrentSkills(cState->GetAllSkills(definitionManager, true));
+    if (skillID == SVR_CONST.MITAMA_SET_BOOST) {
+      state->GetDemonState()->UpdateDemonState(definitionManager);
+    }
+    characterManager->RecalculateTokuseiAndStats(cState, client);
+    characterManager->SendUpdatedSkillList(client, cState, false);
 
     server->GetWorldDatabase()->QueueUpdate(character, state->GetAccountUID());
   }
