@@ -102,6 +102,17 @@ bool Parsers::BazaarMarketOpen::Parse(
       });
 
       success = false;
+    } else if (bazaarData &&
+               bazaarData->GetState() !=
+                   objects::BazaarData::State_t::BAZAAR_INACTIVE) {
+      LogBazaarError([&]() {
+        return libcomp::String(
+                   "Player attempted to open another bazaar while already "
+                   "having one open: %1\n")
+            .Arg(state->GetAccountUID().ToString());
+      });
+
+      success = false;
     } else if (maccaCost > 0) {
       std::unordered_map<uint32_t, uint64_t> compressibleItemCosts;
       compressibleItemCosts[SVR_CONST.ITEM_MACCA] = (uint64_t)maccaCost;

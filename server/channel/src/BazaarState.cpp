@@ -34,6 +34,7 @@
 #include <AccountWorldData.h>
 #include <BazaarData.h>
 #include <BazaarItem.h>
+#include <Character.h>
 #include <EventInstance.h>
 #include <EventState.h>
 #include <Item.h>
@@ -91,6 +92,9 @@ bool BazaarState::AddItem(
     std::shared_ptr<libcomp::DatabaseChangeSet>& dbChanges) {
   auto worldData = state->GetAccountWorldData().Get();
   auto bazaarData = worldData->GetBazaarData().Get();
+  auto cState = state->GetCharacterState();
+  auto character = cState->GetEntity();
+  auto inventory = character->GetItemBoxes(0).Get();
 
   auto item = std::dynamic_pointer_cast<objects::Item>(
       libcomp::PersistentObject::GetObjectByUUID(state->GetObjectUUID(itemID)));
@@ -98,9 +102,10 @@ bool BazaarState::AddItem(
   std::lock_guard<std::mutex> lock(mLock);
   if (VerifyMarket(bazaarData)) {
     // Make sure the item is valid, the slot is not taken and the item is
-    // not already outside of a normal box (already in the bazaar etc)
+    // not outside of the inventory (already in the bazaar etc)
     if (item && bazaarData->GetItems((size_t)slot).IsNull() &&
-        item->GetBoxSlot() != -1) {
+        item->GetBoxSlot() != -1 &&
+        item->GetItemBox() == inventory->GetUUID()) {
       // Create the item
       auto bItem = libcomp::PersistentObject::New<objects::BazaarItem>(true);
       bItem->SetAccount(state->GetAccountUID());
@@ -275,7 +280,8 @@ bool BazaarState::DropItemInternal(
       libcomp::PersistentObject::GetObjectByUUID(state->GetObjectUUID(itemID)));
 
   auto bItem = bazaarData->GetItems((size_t)srcSlot).Get();
-  if (item == nullptr || bItem == nullptr || bItem->GetItem().Get() != item) {
+  if (item == nullptr || bItem == nullptr || bItem->GetItem().Get() != item ||
+      bItem->GetSold()) {
     LogBazaarErrorMsg(
         "DropItem request encountered with invalid item or source slot\n");
     return false;
