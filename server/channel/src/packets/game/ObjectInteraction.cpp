@@ -112,8 +112,8 @@ bool Parsers::ObjectInteraction::Parse(
       if (isHidden) {
         LogGeneralWarning([&]() {
           return libcomp::String(
-                     "Entity %1 is currently hidden and cannot be interacted "
-                     "with by player: %1\n")
+                     "Player is too far from entity %1 to interact "
+                     "with it: %2\n")
               .Arg(objDef->GetID())
               .Arg(state->GetAccountUID().ToString());
         });

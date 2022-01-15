@@ -32,6 +32,9 @@
 #include <Packet.h>
 #include <PacketCodes.h>
 
+// libhack includes
+#include <Log.h>
+
 // object Includes
 #include <Loot.h>
 #include <LootBox.h>
@@ -61,17 +64,30 @@ bool Parsers::LootTreasureBox::Parse(
   auto state = client->GetClientState();
   auto cState = state->GetCharacterState();
   auto zone = cState->GetZone();
+  auto lState = zone ? zone->GetLootBox(lootEntityID) : nullptr;
+  auto lBox = lState ? lState->GetEntity() : nullptr;
 
   libcomp::Packet reply;
   reply.WritePacketCode(ChannelToClientPacketCode_t::PACKET_LOOT_TREASURE_BOX);
   reply.WriteS32Little(entityID);
   reply.WriteS32Little(lootEntityID);
 
-  auto lState = zone ? zone->GetLootBox(lootEntityID) : nullptr;
-  auto lBox = lState ? lState->GetEntity() : nullptr;
-  if (lBox && ((lBox->ValidLooterIDsCount() == 0 &&
-                lBox->GetType() != objects::LootBox::Type_t::BOSS_BOX) ||
-               lBox->ValidLooterIDsContains(state->GetWorldCID()))) {
+  if (lBox && !cState->CanInteract(lState)) {
+    // They can't actually make this interaction. Ignore it.
+    LogGeneralWarning([&]() {
+      return libcomp::String(
+                 "Player is either too far from lootbox in zone %1 to retrieve "
+                 "its information or does not have line of sight: %2\n")
+          .Arg(zone->GetDefinitionID())
+          .Arg(state->GetAccountUID().ToString());
+    });
+
+    reply.WriteS8(-1);  // Failure
+
+    client->SendPacket(reply);
+  } else if (lBox && ((lBox->ValidLooterIDsCount() == 0 &&
+                       lBox->GetType() != objects::LootBox::Type_t::BOSS_BOX) ||
+                      lBox->ValidLooterIDsContains(state->GetWorldCID()))) {
     reply.WriteS8(0);  // Success
 
     client->QueuePacket(reply);

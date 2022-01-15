@@ -33,6 +33,9 @@
 #include <PacketCodes.h>
 #include <Randomizer.h>
 
+// libhack Includes
+#include <Log.h>
+
 // object Includes
 #include <CharacterProgress.h>
 #include <DemonBox.h>
@@ -80,9 +83,19 @@ bool Parsers::LootItem::Parse(
   uint32_t demonType = 0;
   std::list<int8_t> lootedSlots;
   std::unordered_map<uint32_t, uint32_t> lootedItems;
-  if (lBox && ((lBox->ValidLooterIDsCount() == 0 &&
-                lBox->GetType() != objects::LootBox::Type_t::BOSS_BOX) ||
-               lBox->ValidLooterIDsContains(state->GetWorldCID()))) {
+
+  if (lBox && !cState->CanInteract(lState)) {
+    // They can't actually make this interaction. Ignore it.
+    LogGeneralWarning([&]() {
+      return libcomp::String(
+                 "Player is either too far from lootable entity in zone %1 to "
+                 "loot or does not have line of sight: %2\n")
+          .Arg(zone->GetDefinitionID())
+          .Arg(state->GetAccountUID().ToString());
+    });
+  } else if (lBox && ((lBox->ValidLooterIDsCount() == 0 &&
+                       lBox->GetType() != objects::LootBox::Type_t::BOSS_BOX) ||
+                      lBox->ValidLooterIDsContains(state->GetWorldCID()))) {
     if (lBox->GetType() == objects::LootBox::Type_t::EGG) {
       // Demon egg
       auto comp = character->GetCOMP().Get();

@@ -33,6 +33,9 @@
 #include <Packet.h>
 #include <PacketCodes.h>
 
+// libhack Includes
+#include <Log.h>
+
 // object Includes
 #include <Loot.h>
 #include <LootBox.h>
@@ -62,10 +65,20 @@ bool Parsers::LootDemonEggData::Parse(
   auto state = client->GetClientState();
   auto cState = state->GetCharacterState();
   auto zone = cState->GetZone();
-
   auto lState = zone ? zone->GetLootBox(lootEntityID) : nullptr;
   auto enemy = lState ? lState->GetEntity()->GetEnemy() : nullptr;
-  if (enemy) {
+
+  if (enemy && !cState->CanInteract(lState)) {
+    // They can't actually make this interaction. Ignore it.
+    LogGeneralWarning([&]() {
+      return libcomp::String(
+                 "Player is either too far from a demon egg in zone %1 to "
+                 "retrieve its information or does not have line of sight: "
+                 "%2\n")
+          .Arg(zone->GetDefinitionID())
+          .Arg(state->GetAccountUID().ToString());
+    });
+  } else if (enemy) {
     uint32_t demonType = enemy->GetType();
     auto demonData = definitionManager->GetDevilData(demonType);
     auto tempDemon = characterManager->GenerateDemon(demonData);

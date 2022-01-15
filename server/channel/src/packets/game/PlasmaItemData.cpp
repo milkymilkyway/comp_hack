@@ -33,6 +33,9 @@
 #include <PacketCodes.h>
 #include <ServerDataManager.h>
 
+// libhack Includes
+#include <Log.h>
+
 // objects Includes
 #include <DropSet.h>
 #include <ItemDrop.h>
@@ -77,7 +80,18 @@ bool Parsers::PlasmaItemData::Parse(
   reply.WriteS32Little(plasmaID);
   reply.WriteS8(pointID);
 
-  if (point) {
+  if (!cState->CanInteract(point)) {
+    // They can't actually make this interaction. A failure reply will be sent.
+    LogGeneralWarning([&]() {
+      return libcomp::String(
+                 "Player is either too far from plasma in zone %1 to loot it "
+                 "or does not have line of sight: %2\n")
+          .Arg(zone->GetDefinitionID())
+          .Arg(state->GetAccountUID().ToString());
+    });
+
+    reply.WriteS32Little(-1);
+  } else {
     bool success = true;
 
     auto loot = point->GetLoot();
@@ -120,8 +134,6 @@ bool Parsers::PlasmaItemData::Parse(
         }
       }
     }
-  } else {
-    reply.WriteS32Little(-1);
   }
 
   client->SendPacket(reply);

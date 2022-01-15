@@ -33,6 +33,9 @@
 #include <Packet.h>
 #include <PacketCodes.h>
 
+// libhack Includes
+#include <Log.h>
+
 // objects Includes
 #include <Item.h>
 #include <ItemBox.h>
@@ -81,7 +84,16 @@ bool Parsers::PlasmaItem::Parse(
 
   std::list<int8_t> lootedSlots;
   std::unordered_map<uint32_t, uint32_t> lootedItems;
-  if (lBox) {
+  if (lBox && !cState->CanInteract(point)) {
+    // They can't actually make this interaction. A failure reply will be sent.
+    LogGeneralWarning([&]() {
+      return libcomp::String(
+                 "Player is either too far from a plasma in zone %1 to loot it"
+                 "or does not have line of sight: %2\n")
+          .Arg(zone->GetDefinitionID())
+          .Arg(state->GetAccountUID().ToString());
+    });
+  } else if (lBox) {
     auto inventory = cState->GetEntity()->GetItemBoxes(0).Get();
 
     size_t freeSlots = 0;

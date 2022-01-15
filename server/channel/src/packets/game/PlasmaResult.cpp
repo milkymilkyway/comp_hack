@@ -104,7 +104,7 @@ bool Parsers::PlasmaResult::Parse(
   // End the system event
   eventManager->HandleEvent(client, nullptr);
 
-  if (pState) {
+  if (point) {
     std::list<std::shared_ptr<objects::Action>> actions;
     if (!failure) {
       // Update demon quest if active
