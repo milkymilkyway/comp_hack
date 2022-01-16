@@ -64,7 +64,23 @@ bool Parsers::EquipmentModEdit::Parse(
       std::dynamic_pointer_cast<ChannelServer>(pPacketManager->GetServer());
   auto client = std::dynamic_pointer_cast<ChannelClientConnection>(connection);
   auto state = client->GetClientState();
+  if (state->GetExchangeSession()) {
+    // The client is in some kind of transaction with another. Kill their
+    // connection, as this is probably a packet injection attemnpt.
+    LogGeneralError([&]() {
+      return libcomp::String(
+                 "Player attempted to edit an item's mod slots or fusion "
+                 "availability while in the middle of a transaction with "
+                 "another player: %1\n")
+          .Arg(state->GetAccountUID().ToString());
+    });
+
+    client->Kill();
+
+    return true;
+  }
   auto cState = state->GetCharacterState();
+  auto inventory = cState->GetEntity()->GetItemBoxes(0).Get();
 
   int32_t entityID = p.ReadS32Little();
   int8_t skillActivationID = p.ReadS8();
@@ -93,7 +109,7 @@ bool Parsers::EquipmentModEdit::Parse(
   int32_t mode = 0;
   uint32_t subMode = 0;
 
-  if (valid && item) {
+  if (valid && item && (item->GetItemBox() == inventory->GetUUID())) {
     int32_t successRate = defIter->second[2];
 
     mode = defIter->second[0];

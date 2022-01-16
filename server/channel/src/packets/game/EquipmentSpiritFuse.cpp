@@ -40,6 +40,7 @@
 
 // object Includes
 #include <Item.h>
+#include <ItemBox.h>
 #include <MiCategoryData.h>
 #include <MiDCategoryData.h>
 #include <MiDevilData.h>
@@ -78,8 +79,24 @@ bool Parsers::EquipmentSpiritFuse::Parse(
 
   auto client = std::dynamic_pointer_cast<ChannelClientConnection>(connection);
   auto state = client->GetClientState();
+  if (state->GetExchangeSession()) {
+    // The client is in some kind of transaction with another. Kill their
+    // connection, as this is probably a packet injection attemnpt.
+    LogGeneralError([&]() {
+      return libcomp::String(
+                 "Player attempted to undergo Spiritual Infusion while in the "
+                 "middle of a transaction with another player: %1\n")
+          .Arg(state->GetAccountUID().ToString());
+    });
+
+    client->Kill();
+
+    return true;
+  }
+
   auto cState = state->GetCharacterState();
   auto character = cState->GetEntity();
+  auto inventory = character->GetItemBoxes(0).Get();
   auto dState = state->GetDemonState();
 
   auto mainItem = std::dynamic_pointer_cast<objects::Item>(
@@ -97,9 +114,13 @@ bool Parsers::EquipmentSpiritFuse::Parse(
   // Check all required items and make sure equipment is not broken
   // Also make sure they didn't somehow send us the same item for all three
   bool error =
-      !mainItem || !basicItem || !specialItem ||
-      (assistID != -1 && !assistItem) || !mainItem->GetMaxDurability() ||
-      !basicItem->GetMaxDurability() || !specialItem->GetMaxDurability() ||
+      !mainItem || (mainItem->GetItemBox() != inventory->GetUUID()) ||
+      !basicItem || (basicItem->GetItemBox() != inventory->GetUUID()) ||
+      !specialItem || (specialItem->GetItemBox() != inventory->GetUUID()) ||
+      (assistID != -1 && !assistItem) ||
+      (assistItem && assistItem->GetItemBox() != inventory->GetUUID()) ||
+      !mainItem->GetMaxDurability() || !basicItem->GetMaxDurability() ||
+      !specialItem->GetMaxDurability() ||
       (mainItem == basicItem && mainItem == specialItem);
 
   auto equipType = objects::MiItemBasicData::EquipType_t::EQUIP_TYPE_NONE;
