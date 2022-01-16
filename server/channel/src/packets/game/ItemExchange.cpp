@@ -38,6 +38,7 @@
 #include <CharacterProgress.h>
 #include <DemonBox.h>
 #include <Item.h>
+#include <ItemBox.h>
 #include <MiCategoryData.h>
 #include <MiExchangeData.h>
 #include <MiExchangeObjectData.h>
@@ -64,6 +65,21 @@ bool Parsers::ItemExchange::Parse(
 
   auto client = std::dynamic_pointer_cast<ChannelClientConnection>(connection);
   auto state = client->GetClientState();
+  if (state->GetExchangeSession()) {
+    // The client is in some kind of transaction with another. Kill their
+    // connection, as this is probably a packet injection attemnpt.
+    LogItemError([&]() {
+      return libcomp::String(
+                 "Player attempted to open a voucher item while in the middle "
+                 "of a transaction with another player: %1\n")
+          .Arg(state->GetAccountUID().ToString());
+    });
+
+    return true;
+  }
+  auto cState = state->GetCharacterState();
+  auto character = cState->GetEntity();
+  auto inventory = character->GetItemBoxes(0).Get();
 
   auto server =
       std::dynamic_pointer_cast<ChannelServer>(pPacketManager->GetServer());
@@ -82,7 +98,7 @@ bool Parsers::ItemExchange::Parse(
   auto optionDef =
       exchangeDef ? exchangeDef->GetOptions((size_t)optionID) : nullptr;
 
-  if (!itemDef || !optionDef) {
+  if (!itemDef || !optionDef || (item->GetItemBox() != inventory->GetUUID())) {
     LogItemError([item, optionID]() {
       return libcomp::String(
                  "Invalid exchange ID encountered for ItemExchange request: "
@@ -125,8 +141,6 @@ bool Parsers::ItemExchange::Parse(
     }
   } else if (itemDef->GetCommon()->GetCategory()->GetSubCategory() ==
              ITEM_SUBCATEGORY_EXCHANGE_DEMON) {
-    auto cState = state->GetCharacterState();
-    auto character = cState->GetEntity();
     auto progress = character->GetProgress().Get();
     auto comp = character->GetCOMP().Get();
 
