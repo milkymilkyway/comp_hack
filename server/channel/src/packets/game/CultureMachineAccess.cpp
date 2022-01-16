@@ -84,7 +84,6 @@ bool Parsers::CultureMachineAccess::Parse(
 
   auto cmState = zone ? zone->GetCultureMachine(machineEntityID) : nullptr;
   auto rental = cmState ? cmState->GetRentalData() : nullptr;
-  auto def = cmState->GetEntity();
 
   bool itemSet = rental && !rental->GetItem().IsNull();
   auto item = itemSet
@@ -160,6 +159,7 @@ bool Parsers::CultureMachineAccess::Parse(
         }
       }
 
+      auto def = cmState->GetEntity();
       reply.WriteS8((int8_t)def->GetDays());
       reply.WriteU32Little(def->GetRequiredDailyPoints());
       reply.WriteU32Little(def->GetMaxDailyPoints());

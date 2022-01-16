@@ -66,6 +66,7 @@ bool Parsers::CultureStart::Parse(
   auto state = client->GetClientState();
   auto cState = state->GetCharacterState();
   auto character = cState->GetEntity();
+  auto inventory = character->GetItemBoxes(0).Get();
   auto cData = character ? character->GetCultureData().Get() : nullptr;
   auto zone = cState->GetZone();
 
@@ -80,7 +81,8 @@ bool Parsers::CultureStart::Parse(
 
   // Item must be specified, machine must not be rented already and current
   // character must not have an active rental
-  bool success = character && item && cmState &&
+  bool success = character && item &&
+                 (item->GetItemBox() == inventory->GetUUID()) && cmState &&
                  cmState->GetRentalData() == nullptr &&
                  (cData == nullptr || !cData->GetActive());
   if (success) {
