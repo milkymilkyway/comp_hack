@@ -95,7 +95,7 @@ bool Parsers::BazaarItemBuy::Parse(
     auto inventory = character->GetItemBoxes(0).Get();
     auto market = bState->GetCurrentMarket(marketID);
 
-    bool compressible;
+    bool compressible = true;
     uint64_t totalMacca = characterManager->GetTotalInInventory(
         character, SVR_CONST.ITEM_MACCA, compressible);
 
