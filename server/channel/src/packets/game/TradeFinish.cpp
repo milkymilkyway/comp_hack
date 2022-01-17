@@ -116,8 +116,24 @@ bool Parsers::TradeFinish::Parse(
   std::vector<std::shared_ptr<objects::Item>> tradeItems;
   for (auto tradeItem : exchangeSession->GetItems()) {
     if (!tradeItem.IsNull()) {
-      tradeItems.push_back(tradeItem.Get());
-      freeSlots.insert((size_t)tradeItem->GetBoxSlot());
+      if (tradeItem->GetItemBox() != inventory->GetUUID()) {
+        // Attempting to trade away a phantom item. End the trade.
+        characterManager->EndExchange(client, 1);
+        characterManager->EndExchange(otherClient, 1);
+
+        LogTradeWarning([&]() {
+          return libcomp::String(
+                     "Player attempted to trade away a phantom item: %1\n")
+              .Arg(state->GetAccountUID().ToString());
+        });
+
+        client->Kill();
+
+        return true;
+      } else {
+        tradeItems.push_back(tradeItem.Get());
+        freeSlots.insert((size_t)tradeItem->GetBoxSlot());
+      }
     }
   }
 
@@ -127,8 +143,24 @@ bool Parsers::TradeFinish::Parse(
   std::vector<std::shared_ptr<objects::Item>> otherTradeItems;
   for (auto tradeItem : otherSession->GetItems()) {
     if (!tradeItem.IsNull()) {
-      otherTradeItems.push_back(tradeItem.Get());
-      otherFreeSlots.insert((size_t)tradeItem->GetBoxSlot());
+      if (tradeItem->GetItemBox() != otherInventory->GetUUID()) {
+        // Attempting to trade away a phantom item. End the trade.
+        characterManager->EndExchange(client, 1);
+        characterManager->EndExchange(otherClient, 1);
+
+        LogTradeWarning([&]() {
+          return libcomp::String(
+                     "Player attempted to trade away a phantom item: %1\n")
+              .Arg(otherState->GetAccountUID().ToString());
+        });
+
+        otherClient->Kill();
+
+        return true;
+      } else {
+        otherTradeItems.push_back(tradeItem.Get());
+        otherFreeSlots.insert((size_t)tradeItem->GetBoxSlot());
+      }
     }
   }
 
