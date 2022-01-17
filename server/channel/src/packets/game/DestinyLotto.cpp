@@ -81,21 +81,32 @@ bool Parsers::DestinyLotto::Parse(
   bool success = false;
   std::list<std::shared_ptr<objects::Loot>> loot;
   std::shared_ptr<objects::Loot> specifiedLoot;
+
   if (dBox) {
-    // Make sure the box is full, otherwise fail
-    success = true;
-    loot = dBox->GetLoot();
+    // Only allow the lottery if the instance timer has stopped
+    if (!instance->GetTimerStop()) {
+      LogGeneralWarning([&]() {
+        return libcomp::String(
+                   "Player attempted to roll DESTINY lottery before the timer "
+                   "expired: %1\n")
+            .Arg(state->GetAccountUID().ToString());
+      });
+    } else {
+      // Make sure the box is full, otherwise fail
+      success = true;
+      loot = dBox->GetLoot();
 
-    uint8_t slot = 0;
-    for (auto l : dBox->GetLoot()) {
-      if (!l) {
-        success = false;
-        break;
-      } else if (slot == itemSlot && slotSpecified) {
-        specifiedLoot = l;
+      uint8_t slot = 0;
+      for (auto l : dBox->GetLoot()) {
+        if (!l) {
+          success = false;
+          break;
+        } else if (slot == itemSlot && slotSpecified) {
+          specifiedLoot = l;
+        }
+
+        slot = (uint8_t)(slot + 1);
       }
-
-      slot = (uint8_t)(slot + 1);
     }
   }
 
@@ -178,7 +189,7 @@ bool Parsers::DestinyLotto::Parse(
   }
 
   std::list<std::shared_ptr<ChannelClientConnection>> clients;
-  if (dBox->GetOwnerCID() != 0 || !success) {
+  if ((dBox && dBox->GetOwnerCID() != 0) || !success) {
     clients.push_back(client);
   } else {
     // Everyone in the instance gets the items
