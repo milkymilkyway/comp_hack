@@ -38,6 +38,18 @@ IF(GIT_FOUND)
       OUTPUT_STRIP_TRAILING_WHITESPACE
     )
 
+    # Get the status.
+    EXECUTE_PROCESS(
+      COMMAND ${GIT_EXECUTABLE} status --porcelain=v1 --untracked-files=no
+      WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+      OUTPUT_VARIABLE GIT_STATUS
+      OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+
+    IF(NOT "${GIT_STATUS}" STREQUAL "")
+      SET(GIT_COMMITTISH "${GIT_COMMITTISH}\r")
+    ENDIF()
+
     # Get the author and date.
     EXECUTE_PROCESS(
       COMMAND ${GIT_EXECUTABLE} log -1 --format=%an
