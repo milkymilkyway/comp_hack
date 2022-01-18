@@ -32,6 +32,9 @@
 #include <ReadOnlyPacket.h>
 #include <TcpConnection.h>
 
+// libpackets Includes
+#include <ClientToChannel_Login.h>
+
 // channel Includes
 #include "AccountManager.h"
 #include "ChannelClientConnection.h"
@@ -49,18 +52,14 @@ bool Parsers::Login::Parse(
     libcomp::ManagerPacket* pPacketManager,
     const std::shared_ptr<libcomp::TcpConnection>& connection,
     libcomp::ReadOnlyPacket& p) const {
-  if ((sizeof(uint16_t) + sizeof(uint32_t)) > p.Size()) {
-    return false;
-  }
+  packets::ClientToChannel_Login obj;
 
-  if ((p.PeekU16() + sizeof(uint16_t) + sizeof(uint32_t)) != p.Size()) {
+  if (!obj.LoadPacket(p)) {
     return false;
   }
 
   // Classic authentication method: username followed by the session key
-  libcomp::String username =
-      p.ReadString16(libcomp::Convert::ENCODING_UTF8, true);
-  uint32_t sessionKey = p.ReadU32Little();
+  libcomp::String username = obj.GetUsername();
 
   connection->SetName(
       libcomp::String("%1:%2").Arg(connection->GetName()).Arg(username));
@@ -70,7 +69,7 @@ bool Parsers::Login::Parse(
   auto client = std::dynamic_pointer_cast<ChannelClientConnection>(connection);
 
   server->QueueWork(LoginAccount, server->GetAccountManager(), client, username,
-                    sessionKey);
+                    obj.GetSessionKey());
 
   return true;
 }

@@ -34,25 +34,30 @@ SET(${PROJECT_NAME}_SRCS
     src/main.cpp
 
     src/ChannelScene.cpp
+    src/ControlCenter.cpp
     src/GameWorker.cpp
     src/LobbyScene.cpp
     src/LoginDialog.cpp
+    src/ScriptWorker.cpp
 )
 
 SET(${PROJECT_NAME}_HDRS
     src/ChannelScene.h
+    src/ControlCenter.h
     src/GameWorker.h
     src/LobbyScene.h
     src/LoginDialog.h
+    src/ScriptWorker.h
 )
 
 SET(${PROJECT_NAME}_RCC
-    # res/logger.qrc
+    res/client.qrc
 )
 qt5_add_resources(${PROJECT_NAME}_RCC_SRCS ${${PROJECT_NAME}_RCC})
 
 SET(${PROJECT_NAME}_UIS
     ui/ChannelScene.ui
+    ui/ControlCenter.ui
     ui/LobbyScene.ui
     ui/LoginDialog.ui
 )
@@ -74,7 +79,7 @@ ADD_DEPENDENCIES(${PROJECT_NAME} asio git-version)
 
 SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES FOLDER "Client")
 
-TARGET_LINK_LIBRARIES(${PROJECT_NAME} client Qt5::Widgets Qt5::Network)
+TARGET_LINK_LIBRARIES(${PROJECT_NAME} client Qt5::Widgets Qt5::Network cpp-optparse)
 
 INSTALL(TARGETS ${PROJECT_NAME} DESTINATION ${COMP_INSTALL_DIR} COMPONENT tools)
 

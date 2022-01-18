@@ -40,6 +40,12 @@
 // Standard C++11 Includes
 #include <set>
 
+namespace logic {
+
+class LogicWorker;
+
+}  // namespace logic
+
 namespace game {
 
 //
@@ -61,8 +67,9 @@ class GameWorker : public QObject,
  public:
   /**
    * Create a new worker.
+   * @param pWorker Logic worked paired with this game worker.
    */
-  GameWorker(QObject *pParent = nullptr);
+  GameWorker(logic::LogicWorker *pWorker, QObject *pParent = nullptr);
 
   /**
    * Cleanup the worker.
@@ -83,13 +90,25 @@ class GameWorker : public QObject,
   bool SendToLogic(libcomp::Message::Message *pMessage);
 
   /**
+   * Get the logic worker used by this game worker.
+   * @return Logic worked paired with this game worker.
+   */
+  logic::LogicWorker *GetLogicWorker() const;
+
+  /**
+   * Set the logic worker used by this game worker.
+   * @param pWorker Logic worked paired with this game worker.
+   */
+  void SetLogicWorker(logic::LogicWorker *pWorker);
+
+  /**
    * Set the message queue for the LogicWorker. This message queue is used
    * to send events to the logic thread. Get the worker by calling
    * @ref Worker::GetMessageQueue on the LogicWorker.
    * @param messageQueue Reference to the message queue of the LogicWorker.
    */
   void SetLogicQueue(
-      const std::shared_ptr<libcomp::MessageQueue<libcomp::Message::Message *>>
+      const std::weak_ptr<libcomp::MessageQueue<libcomp::Message::Message *>>
           &messageQueue);
 
   /**
@@ -168,11 +187,14 @@ class GameWorker : public QObject,
   bool ProcessClientMessage(const libcomp::Message::MessageClient *pMessage);
 
   /// Message queue for the LogicWorker. Events are sent here.
-  std::shared_ptr<libcomp::MessageQueue<libcomp::Message::Message *>>
+  std::weak_ptr<libcomp::MessageQueue<libcomp::Message::Message *>>
       mLogicMessageQueue;
 
   /// List of pointers to client message handlers.
   std::set<logic::ClientManager *> mClientManagers;
+
+  /// Logic worker that this game worker is associated with.
+  logic::LogicWorker *mLogicWorker;
 
   /// Channel scene.
   ChannelScene *mChannelScene;

@@ -169,9 +169,11 @@ bool AmalaManager::HandlePacketChannelAmalaAccountDumpPart(
                std::ofstream::out | std::ofstream::binary);
       out.write(&mAccountDump[0], (std::streamsize)mAccountDump.size());
 
-      mLogicWorker->SendToGame(new MessageAccountDumpStatus(out.good()));
+      mLogicWorker->SendToGame(
+          new MessageAccountDumpStatus(mLogicWorker->GetUUID(), out.good()));
     } else {
-      mLogicWorker->SendToGame(new MessageAccountDumpStatus(false));
+      mLogicWorker->SendToGame(
+          new MessageAccountDumpStatus(mLogicWorker->GetUUID(), false));
     }
   }
 

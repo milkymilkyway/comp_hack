@@ -30,6 +30,9 @@
 #include <EnumUtils.h>
 #include <ErrorCodes.h>
 
+// libclient Includes
+#include "LogicWorker.h"
+
 // client Includes
 #include "GameWorker.h"
 #include "LoginDialog.h"
@@ -51,7 +54,9 @@ using namespace game;
 using libcomp::Message::MessageClientType;
 
 ChannelScene::ChannelScene(GameWorker *pWorker, QWidget *pParent)
-    : QWidget(pParent), mGameWorker(pWorker) {
+    : QWidget(pParent),
+      mLogicWorker(pWorker->GetLogicWorker()),
+      mGameWorker(pWorker) {
   ui.setupUi(this);
 
   connect(ui.backupAccount, SIGNAL(clicked(bool)), this, SLOT(backupAccount()));
@@ -91,7 +96,8 @@ bool ChannelScene::HandleAccountDumpStatus(
 
 void ChannelScene::closeEvent(QCloseEvent *pEvent) {
   // Show the login dialog again.
-  mGameWorker->SendToLogic(new logic::MessageConnectionClose());
+  mGameWorker->SendToLogic(
+      new logic::MessageConnectionClose(mLogicWorker->GetUUID()));
   mGameWorker->GetLoginDialog()->show();
 
   // Continue with the event.
@@ -108,7 +114,8 @@ void ChannelScene::backupAccount() {
   }
 
   // Send the account dump request.
-  mGameWorker->SendToLogic(new logic::MessageAccountDump(cs(path)));
+  mGameWorker->SendToLogic(
+      new logic::MessageAccountDump(mLogicWorker->GetUUID(), cs(path)));
 
   ui.backupAccount->setEnabled(false);
 }

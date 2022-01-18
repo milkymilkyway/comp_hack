@@ -43,13 +43,15 @@ class MessageConnectionInfo : public libcomp::Message::MessageClient {
  public:
   /**
    * Create the message.
+   * @param uuid Client UUID this message is involved with.
    * @param connectionID ID for the connection.
    * @param host Host to connect to.
    * @param port Port on the host to connect to.
    */
-  MessageConnectionInfo(const libcomp::String& connectionID,
+  MessageConnectionInfo(const libobjgen::UUID& uuid,
+                        const libcomp::String& connectionID,
                         const libcomp::String& host, uint16_t port)
-      : libcomp::Message::MessageClient(),
+      : libcomp::Message::MessageClient(uuid),
         mHost(host),
         mPort(port),
         mConnectionID(connectionID) {}
@@ -95,6 +97,7 @@ class MessageConnectToLobby : public MessageConnectionInfo {
  public:
   /**
    * Create the message.
+   * @param uuid Client UUID this message is involved with.
    * @param username Username to authenticate with.
    * @param password Password to authenticate with.
    * @param clientVersion Version of the client to tell the lobby.
@@ -103,14 +106,15 @@ class MessageConnectToLobby : public MessageConnectionInfo {
    * @param port Port on the host to connect to.
    * @param machineUUID UUID of the machine the client is connecting from.
    */
-  MessageConnectToLobby(const libcomp::String& username,
+  MessageConnectToLobby(const libobjgen::UUID& uuid,
+                        const libcomp::String& username,
                         const libcomp::String& password,
                         uint32_t clientVersion = 1666,
                         const libcomp::String& connectionID = "lobby",
                         const libcomp::String& host = "127.0.0.1",
                         uint16_t port = 10666,
                         const libobjgen::UUID& machineUUID = NULLUUID)
-      : MessageConnectionInfo(connectionID, host, port),
+      : MessageConnectionInfo(uuid, connectionID, host, port),
         mUsername(username),
         mPassword(password),
         mClientVersion(clientVersion),
@@ -191,16 +195,17 @@ class MessageConnectToChannel : public MessageConnectionInfo {
  public:
   /**
    * Create the message.
+   * @param uuid Client UUID this message is involved with.
    * @param sesisonKey Session key passed from the lobby.
    * @param connectionID ID for the connection.
    * @param host Host to connect to.
    * @param port Port on the host to connect to.
    */
-  MessageConnectToChannel(uint32_t sessionKey,
+  MessageConnectToChannel(const libobjgen::UUID& uuid, uint32_t sessionKey,
                           const libcomp::String& connectionID = "channel",
                           const libcomp::String& host = "127.0.0.1",
                           uint16_t port = 14666)
-      : MessageConnectionInfo(connectionID, host, port),
+      : MessageConnectionInfo(uuid, connectionID, host, port),
         mSessionKey(sessionKey) {}
 
   /**
@@ -250,8 +255,10 @@ class MessageConnectionClose : public libcomp::Message::MessageClient {
  public:
   /**
    * Create the message.
+   * @param uuid Client UUID this message is involved with.
    */
-  MessageConnectionClose() : libcomp::Message::MessageClient() {}
+  MessageConnectionClose(const libobjgen::UUID& uuid)
+      : libcomp::Message::MessageClient(uuid) {}
 
   /**
    * Cleanup the message.

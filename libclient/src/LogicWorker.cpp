@@ -26,6 +26,9 @@
 
 #include "LogicWorker.h"
 
+// libcomp Includes
+#include <Log.h>
+
 // Managers
 #include "AmalaManager.h"
 #include "ConnectionManager.h"
@@ -33,12 +36,15 @@
 
 using namespace logic;
 
-LogicWorker::LogicWorker() : libcomp::Worker() {
+LogicWorker::LogicWorker(const libobjgen::UUID &uuid) : libcomp::Worker() {
   // Construct the managers.
   auto amalaManager = std::make_shared<AmalaManager>(this, GetMessageQueue());
   auto connectionManager =
       std::make_shared<ConnectionManager>(this, GetMessageQueue());
   auto lobbyManager = std::make_shared<LobbyManager>(this, GetMessageQueue());
+
+  // Save the UUID.
+  mUUID = uuid;
 
   // Save pointers to the managers.
   mAmalaManager = amalaManager.get();
@@ -57,9 +63,19 @@ LogicWorker::~LogicWorker() {
   mLobbyManager = nullptr;
 }
 
+libcomp::String LogicWorker::GetFriendlyName() const { return mFriendlyName; }
+
+void LogicWorker::SetFriendlyName(const libcomp::String &name) {
+  mFriendlyName = name;
+}
+
+libobjgen::UUID LogicWorker::GetUUID() const { return mUUID; }
+
 bool LogicWorker::SendToGame(libcomp::Message::Message *pMessage) {
-  if (mGameMessageQueue) {
-    mGameMessageQueue->Enqueue(pMessage);
+  auto messageQueue = mGameMessageQueue.lock();
+
+  if (messageQueue) {
+    messageQueue->Enqueue(pMessage);
 
     return true;
   } else {
@@ -80,7 +96,7 @@ bool LogicWorker::SendToLogic(libcomp::Message::Message *pMessage) {
 }
 
 void LogicWorker::SetGameQueue(
-    const std::shared_ptr<libcomp::MessageQueue<libcomp::Message::Message *>>
+    const std::weak_ptr<libcomp::MessageQueue<libcomp::Message::Message *>>
         &messageQueue) {
   mGameMessageQueue = messageQueue;
 }

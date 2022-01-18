@@ -44,10 +44,12 @@ class MessageCharacterList : public libcomp::Message::MessageClient {
  public:
   /**
    * Create the message.
+   * @param uuid Client UUID this message is involved with.
    */
   MessageCharacterList(
+      const libobjgen::UUID& uuid,
       const std::shared_ptr<packets::PacketLobbyCharacterList>& mPacket)
-      : libcomp::Message::MessageClient(), mPayload(mPacket) {}
+      : libcomp::Message::MessageClient(uuid), mPayload(mPacket) {}
 
   /**
    * Cleanup the message.

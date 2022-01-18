@@ -27,233 +27,107 @@
 // Qt Includes
 #include <QApplication>
 
+// cpp-optparse Includes
+#include <OptionParser.h>
+
+// libhack Includes
+#include <Log.h>
+
 // client Includes
-#include "GameWorker.h"
+#include "ControlCenter.h"
+#include "ScriptWorker.h"
 
 // libclient Includes
-#include <LogicWorker.h>
-#include <MessageConnectionInfo.h>
-
-// libcomp Includes
-#include <Crypto.h>
-#include <Exception.h>
-#include <Log.h>
-#include <ScriptEngine.h>
-
-// Standard C++ Includes
-#include <iostream>
+#include <MessageRunScript.h>
 
 // Standard C Includes
-#include <cstdio>
 #include <cstdlib>
 
-static bool gRunning = true;
-static int gReturnCode = EXIT_SUCCESS;
-static libhack::ScriptEngine *gEngine = nullptr;
-
-static void ScriptExit(int returnCode) {
-  gReturnCode = returnCode;
-  gRunning = false;
-}
-
-static void ScriptInclude(const char *szPath) {
-  std::vector<char> file = libcomp::Crypto::LoadFile(szPath);
-
-  if (file.empty()) {
-    std::cerr << "Failed to include script file: " << szPath << std::endl;
-
-    return;
-  }
-
-  file.push_back(0);
-
-  if (!gEngine->Eval(&file[0], szPath)) {
-    std::cerr << "Failed to run script file: " << szPath << std::endl;
-  }
-}
-
-static void ScriptSleep(int seconds) {
-  std::this_thread::sleep_for(std::chrono::seconds(seconds));
-}
-
-static void ScriptSleepMS(int ms) {
-  std::this_thread::sleep_for(std::chrono::milliseconds(ms));
-}
-
-int8_t SystemHour, SystemMin, Min, Hour, MoonPhase;
-
-size_t Hash() {
-  // System time carries the most weight, then moon phase, then game time
-  return (size_t)(
-             (SystemHour < 0 || SystemMin < 0 ||
-              (((int)SystemHour * 100 + (int)SystemMin) > 2400))
-                 ? 0ULL
-                 : ((size_t)(10000 + (int)SystemHour * 100 + (int)SystemMin) *
-                    (size_t)100000000ULL)) +
-         (size_t)((MoonPhase < 0 || MoonPhase >= 16)
-                      ? (size_t)0ULL
-                      : ((size_t)(100 + (int)MoonPhase) * (size_t)100000ULL)) +
-         (size_t)((Hour < 0 || Min < 0 || (((int)Hour * 100 + (int)Min) > 2400))
-                      ? (size_t)0ULL
-                      : (size_t)(10000 + (int)Hour * 100 + (int)Min));
-}
-
-void RunInteractive(libhack::ScriptEngine &engine) {
-  libcomp::String code, script;
-
-  std::cout << "sq> ";
-
-  int depth = 0;
-
-  while (gRunning) {
-    char c = (char)std::getchar();
-
-    code += libcomp::String(&c, 1);
-
-    switch (c) {
-      case '{': {
-        depth++;
-        break;
-      }
-      case '}': {
-        depth--;
-        break;
-      }
-      case '\n': {
-        if (0 == depth) {
-          engine.Eval(code);
-          script += code;
-          code.Clear();
-
-          if (gRunning) {
-            std::cout << "sq> ";
-          }
-        }
-
-        break;
-      }
-    }
-  }
-
-  std::cout << "Final script: " << std::endl << script.C();
-}
-
-int RunUI(int argc, char *argv[]) {
-  QApplication app(argc, argv);
-
-  // These settings are used to specify how the settings are stored. On
-  // Windows, there settings are stored in the registry at
-  // HKEY_CURRENT_USER\Software\COMP_hack\COMP_hack Test Client
-  // On Linux, these settings will be stored in the file
-  // $HOME/.config/COMP_hack/COMP_hack Test Client.conf
-  // Consult the QSettings documentation in the Qt API reference for more
-  // information on how the settings work (and where they are on Mac OS X).
-  app.setOrganizationName("COMP_hack");
-  app.setOrganizationDomain("comp.hack");
-  app.setApplicationName("COMP_hack Test Client");
-
-  // Create the worker threads.
-  auto gameWorker = std::make_shared<game::GameWorker>();
-  auto logicWorker = std::make_shared<logic::LogicWorker>();
-
-  // Setup the message queues.
-  logicWorker->SetGameQueue(gameWorker->GetMessageQueue());
-  gameWorker->SetLogicQueue(logicWorker->GetMessageQueue());
-
-  // Start the worker threads.
-  logicWorker->Start("logic");
-  gameWorker->Start("game");
-
-  // Run the Qt event loop.
-  int result = app.exec();
-
-  // Shutdown all the threads.
-  gameWorker->Shutdown();
-  gameWorker->Join();
-
-  logicWorker->Shutdown();
-  logicWorker->Join();
-
-  gameWorker.reset();
-  logicWorker.reset();
-
-  return result;
-}
-
 int main(int argc, char *argv[]) {
-  (void)argc;
-  (void)argv;
+  optparse::OptionParser parser;
+  parser.description("Test client for running system tests.");
+  parser.usage(
+      "%prog [OPTIONS...] SCRIPT\n       %prog --gui [OPTIONS...] [SCRIPT]\n   "
+      "    %prog -g [OPTIONS...] [SCRIPT]");
+  parser.add_option("-r", "--root")
+      .dest("root")
+      .help("Path to root client directory (or archive file)");
+  parser.add_option("-g", "--gui")
+      .action("store_true")
+      .dest("gui")
+      .set_default("0")
+      .help("Run the client in GUI mode");
+
+  optparse::Values options;
+  std::vector<std::string> args;
+
+  try {
+    options = parser.parse_args(argc, argv);
+    args = parser.args();
+
+    if (1 < args.size()) {
+      parser.error("only one script file may be specified");
+    } else if (!options.get("gui") && args.empty()) {
+      parser.error("a script file must be specified in command line mode");
+    }
+  } catch (int ret) {
+    return ret;
+  }
+
+  int returnCode = EXIT_SUCCESS;
 
   libcomp::Exception::RegisterSignalHandler();
 
   // Enable the log so it prints to the console.
-  libhack::Log::GetSingletonPtr()->AddStandardOutputHook();
+  std::unique_ptr<libcomp::BaseLog> log(libhack::Log::GetSingletonPtr());
+  log->AddStandardOutputHook();
+  log->SetLogLevel(to_underlying(libcomp::BaseLogComponent_t::ScriptEngine),
+                   libcomp::BaseLog::Level_t::LOG_LEVEL_INFO);
 
-  // Create the script engine.
-  libhack::ScriptEngine engine(true);
+  if (options.get("gui")) {
+    QApplication app(argc, argv);
 
-  // Register the exit function.
-  Sqrat::RootTable(engine.GetVM()).Func("exit", ScriptExit);
-  Sqrat::RootTable(engine.GetVM()).Func("include", ScriptInclude);
-  Sqrat::RootTable(engine.GetVM()).Func("sleep", ScriptSleep);
-  Sqrat::RootTable(engine.GetVM()).Func("sleep_ms", ScriptSleepMS);
+    // These settings are used to specify how the settings are stored. On
+    // Windows, there settings are stored in the registry at
+    // HKEY_CURRENT_USER\Software\COMP_hack\COMP_hack Test Client
+    // On Linux, these settings will be stored in the file
+    // $HOME/.config/COMP_hack/COMP_hack Test Client.conf
+    // Consult the QSettings documentation in the Qt API reference for more
+    // information on how the settings work (and where they are on Mac OS X).
+    app.setOrganizationName("COMP_hack");
+    app.setOrganizationDomain("comp.hack");
+    app.setApplicationName("COMP_hack Test Client");
 
-  // Set the global for the engine.
-  gEngine = &engine;
+    script::ControlCenter controlCenter;
+    controlCenter.show();
 
-  // Register the client testing classes.
-  /// @todo Add the logic worker here?
+    if (!args.empty()) {
+      controlCenter.runScriptFromCommandLine(
+          QString::fromLocal8Bit(args.front().c_str()));
+    }
 
-  //////////////////////////////////////////////////////////////////////////
-  if (2 <= argc && std::string("--gui") == argv[1]) {
-    return RunUI(argc, argv);
-  }
+    // Run the Qt event loop.
+    returnCode = app.exec();
+  } else {
+    auto worker = std::make_shared<script::ScriptWorker>();
 
-  logic::LogicWorker worker;
-  worker.Start("logic");
+    worker->SetScriptCallback([&returnCode](script::ScriptWorker *pWorker,
+                                            const libcomp::String &path,
+                                            bool result) {
+      (void)pWorker;
+      (void)path;
 
-  worker.GetMessageQueue()->Enqueue(new logic::MessageConnectToLobby(
-      "testbob", "password", 10666, "lobby@1"));
-
-  ScriptSleep(3);
-  worker.Shutdown();
-  worker.Join();
-  //////////////////////////////////////////////////////////////////////////
-
-  /*if(1 >= argc)
-  {
-      RunInteractive(engine);
-  }
-  else
-  {
-      for(int i = 1; i < argc; ++i)
-      {
-          std::vector<char> file = libcomp::Crypto::LoadFile(argv[i]);
-
-          if(file.empty())
-          {
-              std::cerr << "Failed to open script file: "
-                  << argv[i] << std::endl;
-
-              return EXIT_FAILURE;
-          }
-
-          file.push_back(0);
-
-          if(!engine.Eval(&file[0], argv[i]))
-          {
-              std::cerr << "Failed to run script file: "
-                  << argv[i] << std::endl;
-
-              return EXIT_FAILURE;
-          }
+      if (!result) {
+        returnCode = EXIT_FAILURE;
       }
-  }*/
+    });
 
-#ifndef EXOTIC_PLATFORM
-  // Stop the logger
-  delete libhack::Log::GetSingletonPtr();
-#endif  // !EXOTIC_PLATFORM
+    worker->Start("script");
+    worker->SendToScript(new logic::MessageRunScript(args.front()));
+    worker->Shutdown();
+    worker->Join();
+    worker.reset();
+  }
 
-  return gReturnCode;
+  return returnCode;
 }

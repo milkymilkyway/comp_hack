@@ -32,6 +32,9 @@
 #include <MessageClient.h>
 #include <MessageShutdown.h>
 
+// libclient Includes
+#include <LogicWorker.h>
+
 // client Includes
 #include "ChannelScene.h"
 #include "LobbyScene.h"
@@ -41,8 +44,12 @@ using namespace game;
 
 using libcomp::Message::MessageType;
 
-GameWorker::GameWorker(QObject *pParent)
-    : QObject(pParent), libcomp::Worker(), libcomp::Manager() {
+GameWorker::GameWorker(logic::LogicWorker *pWorker, QObject *pParent)
+    : QObject(pParent),
+      libcomp::Worker(),
+      libcomp::Manager(),
+      mLogicMessageQueue(pWorker->GetMessageQueue()),
+      mLogicWorker(pWorker) {
   // Connect the message queue to the Qt message system.
   connect(this, SIGNAL(SendMessageSignal(libcomp::Message::Message *)), this,
           SLOT(HandleMessageSignal(libcomp::Message::Message *)),
@@ -62,7 +69,11 @@ GameWorker::GameWorker(QObject *pParent)
   mLoginDialog->show();
 }
 
-GameWorker::~GameWorker() {}
+GameWorker::~GameWorker() {
+  delete mChannelScene;
+  delete mLobbyScene;
+  delete mLoginDialog;
+}
 
 void GameWorker::AddClientManager(logic::ClientManager *pManager) {
   if (pManager) {
@@ -71,8 +82,10 @@ void GameWorker::AddClientManager(logic::ClientManager *pManager) {
 }
 
 bool GameWorker::SendToLogic(libcomp::Message::Message *pMessage) {
-  if (mLogicMessageQueue) {
-    mLogicMessageQueue->Enqueue(pMessage);
+  auto messageQueue = mLogicMessageQueue.lock();
+
+  if (messageQueue) {
+    messageQueue->Enqueue(pMessage);
 
     return true;
   } else {
@@ -80,8 +93,16 @@ bool GameWorker::SendToLogic(libcomp::Message::Message *pMessage) {
   }
 }
 
+logic::LogicWorker *GameWorker::GetLogicWorker() const { return mLogicWorker; }
+
+void GameWorker::SetLogicWorker(logic::LogicWorker *pWorker) {
+  mLogicWorker = pWorker;
+
+  SetLogicQueue(pWorker->GetMessageQueue());
+}
+
 void GameWorker::SetLogicQueue(
-    const std::shared_ptr<libcomp::MessageQueue<libcomp::Message::Message *>>
+    const std::weak_ptr<libcomp::MessageQueue<libcomp::Message::Message *>>
         &messageQueue) {
   mLogicMessageQueue = messageQueue;
 }
@@ -114,6 +135,8 @@ void GameWorker::Run(
   AddManager(shared_from_this());
 
   libcomp::Worker::Run(pMessageQueue);
+
+  RemoveManager(shared_from_this());
 }
 
 ChannelScene *GameWorker::GetChannelScene() const { return mChannelScene; }

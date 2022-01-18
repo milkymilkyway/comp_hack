@@ -171,7 +171,8 @@ bool LobbyManager::HandlePacketLobbyCharacterList(libcomp::ReadOnlyPacket &p) {
 
     if (obj->Save(ss)) {
       if (characterObjClone->Load(ss)) {
-        mLogicWorker->SendToGame(new MessageCharacterList(characterObjClone));
+        mLogicWorker->SendToGame(new MessageCharacterList(
+            mLogicWorker->GetUUID(), characterObjClone));
       }
     }
   }
@@ -254,8 +255,9 @@ bool LobbyManager::HandlePacketLobbyStartGame(libcomp::ReadOnlyPacket &p) {
   }
 
   /// @todo Name the connection with the GUI?
-  mLogicWorker->SendToLogic(new MessageConnectToChannel(
-      obj->GetSessionKey(), "channel@1", serverAddr, serverPort));
+  mLogicWorker->SendToLogic(
+      new MessageConnectToChannel(mLogicWorker->GetUUID(), obj->GetSessionKey(),
+                                  "channel@1", serverAddr, serverPort));
 
   return true;
 }

@@ -1,0 +1,392 @@
+<objects>
+    <object name="MiNPCBarterGroupData">
+        <member name="ID">1</member>
+        <member name="displayMode">0</member>
+        <member name="entries">
+            <element>
+                <object name="MiNPCBarterGroupEntry">
+                    <member name="barterID">101</member>
+                    <member name="flags">0</member>
+                </object>
+            </element>
+            <element>
+                <object name="MiNPCBarterGroupEntry">
+                    <member name="barterID">102</member>
+                    <member name="flags">0</member>
+                </object>
+            </element>
+            <element>
+                <object name="MiNPCBarterGroupEntry">
+                    <member name="barterID">103</member>
+                    <member name="flags">0</member>
+                </object>
+            </element>
+            <element>
+                <object name="MiNPCBarterGroupEntry">
+                    <member name="barterID">0</member>
+                    <member name="flags">0</member>
+                </object>
+            </element>
+            <element>
+                <object name="MiNPCBarterGroupEntry">
+                    <member name="barterID">0</member>
+                    <member name="flags">0</member>
+                </object>
+            </element>
+            <element>
+                <object name="MiNPCBarterGroupEntry">
+                    <member name="barterID">0</member>
+                    <member name="flags">0</member>
+                </object>
+            </element>
+            <element>
+                <object name="MiNPCBarterGroupEntry">
+                    <member name="barterID">0</member>
+                    <member name="flags">0</member>
+                </object>
+            </element>
+            <element>
+                <object name="MiNPCBarterGroupEntry">
+                    <member name="barterID">0</member>
+                    <member name="flags">0</member>
+                </object>
+            </element>
+            <element>
+                <object name="MiNPCBarterGroupEntry">
+                    <member name="barterID">0</member>
+                    <member name="flags">0</member>
+                </object>
+            </element>
+            <element>
+                <object name="MiNPCBarterGroupEntry">
+                    <member name="barterID">0</member>
+                    <member name="flags">0</member>
+                </object>
+            </element>
+            <element>
+                <object name="MiNPCBarterGroupEntry">
+                    <member name="barterID">0</member>
+                    <member name="flags">0</member>
+                </object>
+            </element>
+            <element>
+                <object name="MiNPCBarterGroupEntry">
+                    <member name="barterID">0</member>
+                    <member name="flags">0</member>
+                </object>
+            </element>
+            <element>
+                <object name="MiNPCBarterGroupEntry">
+                    <member name="barterID">0</member>
+                    <member name="flags">0</member>
+                </object>
+            </element>
+            <element>
+                <object name="MiNPCBarterGroupEntry">
+                    <member name="barterID">0</member>
+                    <member name="flags">0</member>
+                </object>
+            </element>
+            <element>
+                <object name="MiNPCBarterGroupEntry">
+                    <member name="barterID">0</member>
+                    <member name="flags">0</member>
+                </object>
+            </element>
+            <element>
+                <object name="MiNPCBarterGroupEntry">
+                    <member name="barterID">0</member>
+                    <member name="flags">0</member>
+                </object>
+            </element>
+            <element>
+                <object name="MiNPCBarterGroupEntry">
+                    <member name="barterID">0</member>
+                    <member name="flags">0</member>
+                </object>
+            </element>
+            <element>
+                <object name="MiNPCBarterGroupEntry">
+                    <member name="barterID">0</member>
+                    <member name="flags">0</member>
+                </object>
+            </element>
+            <element>
+                <object name="MiNPCBarterGroupEntry">
+                    <member name="barterID">0</member>
+                    <member name="flags">0</member>
+                </object>
+            </element>
+            <element>
+                <object name="MiNPCBarterGroupEntry">
+                    <member name="barterID">0</member>
+                    <member name="flags">0</member>
+                </object>
+            </element>
+            <element>
+                <object name="MiNPCBarterGroupEntry">
+                    <member name="barterID">0</member>
+                    <member name="flags">0</member>
+                </object>
+            </element>
+            <element>
+                <object name="MiNPCBarterGroupEntry">
+                    <member name="barterID">0</member>
+                    <member name="flags">0</member>
+                </object>
+            </element>
+            <element>
+                <object name="MiNPCBarterGroupEntry">
+                    <member name="barterID">0</member>
+                    <member name="flags">0</member>
+                </object>
+            </element>
+            <element>
+                <object name="MiNPCBarterGroupEntry">
+                    <member name="barterID">0</member>
+                    <member name="flags">0</member>
+                </object>
+            </element>
+            <element>
+                <object name="MiNPCBarterGroupEntry">
+                    <member name="barterID">0</member>
+                    <member name="flags">0</member>
+                </object>
+            </element>
+            <element>
+                <object name="MiNPCBarterGroupEntry">
+                    <member name="barterID">0</member>
+                    <member name="flags">0</member>
+                </object>
+            </element>
+            <element>
+                <object name="MiNPCBarterGroupEntry">
+                    <member name="barterID">0</member>
+                    <member name="flags">0</member>
+                </object>
+            </element>
+            <element>
+                <object name="MiNPCBarterGroupEntry">
+                    <member name="barterID">0</member>
+                    <member name="flags">0</member>
+                </object>
+            </element>
+            <element>
+                <object name="MiNPCBarterGroupEntry">
+                    <member name="barterID">0</member>
+                    <member name="flags">0</member>
+                </object>
+            </element>
+            <element>
+                <object name="MiNPCBarterGroupEntry">
+                    <member name="barterID">0</member>
+                    <member name="flags">0</member>
+                </object>
+            </element>
+            <element>
+                <object name="MiNPCBarterGroupEntry">
+                    <member name="barterID">0</member>
+                    <member name="flags">0</member>
+                </object>
+            </element>
+            <element>
+                <object name="MiNPCBarterGroupEntry">
+                    <member name="barterID">0</member>
+                    <member name="flags">0</member>
+                </object>
+            </element>
+            <element>
+                <object name="MiNPCBarterGroupEntry">
+                    <member name="barterID">0</member>
+                    <member name="flags">0</member>
+                </object>
+            </element>
+            <element>
+                <object name="MiNPCBarterGroupEntry">
+                    <member name="barterID">0</member>
+                    <member name="flags">0</member>
+                </object>
+            </element>
+            <element>
+                <object name="MiNPCBarterGroupEntry">
+                    <member name="barterID">0</member>
+                    <member name="flags">0</member>
+                </object>
+            </element>
+            <element>
+                <object name="MiNPCBarterGroupEntry">
+                    <member name="barterID">0</member>
+                    <member name="flags">0</member>
+                </object>
+            </element>
+            <element>
+                <object name="MiNPCBarterGroupEntry">
+                    <member name="barterID">0</member>
+                    <member name="flags">0</member>
+                </object>
+            </element>
+            <element>
+                <object name="MiNPCBarterGroupEntry">
+                    <member name="barterID">0</member>
+                    <member name="flags">0</member>
+                </object>
+            </element>
+            <element>
+                <object name="MiNPCBarterGroupEntry">
+                    <member name="barterID">0</member>
+                    <member name="flags">0</member>
+                </object>
+            </element>
+            <element>
+                <object name="MiNPCBarterGroupEntry">
+                    <member name="barterID">0</member>
+                    <member name="flags">0</member>
+                </object>
+            </element>
+            <element>
+                <object name="MiNPCBarterGroupEntry">
+                    <member name="barterID">0</member>
+                    <member name="flags">0</member>
+                </object>
+            </element>
+            <element>
+                <object name="MiNPCBarterGroupEntry">
+                    <member name="barterID">0</member>
+                    <member name="flags">0</member>
+                </object>
+            </element>
+            <element>
+                <object name="MiNPCBarterGroupEntry">
+                    <member name="barterID">0</member>
+                    <member name="flags">0</member>
+                </object>
+            </element>
+            <element>
+                <object name="MiNPCBarterGroupEntry">
+                    <member name="barterID">0</member>
+                    <member name="flags">0</member>
+                </object>
+            </element>
+            <element>
+                <object name="MiNPCBarterGroupEntry">
+                    <member name="barterID">0</member>
+                    <member name="flags">0</member>
+                </object>
+            </element>
+            <element>
+                <object name="MiNPCBarterGroupEntry">
+                    <member name="barterID">0</member>
+                    <member name="flags">0</member>
+                </object>
+            </element>
+            <element>
+                <object name="MiNPCBarterGroupEntry">
+                    <member name="barterID">0</member>
+                    <member name="flags">0</member>
+                </object>
+            </element>
+            <element>
+                <object name="MiNPCBarterGroupEntry">
+                    <member name="barterID">0</member>
+                    <member name="flags">0</member>
+                </object>
+            </element>
+            <element>
+                <object name="MiNPCBarterGroupEntry">
+                    <member name="barterID">0</member>
+                    <member name="flags">0</member>
+                </object>
+            </element>
+            <element>
+                <object name="MiNPCBarterGroupEntry">
+                    <member name="barterID">0</member>
+                    <member name="flags">0</member>
+                </object>
+            </element>
+            <element>
+                <object name="MiNPCBarterGroupEntry">
+                    <member name="barterID">0</member>
+                    <member name="flags">0</member>
+                </object>
+            </element>
+            <element>
+                <object name="MiNPCBarterGroupEntry">
+                    <member name="barterID">0</member>
+                    <member name="flags">0</member>
+                </object>
+            </element>
+            <element>
+                <object name="MiNPCBarterGroupEntry">
+                    <member name="barterID">0</member>
+                    <member name="flags">0</member>
+                </object>
+            </element>
+            <element>
+                <object name="MiNPCBarterGroupEntry">
+                    <member name="barterID">0</member>
+                    <member name="flags">0</member>
+                </object>
+            </element>
+            <element>
+                <object name="MiNPCBarterGroupEntry">
+                    <member name="barterID">0</member>
+                    <member name="flags">0</member>
+                </object>
+            </element>
+            <element>
+                <object name="MiNPCBarterGroupEntry">
+                    <member name="barterID">0</member>
+                    <member name="flags">0</member>
+                </object>
+            </element>
+            <element>
+                <object name="MiNPCBarterGroupEntry">
+                    <member name="barterID">0</member>
+                    <member name="flags">0</member>
+                </object>
+            </element>
+            <element>
+                <object name="MiNPCBarterGroupEntry">
+                    <member name="barterID">0</member>
+                    <member name="flags">0</member>
+                </object>
+            </element>
+            <element>
+                <object name="MiNPCBarterGroupEntry">
+                    <member name="barterID">0</member>
+                    <member name="flags">0</member>
+                </object>
+            </element>
+            <element>
+                <object name="MiNPCBarterGroupEntry">
+                    <member name="barterID">0</member>
+                    <member name="flags">0</member>
+                </object>
+            </element>
+            <element>
+                <object name="MiNPCBarterGroupEntry">
+                    <member name="barterID">0</member>
+                    <member name="flags">0</member>
+                </object>
+            </element>
+            <element>
+                <object name="MiNPCBarterGroupEntry">
+                    <member name="barterID">0</member>
+                    <member name="flags">0</member>
+                </object>
+            </element>
+            <element>
+                <object name="MiNPCBarterGroupEntry">
+                    <member name="barterID">0</member>
+                    <member name="flags">0</member>
+                </object>
+            </element>
+            <element>
+                <object name="MiNPCBarterGroupEntry">
+                    <member name="barterID">0</member>
+                    <member name="flags">0</member>
+                </object>
+            </element>
+        </member>
+    </object>
+</objects>

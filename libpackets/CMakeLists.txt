@@ -47,10 +47,12 @@ OBJGEN_XML(${PROJECT_NAME}_STRUCTS
     schema
 
     # Output files
-    PacketLobbyLogin.cpp
-    PacketLobbyLogin.h
-    PacketLobbyLoginReply.cpp
-    PacketLobbyLoginReply.h
+    ClientToLobby_Login.cpp
+    ClientToLobby_Login.h
+    LobbyToClient_Login.cpp
+    LobbyToClient_Login.h
+    LobbyToClient_LoginError.cpp
+    LobbyToClient_LoginError.h
     PacketLobbyAuth.cpp
     PacketLobbyAuth.h
     PacketLobbyAuthReply.cpp
@@ -71,10 +73,10 @@ OBJGEN_XML(${PROJECT_NAME}_STRUCTS
     PacketLobbyRequestStartGame.cpp
     PacketLobbyStartGame.h
     PacketLobbyStartGame.cpp
-    PacketChannelLogin.cpp
-    PacketChannelLogin.h
-    PacketChannelLoginReply.cpp
-    PacketChannelLoginReply.h
+    ClientToChannel_Login.cpp
+    ClientToChannel_Login.h
+    ChannelToClient_Login.cpp
+    ChannelToClient_Login.h
     PacketChannelAuth.cpp
     PacketChannelAuth.h
     PacketChannelAuthReply.cpp

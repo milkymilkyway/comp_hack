@@ -29,6 +29,15 @@
 #ifndef LIBCLIENT_SRC_MESSAGECLIENT_H
 #define LIBCLIENT_SRC_MESSAGECLIENT_H
 
+/// libobjgen Includes
+#include <UUID.h>
+
+namespace logic {
+
+class LogicWorker;
+
+}  // namespace logic
+
 namespace libcomp {
 
 namespace Message {
@@ -77,6 +86,16 @@ enum class MessageClientType : int32_t {
   // AmalaManager related events
   //
   ACCOUNT_DUMP_STATUS = 6000,
+
+  //
+  // Script related events
+  //
+  CREATE_CLIENT = 7000,
+  DELETE_CLIENT,
+  RUN_SCRIPT,
+  SEND_PACKET,
+  SEND_OBJECT,
+  PACKET_RECEIVED,
 };
 
 /**
@@ -85,19 +104,48 @@ enum class MessageClientType : int32_t {
 class MessageClient : public Message {
  public:
   /**
+   * Create the message.
+   * @param uuid Client UUID this message is involved with.
+   */
+  MessageClient(const libobjgen::UUID &uuid)
+      : libcomp::Message::Message(), mClientUUID(uuid) {}
+
+  /**
    * Cleanup the message.
    */
-  virtual ~MessageClient() {}
+  ~MessageClient() override {}
 
-  virtual MessageType GetType() const {
+  /**
+   * Get the message type.
+   * @return The message's type.
+   */
+  MessageType GetType() const override {
     return MessageType::MESSAGE_TYPE_CLIENT;
   }
 
   /**
    * Get the specific client message type.
-   * @return The message's client message type
+   * @return The message's client message type.
    */
   virtual MessageClientType GetMessageClientType() const = 0;
+
+  /**
+   * Get the specific raw client message type.
+   * @return The message's raw client message type.
+   */
+  int GetRawMessageClientType() const {
+    return to_underlying(GetMessageClientType());
+  }
+
+  /**
+   * Get the client UUID this message is involved with.
+   * @return Client UUID this message is involved with.
+   */
+  libobjgen::UUID GetClientUUID() const { return mClientUUID; }
+
+ protected:
+  /// Client UUID this message is involved with.
+  libobjgen::UUID mClientUUID;
 };
 
 }  // namespace Message

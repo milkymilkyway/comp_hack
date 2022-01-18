@@ -1,12 +1,12 @@
 /**
- * @file libtester/src/LobbyClient.h
- * @ingroup libtester
+ * @file libclient/src/LobbyClient.h
+ * @ingroup libclient
  *
  * @author COMP Omega <compomega@tutanota.com>
  *
  * @brief Class to create a lobby test connection.
  *
- * This file is part of the COMP_hack Tester Library (libtester).
+ * This file is part of the COMP_hack Client Library (libclient).
  *
  * Copyright (C) 2012-2020 COMP_hack Team <compomega@tutanota.com>
  *
@@ -35,7 +35,7 @@
 // Stop ignoring warnings
 #include <PopIgnore.h>
 
-// libtester Includes
+// libclient Includes
 #include <Login.h>
 
 // libcomp Includes
@@ -50,7 +50,7 @@
 
 #include "ServerTest.h"
 
-using namespace libtester;
+using namespace libclient;
 
 static const libcomp::String LOGIN_CLIENT_VERSION = "1.666";
 static const uint32_t CLIENT_VERSION = 1666;
@@ -190,14 +190,14 @@ bool LobbyClient::WebLogin(const libcomp::String& username,
   if (sid.IsEmpty() && !password.IsEmpty()) {
     if (expectError) {
       ASSERT_FALSE_OR_RETURN_MSG(
-          libtester::Login::WebLogin(username, password, LOGIN_CLIENT_VERSION,
+          libclient::Login::WebLogin(username, password, LOGIN_CLIENT_VERSION,
                                      mSID1, mSID2),
           "Authenticated with the website when an error was expected.");
 
       return true;
     } else {
       ASSERT_TRUE_OR_RETURN_MSG(
-          libtester::Login::WebLogin(username, password, LOGIN_CLIENT_VERSION,
+          libclient::Login::WebLogin(username, password, LOGIN_CLIENT_VERSION,
                                      mSID1, mSID2),
           "Failed to authenticate with the website.");
     }

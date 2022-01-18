@@ -27,6 +27,7 @@
 #include "MessageWorldNotification.h"
 
 // libcomp Includes
+#include "BaseScriptEngine.h"
 #include "TcpConnection.h"
 
 using namespace libcomp;
@@ -55,3 +56,23 @@ libcomp::String Message::WorldNotification::Dump() const {
       .Arg(mAddress)
       .Arg(mPort);
 }
+
+namespace libcomp {
+template <>
+BaseScriptEngine& BaseScriptEngine::Using<Message::WorldNotification>() {
+  if (!BindingExists("Message.WorldNotification")) {
+    Using<Message::ConnectionMessage>();
+
+    Sqrat::DerivedClass<Message::WorldNotification, Message::ConnectionMessage>
+        binding(mVM, "Message.WorldNotification");
+    Bind("Message.WorldNotification", binding);
+
+    binding.Func("GetAddress", &Message::WorldNotification::GetAddress)
+        .Prop("Address", &Message::WorldNotification::GetAddress)
+        .Func("GetPort", &Message::WorldNotification::GetPort)
+        .Prop("Port", &Message::WorldNotification::GetPort);
+  }
+
+  return *this;
+}
+}  // namespace libcomp

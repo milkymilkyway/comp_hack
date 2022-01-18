@@ -1,12 +1,12 @@
 /**
- * @file libtester/src/ChannelClient.h
- * @ingroup libtester
+ * @file libclient/src/ChannelClient.h
+ * @ingroup libclient
  *
  * @author COMP Omega <compomega@tutanota.com>
  *
  * @brief Class to create a channel test connection.
  *
- * This file is part of the COMP_hack Tester Library (libtester).
+ * This file is part of the COMP_hack Client Library (libclient).
  *
  * Copyright (C) 2012-2020 COMP_hack Team <compomega@tutanota.com>
  *
@@ -30,7 +30,7 @@
 #include <PushIgnore.h>
 #include <gtest/gtest.h>
 
-// libtester Includes
+// libclient Includes
 #include <LobbyClient.h>
 #include <Login.h>
 #include <TestConfig.h>
@@ -47,7 +47,7 @@
 
 #include "ServerTest.h"
 
-using namespace libtester;
+using namespace libclient;
 
 ChannelClient::ChannelClient()
     : TestClient(),
@@ -126,7 +126,7 @@ bool ChannelClient::Login(const libcomp::String& username,
   int32_t sessionKey = -1;
 
   {
-    std::shared_ptr<libtester::LobbyClient> client(new libtester::LobbyClient);
+    std::shared_ptr<libclient::LobbyClient> client(new libclient::LobbyClient);
 
     client->SetWaitForLogout(true);
     ASSERT_TRUE_OR_RETURN(client->Login(username, password));

@@ -1003,13 +1003,6 @@ IF(NOT UPDATER_ONLY AND NOT BUILD_EXOTIC)
     ADD_SUBDIRECTORY(server)
 ENDIF(NOT UPDATER_ONLY AND NOT BUILD_EXOTIC)
 
-# Windows does not have the server spawning code.
-IF(NOT WIN32 AND NOT UPDATER_ONLY AND NOT CHANNEL_ONLY AND NOT BUILD_EXOTIC)
-    IF(NOT APPLE)
-        ADD_SUBDIRECTORY(libtester)
-    ENDIF(NOT APPLE)
-ENDIF(NOT WIN32 AND NOT UPDATER_ONLY AND NOT CHANNEL_ONLY AND NOT BUILD_EXOTIC)
-
 IF(NOT UPDATER_ONLY AND NOT CHANNEL_ONLY)
     ADD_SUBDIRECTORY(client)
     ADD_SUBDIRECTORY(libpackets)
@@ -1211,6 +1204,8 @@ IF(NOT UPDATER_ONLY AND NOT CHANNEL_ONLY AND NOT BUILD_EXOTIC)
         modtrigger datastore/BinaryData/Shield/ModificationTriggerData.xml
         modeffect datastore/BinaryData/Shield/ModifiedEffectData.xml
         npcbarter datastore/BinaryData/Shield/NPCBarterData.xml
+        npcbartercondition datastore/BinaryData/Shield/NPCBarterConditionData.xml
+        npcbartergroup datastore/BinaryData/Shield/NPCBarterGroupData.xml
         onpc datastore/BinaryData/Shield/oNPCData.xml
         questbonuscode datastore/BinaryData/Shield/QuestBonusCodeData.xml
         quest datastore/BinaryData/Shield/QuestData.xml
@@ -1222,6 +1217,7 @@ IF(NOT UPDATER_ONLY AND NOT CHANNEL_ONLY AND NOT BUILD_EXOTIC)
         timelimit datastore/BinaryData/Shield/TankData.xml
         timelimit datastore/BinaryData/Shield/TimeLimitData.xml
         triunionspecial datastore/BinaryData/Shield/TriUnionSpecialData.xml
+        ultimatebattlebase datastore/BinaryData/Shield/UltimateBattleBaseData.xml
         urafieldtower datastore/BinaryData/Shield/UraFieldTowerData.xml
         warppoint datastore/BinaryData/Shield/WarpPointData.xml
         zone datastore/BinaryData/Shield/ZoneData.xml

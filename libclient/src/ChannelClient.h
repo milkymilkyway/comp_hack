@@ -1,12 +1,12 @@
 /**
- * @file libtester/src/ChannelClient.h
- * @ingroup libtester
+ * @file libclient/src/ChannelClient.h
+ * @ingroup libclient
  *
  * @author COMP Omega <compomega@tutanota.com>
  *
  * @brief Class to create a channel test connection.
  *
- * This file is part of the COMP_hack Tester Library (libtester).
+ * This file is part of the COMP_hack Client Library (libclient).
  *
  * Copyright (C) 2012-2020 COMP_hack Team <compomega@tutanota.com>
  *
@@ -27,7 +27,7 @@
 #ifndef LIBTESTER_SRC_CHANNELCLIENT_H
 #define LIBTESTER_SRC_CHANNELCLIENT_H
 
-// libtester Includes
+// libclient Includes
 #include "TestClient.h"
 
 // objects Includes
@@ -37,7 +37,7 @@
 // Standard C++11 Includes
 #include <vector>
 
-namespace libtester {
+namespace libclient {
 
 typedef std::list<libcomp::Message::Message*> MessageList;
 
@@ -114,6 +114,6 @@ class ChannelClient : public TestClient {
   std::shared_ptr<objects::Character> mCharacter;
 };
 
-}  // namespace libtester
+}  // namespace libclient
 
 #endif  // LIBTESTER_SRC_CHANNELCLIENT_H

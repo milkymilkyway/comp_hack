@@ -32,6 +32,9 @@
 #include <PacketCodes.h>
 #include <ServerConstants.h>
 
+// libpackets Includes
+#include <ChannelToClient_Login.h>
+
 // object Includes
 #include <Account.h>
 #include <AccountLogin.h>
@@ -130,8 +133,7 @@ void AccountManager::HandleLoginResponse(
   auto cLogin = login->GetCharacterLogin();
   auto character = cLogin->GetCharacter();
 
-  libcomp::Packet reply;
-  reply.WritePacketCode(ChannelToClientPacketCode_t::PACKET_LOGIN);
+  packets::ChannelToClient_Login reply;
 
   if (InitializeCharacter(character, state)) {
     auto characterManager = server->GetCharacterManager();
@@ -234,7 +236,7 @@ void AccountManager::HandleLoginResponse(
       }
     }
 
-    reply.WriteU32Little(1);
+    reply.SetResponseCode(1);
 
     state->SetLoggedIn(true);
   } else {
@@ -243,7 +245,7 @@ void AccountManager::HandleLoginResponse(
           .Arg(account->GetUsername());
     });
 
-    reply.WriteU32Little(static_cast<uint32_t>(-1));
+    reply.SetResponseCode(-1);
 
     state->SetLogoutSave(false);
     LogoutCharacter(state);
@@ -258,7 +260,7 @@ void AccountManager::HandleLoginResponse(
     server->GetManagerConnection()->GetWorldConnection()->SendPacket(p);
   }
 
-  client->SendPacket(reply);
+  client->SendObject(ChannelToClientPacketCode_t::PACKET_LOGIN, reply);
 }
 
 void AccountManager::HandleLogoutRequest(

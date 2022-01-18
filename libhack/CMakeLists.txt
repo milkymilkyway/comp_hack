@@ -116,9 +116,6 @@ SET(${PROJECT_NAME}_SCHEMA
     schema/fusion.xml
     schema/item.xml
     schema/match.xml
-    schema/packet_login.xml
-    schema/packet_login_reply.xml
-    schema/packet_response_code.xml
     schema/party.xml
     schema/promo.xml
     schema/qmp_file.xml
@@ -426,12 +423,6 @@ OBJGEN_XML(${PROJECT_NAME}_STRUCTS
     MatchEntry.cpp
     ObjectPosition.h
     ObjectPosition.cpp
-    PacketLogin.h
-    PacketLogin.cpp
-    PacketLoginReply.h
-    PacketLoginReply.cpp
-    PacketResponseCode.h
-    PacketResponseCode.cpp
     Party.h
     Party.cpp
     PartyCharacter.h

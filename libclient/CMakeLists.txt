@@ -26,6 +26,14 @@ SET(${PROJECT_NAME}_SRCS
     src/AmalaManager.cpp
     src/ConnectionManager.cpp
     src/LobbyManager.cpp
+
+    # Messages
+    src/MessageAccountDump.cpp
+    src/MessageClient.cpp
+    src/MessageCharacterList.cpp
+    src/MessageConnected.cpp
+    src/MessageConnectionInfo.cpp
+    src/MessageStartGame.cpp
 )
 
 SET(${PROJECT_NAME}_HDRS
@@ -39,10 +47,13 @@ SET(${PROJECT_NAME}_HDRS
     src/LobbyManager.h
 
     # Messages
+    src/MessageAccountDump.h
     src/MessageClient.h
     src/MessageCharacterList.h
     src/MessageConnected.h
     src/MessageConnectionInfo.h
+    src/MessageCreateDeleteClient.h
+    src/MessageRunScript.h
     src/MessageStartGame.h
 )
 

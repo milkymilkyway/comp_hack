@@ -27,6 +27,9 @@
 #ifndef LIBCLIENT_SRC_LOGICWORKER_H
 #define LIBCLIENT_SRC_LOGICWORKER_H
 
+// libobjgen Includes
+#include <UUID.h>
+
 // libcomp Includes
 #include <Object.h>
 #include <Packet.h>
@@ -48,12 +51,30 @@ class LogicWorker : public libcomp::Worker {
   /**
    * Create a new worker.
    */
-  LogicWorker();
+  LogicWorker(const libobjgen::UUID &uuid = libobjgen::UUID::Random());
 
   /**
    * Cleanup the worker.
    */
   virtual ~LogicWorker();
+
+  /**
+   * Get the friendly name for this worker.
+   * @return Friendly name for this worker.
+   */
+  libcomp::String GetFriendlyName() const;
+
+  /**
+   * Set the friendly name for this worker.
+   * @param name Friendly name for this worker.
+   */
+  void SetFriendlyName(const libcomp::String &name);
+
+  /**
+   * Get the UUID for this worker.
+   * @return UUID for this worker.
+   */
+  libobjgen::UUID GetUUID() const;
 
   /**
    * Send a message to the GameWorker message queue.
@@ -76,7 +97,7 @@ class LogicWorker : public libcomp::Worker {
    * @param messageQueue Reference to the message queue of the GameWorker.
    */
   void SetGameQueue(
-      const std::shared_ptr<libcomp::MessageQueue<libcomp::Message::Message *>>
+      const std::weak_ptr<libcomp::MessageQueue<libcomp::Message::Message *>>
           &messageQueue);
 
   /**
@@ -137,8 +158,14 @@ class LogicWorker : public libcomp::Worker {
   LobbyManager *mLobbyManager;
 
   /// Message queue for the GameWorker. Events are sent here.
-  std::shared_ptr<libcomp::MessageQueue<libcomp::Message::Message *>>
+  std::weak_ptr<libcomp::MessageQueue<libcomp::Message::Message *>>
       mGameMessageQueue;
+
+  /// Friendly name for this worker.
+  libcomp::String mFriendlyName;
+
+  /// UUID for this worker.
+  libobjgen::UUID mUUID;
 };
 
 }  // namespace logic

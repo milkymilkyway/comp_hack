@@ -16,3 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 ADD_SUBDIRECTORY(sqlite3)
+
+ADD_LIBRARY(cpp-optparse STATIC cpp-optparse/OptionParser.cpp)
+
+TARGET_INCLUDE_DIRECTORIES(cpp-optparse PUBLIC cpp-optparse)

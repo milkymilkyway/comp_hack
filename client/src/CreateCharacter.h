@@ -1,14 +1,14 @@
 /**
- * @file client/src/LobbyScene.h
+ * @file client/src/CreateCharacter.h
  * @ingroup client
  *
  * @author COMP Omega <compomega@tutanota.com>
  *
- * @brief Lobby scene.
+ * @brief Create character dialog.
  *
  * This file is part of the COMP_hack Test Client (client).
  *
- * Copyright (C) 2012-2020 COMP_hack Team <compomega@tutanota.com>
+ * Copyright (C) 2012-2021 COMP_hack Team <compomega@tutanota.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -24,20 +24,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LIBCLIENT_SRC_LOBBYSCENE_H
-#define LIBCLIENT_SRC_LOBBYSCENE_H
+#ifndef LIBCLIENT_SRC_CREATECHARACTER_H
+#define LIBCLIENT_SRC_CREATECHARACTER_H
 
 // Qt Includes
-#include "ui_LobbyScene.h"
+#include "ui_CreateCharacter.h"
 
 // libclient Includes
 #include <ClientManager.h>
 
-namespace packets {
-
-class PacketLobbyCharacterList;
-
-}  // namespace packets
+// Qt Forward Declarations
+class QDnsLookup;
 
 namespace logic {
 
@@ -50,23 +47,23 @@ namespace game {
 class GameWorker;
 
 /**
- * Scene to present the user with the lobby (character list).
+ * Dialog to create a character.
  */
-class LobbyScene : public QWidget, public logic::ClientManager {
+class CreateCharacter : public QDialog, public logic::ClientManager {
   Q_OBJECT
 
  public:
   /**
-   * Construct the lobby scene.
+   * Construct the login dialog.
    * @param pWorker The GameWorker for the UI.
    * @param pParent Parent Qt widget for the dialog.
    */
-  LobbyScene(GameWorker *pWorker, QWidget *pParent = nullptr);
+  CreateCharacter(GameWorker *pWorker, QWidget *pParent = nullptr);
 
   /**
-   * Cleanup the scene.
+   * Cleanup the dialog.
    */
-  ~LobbyScene() override;
+  ~CreateCharacter() override;
 
   /**
    * Process a client message.
@@ -74,38 +71,18 @@ class LobbyScene : public QWidget, public logic::ClientManager {
    */
   bool ProcessClientMessage(const libcomp::Message::MessageClient *pMessage);
 
- protected:
-  /**
-   * Handle a close event on the scene.
-   * @param pEvent Close event to handle.
-   */
-  void closeEvent(QCloseEvent *pEvent) override;
-
  private slots:
   /**
-   * Update the UI after selecting a character.
+   * Called when the create button is clicked.
    */
-  void selectionChanged();
-
-  /**
-   * Start game button was clicked.
-   */
-  void startGame();
+  void Create();
 
  private:
   /**
-   * Handle Character List Update message.
+   * Handle the create character reply.
    * @param pMessage Client message to process.
    */
-  bool HandleCharacterListUpdate(
-      const libcomp::Message::MessageClient *pMessage);
-
-  /**
-   * Handle the authentication reply.
-   * @param pMessage Client message to process.
-   */
-  bool HandleConnectedToChannel(
-      const libcomp::Message::MessageClient *pMessage);
+  bool HandleCharacterCreated(const libcomp::Message::MessageClient *pMessage);
 
   /// Pointer to the LogicWorker.
   logic::LogicWorker *mLogicWorker;
@@ -113,13 +90,10 @@ class LobbyScene : public QWidget, public logic::ClientManager {
   /// Pointer to the GameWorker.
   GameWorker *mGameWorker;
 
-  /// Character list data.
-  std::shared_ptr<packets::PacketLobbyCharacterList> mCharacterList;
-
-  /// UI for this scene.
-  Ui::LobbyScene ui;
+  /// UI for this dialog.
+  Ui::CreateCharacter ui;
 };
 
 }  // namespace game
 
-#endif  // LIBCLIENT_SRC_LOBBYSCENE_H
+#endif  // LIBCLIENT_SRC_CREATECHARACTER_H

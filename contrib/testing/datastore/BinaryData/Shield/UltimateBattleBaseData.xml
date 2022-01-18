@@ -1,0 +1,49 @@
+<objects>
+    <object name="MiUltimateBattleBaseData">
+        <member name="ID">1</member>
+        <member name="unknown1">1</member>
+        <member name="unknown2">0</member>
+        <member name="enabled">true</member>
+        <member name="zoneID">230104</member>
+        <member name="zoneSpotID">50001</member>
+        <member name="zoneSpot2">50001</member>
+        <member name="lobbyID">230103</member>
+        <member name="playerCount">5</member>
+        <member name="unknown9">40</member>
+        <member name="unknown10">30</member>
+        <member name="unknown11">5</member>
+        <member name="unknown12">300</member>
+        <member name="unknown13">5</member>
+        <member name="restTime">20</member>
+        <member name="unknown15">2</member>
+        <member name="unknown16">2.5</member>
+        <member name="coinMultiplier">1</member>
+        <member name="unknown18">1</member>
+        <member name="schedule">
+            <element>3600</element>
+            <element>57600</element>
+            <element>64800</element>
+            <element>72000</element>
+            <element>79200</element>
+            <element>0</element>
+            <element>0</element>
+            <element>0</element>
+            <element>0</element>
+            <element>0</element>
+            <element>0</element>
+            <element>0</element>
+            <element>0</element>
+            <element>0</element>
+            <element>0</element>
+            <element>0</element>
+            <element>0</element>
+            <element>0</element>
+            <element>0</element>
+            <element>0</element>
+            <element>0</element>
+            <element>0</element>
+            <element>0</element>
+            <element>0</element>
+        </member>
+    </object>
+</objects>

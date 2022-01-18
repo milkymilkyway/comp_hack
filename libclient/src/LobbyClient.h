@@ -1,12 +1,12 @@
 /**
- * @file libtester/src/LobbyClient.h
- * @ingroup libtester
+ * @file libclient/src/LobbyClient.h
+ * @ingroup libclient
  *
  * @author COMP Omega <compomega@tutanota.com>
  *
  * @brief Class to create a lobby test connection.
  *
- * This file is part of the COMP_hack Tester Library (libtester).
+ * This file is part of the COMP_hack Client Library (libclient).
  *
  * Copyright (C) 2012-2020 COMP_hack Team <compomega@tutanota.com>
  *
@@ -27,13 +27,13 @@
 #ifndef LIBTESTER_SRC_LOBBYCLIENT_H
 #define LIBTESTER_SRC_LOBBYCLIENT_H
 
-// libtester Includes
+// libclient Includes
 #include "TestClient.h"
 
 // Standard C++ Includes
 #include <unordered_map>
 
-namespace libtester {
+namespace libclient {
 
 typedef std::list<libcomp::Message::Message*> MessageList;
 
@@ -122,6 +122,6 @@ class LobbyClient : public TestClient {
   std::unordered_map<std::string, std::shared_ptr<Character>> mCharacterLookup;
 };
 
-}  // namespace libtester
+}  // namespace libclient
 
 #endif  // LIBTESTER_SRC_LOBBYCLIENT_H

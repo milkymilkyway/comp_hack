@@ -1,11 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <objgen>
-    <object name="PacketLobbyLoginReply" persistent="false" namespace="packets">
+    <object name="LobbyToClient_Login" persistent="false" scriptenabled="true" namespace="packets">
         <member type="s32" name="ResponseCode"/>
         <member type="u32" name="Challenge"/>
         <member type="string" name="Salt" lensz="2"/>
     </object>
-    <object name="PacketChannelLoginReply" persistent="false" namespace="packets">
+    <object name="LobbyToClient_LoginError" persistent="false" scriptenabled="true" namespace="packets">
+        <member type="s32" name="ResponseCode"/>
+    </object>
+    <object name="ChannelToClient_Login" persistent="false" scriptenabled="true" namespace="packets">
         <member type="s32" name="ResponseCode"/>
     </object>
 </objgen>

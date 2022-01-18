@@ -36,6 +36,12 @@
 // Qt Forward Declarations
 class QDnsLookup;
 
+namespace logic {
+
+class LogicWorker;
+
+}  // namespace logic
+
 namespace game {
 
 class GameWorker;
@@ -87,6 +93,9 @@ class LoginDialog : public QDialog, public logic::ClientManager {
    * @param pMessage Client message to process.
    */
   bool HandleConnectedToLobby(const libcomp::Message::MessageClient *pMessage);
+
+  /// Pointer to the LogicWorker.
+  logic::LogicWorker *mLogicWorker;
 
   /// Pointer to the GameWorker.
   GameWorker *mGameWorker;

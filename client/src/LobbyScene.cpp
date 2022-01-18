@@ -29,6 +29,10 @@
 // libcomp Includes
 #include <EnumUtils.h>
 #include <ErrorCodes.h>
+#include <Log.h>
+
+// libclient Includes
+#include "LogicWorker.h"
 
 // client Includes
 #include "ChannelScene.h"
@@ -54,7 +58,9 @@ using namespace game;
 using libcomp::Message::MessageClientType;
 
 LobbyScene::LobbyScene(GameWorker *pWorker, QWidget *pParent)
-    : QWidget(pParent), mGameWorker(pWorker) {
+    : QWidget(pParent),
+      mLogicWorker(pWorker->GetLogicWorker()),
+      mGameWorker(pWorker) {
   ui.setupUi(this);
 
   connect(ui.characterList, SIGNAL(itemSelectionChanged()), this,
@@ -161,7 +167,8 @@ bool LobbyScene::HandleConnectedToChannel(
 void LobbyScene::closeEvent(QCloseEvent *pEvent) {
   if (isEnabled()) {
     // Show the login dialog again.
-    mGameWorker->SendToLogic(new logic::MessageConnectionClose());
+    mGameWorker->SendToLogic(
+        new logic::MessageConnectionClose(mLogicWorker->GetUUID()));
     mGameWorker->GetLoginDialog()->show();
   }
 
@@ -195,8 +202,8 @@ void LobbyScene::startGame() {
   auto pCharacter = mCharacterList->GetCharacters(idx);
 
   // Send the start game request.
-  mGameWorker->SendToLogic(
-      new logic::MessageRequestStartGame(pCharacter->GetCharacterID()));
+  mGameWorker->SendToLogic(new logic::MessageRequestStartGame(
+      mLogicWorker->GetUUID(), pCharacter->GetCharacterID()));
 
   // Disable the UI until the reply comes back.
   setEnabled(false);

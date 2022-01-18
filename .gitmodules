@@ -12,3 +12,6 @@
 [submodule "datastore"]
 	path = datastore
 	url = ../datastore.git
+[submodule "deps/cpp-optparse"]
+	path = deps/cpp-optparse
+	url = ../../weisslj/cpp-optparse.git

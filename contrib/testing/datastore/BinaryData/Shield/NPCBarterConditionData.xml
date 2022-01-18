@@ -1,0 +1,147 @@
+<objects>
+    <object name="MiNPCBarterConditionData">
+        <member name="ID">1</member>
+        <member name="conditions">
+            <element>
+                <object name="MiNPCBarterConditionDataEntry">
+                    <member name="type">CHARACTER_LEVEL</member>
+                    <member name="value1">1</member>
+                    <member name="value2">99</member>
+                </object>
+            </element>
+            <element>
+                <object name="MiNPCBarterConditionDataEntry">
+                    <member name="type">NONE</member>
+                    <member name="value1">0</member>
+                    <member name="value2">0</member>
+                </object>
+            </element>
+            <element>
+                <object name="MiNPCBarterConditionDataEntry">
+                    <member name="type">NONE</member>
+                    <member name="value1">0</member>
+                    <member name="value2">0</member>
+                </object>
+            </element>
+            <element>
+                <object name="MiNPCBarterConditionDataEntry">
+                    <member name="type">NONE</member>
+                    <member name="value1">0</member>
+                    <member name="value2">0</member>
+                </object>
+            </element>
+            <element>
+                <object name="MiNPCBarterConditionDataEntry">
+                    <member name="type">NONE</member>
+                    <member name="value1">0</member>
+                    <member name="value2">0</member>
+                </object>
+            </element>
+            <element>
+                <object name="MiNPCBarterConditionDataEntry">
+                    <member name="type">NONE</member>
+                    <member name="value1">0</member>
+                    <member name="value2">0</member>
+                </object>
+            </element>
+            <element>
+                <object name="MiNPCBarterConditionDataEntry">
+                    <member name="type">NONE</member>
+                    <member name="value1">0</member>
+                    <member name="value2">0</member>
+                </object>
+            </element>
+            <element>
+                <object name="MiNPCBarterConditionDataEntry">
+                    <member name="type">NONE</member>
+                    <member name="value1">0</member>
+                    <member name="value2">0</member>
+                </object>
+            </element>
+            <element>
+                <object name="MiNPCBarterConditionDataEntry">
+                    <member name="type">NONE</member>
+                    <member name="value1">0</member>
+                    <member name="value2">0</member>
+                </object>
+            </element>
+            <element>
+                <object name="MiNPCBarterConditionDataEntry">
+                    <member name="type">NONE</member>
+                    <member name="value1">0</member>
+                    <member name="value2">0</member>
+                </object>
+            </element>
+            <element>
+                <object name="MiNPCBarterConditionDataEntry">
+                    <member name="type">NONE</member>
+                    <member name="value1">0</member>
+                    <member name="value2">0</member>
+                </object>
+            </element>
+            <element>
+                <object name="MiNPCBarterConditionDataEntry">
+                    <member name="type">NONE</member>
+                    <member name="value1">0</member>
+                    <member name="value2">0</member>
+                </object>
+            </element>
+            <element>
+                <object name="MiNPCBarterConditionDataEntry">
+                    <member name="type">NONE</member>
+                    <member name="value1">0</member>
+                    <member name="value2">0</member>
+                </object>
+            </element>
+            <element>
+                <object name="MiNPCBarterConditionDataEntry">
+                    <member name="type">NONE</member>
+                    <member name="value1">0</member>
+                    <member name="value2">0</member>
+                </object>
+            </element>
+            <element>
+                <object name="MiNPCBarterConditionDataEntry">
+                    <member name="type">NONE</member>
+                    <member name="value1">0</member>
+                    <member name="value2">0</member>
+                </object>
+            </element>
+            <element>
+                <object name="MiNPCBarterConditionDataEntry">
+                    <member name="type">NONE</member>
+                    <member name="value1">0</member>
+                    <member name="value2">0</member>
+                </object>
+            </element>
+            <element>
+                <object name="MiNPCBarterConditionDataEntry">
+                    <member name="type">NONE</member>
+                    <member name="value1">0</member>
+                    <member name="value2">0</member>
+                </object>
+            </element>
+            <element>
+                <object name="MiNPCBarterConditionDataEntry">
+                    <member name="type">NONE</member>
+                    <member name="value1">0</member>
+                    <member name="value2">0</member>
+                </object>
+            </element>
+            <element>
+                <object name="MiNPCBarterConditionDataEntry">
+                    <member name="type">NONE</member>
+                    <member name="value1">0</member>
+                    <member name="value2">0</member>
+                </object>
+            </element>
+            <element>
+                <object name="MiNPCBarterConditionDataEntry">
+                    <member name="type">NONE</member>
+                    <member name="value1">0</member>
+                    <member name="value2">0</member>
+                </object>
+            </element>
+        </member>
+    </object>
+</objects>

@@ -43,14 +43,14 @@
 #include <PacketCodes.h>
 
 // packets Includes
+#include <ChannelToClient_Login.h>
+#include <ClientToChannel_Login.h>
+#include <ClientToLobby_Login.h>
+#include <LobbyToClient_Login.h>
 #include <PacketChannelAuth.h>
 #include <PacketChannelAuthReply.h>
-#include <PacketChannelLogin.h>
-#include <PacketChannelLoginReply.h>
 #include <PacketLobbyAuth.h>
 #include <PacketLobbyAuthReply.h>
-#include <PacketLobbyLogin.h>
-#include <PacketLobbyLoginReply.h>
 
 // logic Messages
 #include "MessageConnected.h"
@@ -359,27 +359,25 @@ std::shared_ptr<libcomp::EncryptedConnection> ConnectionManager::GetConnection()
 
 void ConnectionManager::AuthenticateLobby() {
   // Send the login packet and await the response.
-  packets::PacketLobbyLogin p;
-  p.SetPacketCode(to_underlying(ClientToLobbyPacketCode_t::PACKET_LOGIN));
+  packets::ClientToLobby_Login p;
   p.SetUsername(mUsername);
   p.SetClientVersion(mClientVersion);
   p.SetUnknown(0);
 
-  mActiveConnection->SendObject(p);
+  mActiveConnection->SendObject(ClientToLobbyPacketCode_t::PACKET_LOGIN, p);
 }
 
 void ConnectionManager::AuthenticateChannel() {
   // Send the login packet and await the response.
-  packets::PacketChannelLogin p;
-  p.SetPacketCode(to_underlying(ClientToChannelPacketCode_t::PACKET_LOGIN));
+  packets::ClientToChannel_Login p;
   p.SetUsername(mUsername);
   p.SetSessionKey(mSessionKey);
 
-  mActiveConnection->SendObject(p);
+  mActiveConnection->SendObject(ClientToChannelPacketCode_t::PACKET_LOGIN, p);
 }
 
 bool ConnectionManager::HandlePacketLobbyLogin(libcomp::ReadOnlyPacket &p) {
-  packets::PacketLobbyLoginReply obj;
+  packets::LobbyToClient_Login obj;
 
   ErrorCodes_t errorCode = ErrorCodes_t::SUCCESS;
 
@@ -417,8 +415,9 @@ bool ConnectionManager::HandlePacketLobbyLogin(libcomp::ReadOnlyPacket &p) {
 
     // An error occurred so close the connection and pass it along.
     CloseConnection();
-    mLogicWorker->SendToGame(
-        new MessageConnectedToLobby(connectionID, errorCode));
+    mLogicWorker->SendToGame(new MessageConnectedToLobby(
+        mLogicWorker->GetUUID(), connectionID, errorCode));
+    LogConnectionErrorMsg("Failed to connect\n");
   }
 
   return true;
@@ -443,7 +442,8 @@ bool ConnectionManager::HandlePacketLobbyAuth(libcomp::ReadOnlyPacket &p) {
   if (ErrorCodes_t::SUCCESS == errorCode) {
     // Notify the game we are connected and authenticated.
     mLogicWorker->SendToGame(new MessageConnectedToLobby(
-        mActiveConnection->GetName(), errorCode, obj.GetSID()));
+        mLogicWorker->GetUUID(), mActiveConnection->GetName(), errorCode,
+        obj.GetSID()));
 
     // Request the world list and the character list.
     libcomp::Packet reply;
@@ -462,15 +462,16 @@ bool ConnectionManager::HandlePacketLobbyAuth(libcomp::ReadOnlyPacket &p) {
 
     // An error occurred so close the connection and pass it along.
     CloseConnection();
-    mLogicWorker->SendToGame(
-        new MessageConnectedToLobby(connectionID, errorCode));
+    mLogicWorker->SendToGame(new MessageConnectedToLobby(
+        mLogicWorker->GetUUID(), connectionID, errorCode));
+    LogConnectionErrorMsg("Failed to connect\n");
   }
 
   return true;
 }
 
 bool ConnectionManager::HandlePacketChannelLogin(libcomp::ReadOnlyPacket &p) {
-  packets::PacketChannelLoginReply obj;
+  packets::ChannelToClient_Login obj;
 
   if (!obj.LoadPacket(p) || p.Left()) {
     return false;
@@ -492,8 +493,8 @@ bool ConnectionManager::HandlePacketChannelLogin(libcomp::ReadOnlyPacket &p) {
 
     // An error occurred so close the connection and pass it along.
     CloseConnection();
-    mLogicWorker->SendToGame(
-        new MessageConnectedToChannel(connectionID, errorCode));
+    mLogicWorker->SendToGame(new MessageConnectedToChannel(
+        mLogicWorker->GetUUID(), connectionID, errorCode));
   }
 
   return true;
@@ -510,16 +511,16 @@ bool ConnectionManager::HandlePacketChannelAuth(libcomp::ReadOnlyPacket &p) {
 
   if (ErrorCodes_t::SUCCESS == errorCode) {
     // Notify the game we are connected and authenticated.
-    mLogicWorker->SendToGame(
-        new MessageConnectedToChannel(mActiveConnection->GetName(), errorCode));
+    mLogicWorker->SendToGame(new MessageConnectedToChannel(
+        mLogicWorker->GetUUID(), mActiveConnection->GetName(), errorCode));
   } else {
     // Save this before closing the connection.
     auto connectionID = mActiveConnection->GetName();
 
     // An error occurred so close the connection and pass it along.
     CloseConnection();
-    mLogicWorker->SendToGame(
-        new MessageConnectedToChannel(connectionID, errorCode));
+    mLogicWorker->SendToGame(new MessageConnectedToChannel(
+        mLogicWorker->GetUUID(), connectionID, errorCode));
   }
 
   return true;

@@ -38,21 +38,23 @@
 #include <PacketCodes.h>
 #include <ReadOnlyPacket.h>
 
+// libpackets Includes
+#include <ClientToLobby_Login.h>
+#include <LobbyToClient_Login.h>
+#include <LobbyToClient_LoginError.h>
+
 // object Includes
 #include <Account.h>
-#include <PacketLogin.h>
-#include <PacketLoginReply.h>
 
 using namespace lobby;
 
 static bool LoginError(
     const std::shared_ptr<libcomp::TcpConnection>& connection,
     ErrorCodes_t errorCode) {
-  libcomp::Packet reply;
-  reply.WritePacketCode(LobbyToClientPacketCode_t::PACKET_LOGIN);
-  reply.WriteS32Little(to_underlying(errorCode));
+  packets::LobbyToClient_LoginError reply;
+  reply.SetResponseCode(to_underlying(errorCode));
 
-  connection->SendPacket(reply);
+  connection->SendObject(LobbyToClientPacketCode_t::PACKET_LOGIN, reply);
 
   return true;
 }
@@ -63,7 +65,7 @@ bool Parsers::Login::Parse(
     libcomp::ReadOnlyPacket& p) const {
   (void)pPacketManager;
 
-  objects::PacketLogin obj;
+  packets::ClientToLobby_Login obj;
 
   if (!obj.LoadPacket(p)) {
     return false;
@@ -104,8 +106,7 @@ bool Parsers::Login::Parse(
   state(connection)->SetChallenge(challenge);
 
   // Send the reply.
-  objects::PacketLoginReply reply;
-  reply.SetCommandCode(to_underlying(LobbyToClientPacketCode_t::PACKET_LOGIN));
+  packets::LobbyToClient_Login reply;
   reply.SetResponseCode(to_underlying(ErrorCodes_t::SUCCESS));
   reply.SetChallenge(challenge);
 
@@ -116,5 +117,5 @@ bool Parsers::Login::Parse(
     reply.SetSalt(server->GetFakeAccountSalt(obj.GetUsername()));
   }
 
-  return connection->SendObject(reply);
+  return connection->SendObject(LobbyToClientPacketCode_t::PACKET_LOGIN, reply);
 }

@@ -1,5 +1,5 @@
 /**
- * @file libclient/src/MessageStartGame.h
+ * @file libclient/src/MessageRunScript.h
  * @ingroup libclient
  *
  * @author COMP Omega <compomega@tutanota.com>
@@ -24,8 +24,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LIBCLIENT_SRC_MESSAGESTARTGAME_H
-#define LIBCLIENT_SRC_MESSAGESTARTGAME_H
+#ifndef LIBCLIENT_SRC_MESSAGERUNSCRIPT_H
+#define LIBCLIENT_SRC_MESSAGERUNSCRIPT_H
 
 // libobjgen Includes
 #include <UUID.h>
@@ -37,37 +37,36 @@
 namespace logic {
 
 /**
- * Message requesting to start the game with the given character.
+ * Message requesting to run a script file.
  */
-class MessageRequestStartGame : public libcomp::Message::MessageClient {
+class MessageRunScript : public libcomp::Message::MessageClient {
  public:
   /**
    * Create the message.
-   * @param uuid Client UUID this message is involved with.
-   * @param characterID ID for the character to start the game with.
+   * @param path Path to the script file to run.
    */
-  MessageRequestStartGame(const libobjgen::UUID& uuid, uint8_t characterID)
-      : libcomp::Message::MessageClient(uuid), mCharacterID(characterID) {}
+  MessageRunScript(const libcomp::String& path)
+      : libcomp::Message::MessageClient(NULLUUID), mPath(path) {}
 
   /**
    * Cleanup the message.
    */
-  ~MessageRequestStartGame() override {}
+  ~MessageRunScript() override {}
 
-  Message* Clone() const override { return new MessageRequestStartGame(*this); }
+  virtual Message* Clone() const { return new MessageRunScript(*this); }
 
   /**
-   * Get the ID for the character to start the game with.
-   * @returns ID for the character to start the game with.
+   * Get the path to the script file to run.
+   * @returns Path to the script file to run.
    */
-  uint8_t GetCharacterID() const { return mCharacterID; }
+  libcomp::String GetPath() const { return mPath; }
 
   /**
    * Get the specific client message type.
    * @return The message's client message type
    */
   libcomp::Message::MessageClientType GetMessageClientType() const override {
-    return libcomp::Message::MessageClientType::REQUEST_START_GAME;
+    return libcomp::Message::MessageClientType::RUN_SCRIPT;
   }
 
   /**
@@ -75,15 +74,14 @@ class MessageRequestStartGame : public libcomp::Message::MessageClient {
    * @return String representation of the message.
    */
   libcomp::String Dump() const override {
-    return libcomp::String("Message: Request start game\nID: %1")
-        .Arg(mCharacterID);
+    return libcomp::String("Message: Run script\nPath: %1").Arg(mPath);
   }
 
  protected:
-  /// ID for the character to start the game with.
-  uint8_t mCharacterID;
+  /// Path to the script file to run.
+  libcomp::String mPath;
 };
 
 }  // namespace logic
 
-#endif  // LIBCLIENT_SRC_MESSAGESTARTGAME_H
+#endif  // LIBCLIENT_SRC_MESSAGERUNSCRIPT_H

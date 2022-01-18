@@ -1,13 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <objgen>
-    <object name="PacketLobbyLogin" persistent="false" namespace="packets">
-        <member type="u16" name="PacketCode"/>
+    <object name="ClientToLobby_Login" persistent="false" scriptenabled="true" namespace="packets">
         <member type="string" name="Username" lensz="2"/>
         <member type="u32" name="ClientVersion"/>
         <member type="u8" name="Unknown"/>
     </object>
-    <object name="PacketChannelLogin" persistent="false" namespace="packets">
-        <member type="u16" name="PacketCode"/>
+    <object name="ClientToChannel_Login" persistent="false" scriptenabled="true" namespace="packets">
         <member type="string" name="Username" lensz="2"/>
         <member type="u32" name="SessionKey"/>
     </object>

@@ -309,7 +309,7 @@ or each world has exclusive access to the database. This could
 cause odd bugs and data corruption.
 
 In addition to the main server applications there is dream,
-libobjgen, libcomp, libtester, a test client, unit test suites
+libobjgen, libcomp, libclient, a test client, unit test suites
 and several utilities. The main library libcomp is linked to all
 the servers, dream, the test client and most of the tools. It
 provides any common code that is used by at least two of these

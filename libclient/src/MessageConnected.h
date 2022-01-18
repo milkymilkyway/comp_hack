@@ -41,11 +41,13 @@ class MessageConnected : public libcomp::Message::MessageClient {
  public:
   /**
    * Create the message.
+   * @param uuid Client UUID this message is involved with.
    * @param connectionID ID for the connection.
    * @param errorCode Error code from authentication.
    */
-  MessageConnected(const libcomp::String &connectionID, ErrorCodes_t errorCode)
-      : libcomp::Message::MessageClient(),
+  MessageConnected(const libobjgen::UUID &uuid,
+                   const libcomp::String &connectionID, ErrorCodes_t errorCode)
+      : libcomp::Message::MessageClient(uuid),
         mConnectionID(connectionID),
         mErrorCode(errorCode) {}
 
@@ -81,14 +83,16 @@ class MessageConnectedToLobby : public MessageConnected {
  public:
   /**
    * Create the message.
+   * @param uuid Client UUID this message is involved with.
    * @param connectionID ID for the connection.
    * @param errorCode Error code from authentication.
    * @param sid Session ID for this connection.
    */
-  MessageConnectedToLobby(const libcomp::String &connectionID,
+  MessageConnectedToLobby(const libobjgen::UUID &uuid,
+                          const libcomp::String &connectionID,
                           ErrorCodes_t errorCode,
                           const libcomp::String &sid = {})
-      : MessageConnected(connectionID, errorCode), mSID(sid) {}
+      : MessageConnected(uuid, connectionID, errorCode), mSID(sid) {}
 
   /**
    * Cleanup the message.
@@ -135,12 +139,14 @@ class MessageConnectedToChannel : public MessageConnected {
  public:
   /**
    * Create the message.
+   * @param uuid Client UUID this message is involved with.
    * @param connectionID ID for the connection.
    * @param errorCode Error code from authentication.
    */
-  MessageConnectedToChannel(const libcomp::String &connectionID,
+  MessageConnectedToChannel(const libobjgen::UUID &uuid,
+                            const libcomp::String &connectionID,
                             ErrorCodes_t errorCode)
-      : MessageConnected(connectionID, errorCode) {}
+      : MessageConnected(uuid, connectionID, errorCode) {}
 
   /**
    * Cleanup the message.

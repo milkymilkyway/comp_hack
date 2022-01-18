@@ -493,8 +493,8 @@ TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} PRIVATE
     ${CMAKE_CURRENT_BINARY_DIR}
 )
 
-TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${CMAKE_THREAD_LIBS_INIT} config hack
-    comp tinyxml2 civetweb-cxx civetweb)
+TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${CMAKE_THREAD_LIBS_INIT} config packets
+    hack comp tinyxml2 civetweb-cxx civetweb)
 
 IF(USE_COTIRE)
     cotire(${PROJECT_NAME})

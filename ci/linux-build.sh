@@ -10,7 +10,7 @@ export BUILD_OPTIMIZED=ON
 export COVERALLS_ENABLE=OFF
 
 if [ "${COMPILER}" == "clang" ]; then
-    export SINGLE_OBJGEN=ON
+    export SINGLE_OBJGEN=OFF
     export USE_COTIRE=OFF
     export LIBCXX_PACKAGES="libc++-11-dev libc++abi-11-dev"
 else

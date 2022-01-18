@@ -43,10 +43,11 @@ class MessageAccountDump : public libcomp::Message::MessageClient {
  public:
   /**
    * Create the message.
+   * @param uuid Client UUID this message is involved with.
    * @param path Path to save the account to.
    */
-  MessageAccountDump(const libcomp::String &path)
-      : libcomp::Message::MessageClient(), mPath(path) {}
+  MessageAccountDump(const libobjgen::UUID &uuid, const libcomp::String &path)
+      : libcomp::Message::MessageClient(uuid), mPath(path) {}
 
   /**
    * Cleanup the message.
@@ -89,10 +90,11 @@ class MessageAccountDumpStatus : public libcomp::Message::MessageClient {
  public:
   /**
    * Create the message.
+   * @param uuid Client UUID this message is involved with.
    * @param success If the account dump was a success.
    */
-  MessageAccountDumpStatus(bool success)
-      : libcomp::Message::MessageClient(), mSuccess(success) {}
+  MessageAccountDumpStatus(const libobjgen::UUID &uuid, bool success)
+      : libcomp::Message::MessageClient(uuid), mSuccess(success) {}
 
   /**
    * Cleanup the message.

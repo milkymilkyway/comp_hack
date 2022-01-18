@@ -62,7 +62,7 @@ BaseScriptEngine& BaseScriptEngine::Using<ClientState>() {
     Using<objects::ClientStateObject>();
 
     Sqrat::DerivedClass<ClientState, objects::ClientStateObject,
-                        Sqrat::NoCopy<ClientState>>
+                        Sqrat::NoConstructor<ClientState>>
         binding(mVM, "ClientState");
     binding.Func("GetAccountWorldData", &ClientState::GetAccountWorldData)
         .StaticFunc("GetEntityClientState", &ClientState::GetEntityClientState)

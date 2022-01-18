@@ -34,6 +34,9 @@
 // libcomp Includes
 #include <ErrorCodes.h>
 
+// libclient Includes
+#include "LogicWorker.h"
+
 // client Includes
 #include "GameWorker.h"
 #include "LobbyScene.h"
@@ -47,7 +50,9 @@ using namespace game;
 using libcomp::Message::MessageClientType;
 
 LoginDialog::LoginDialog(GameWorker *pWorker, QWidget *pParent)
-    : QDialog(pParent), mGameWorker(pWorker) {
+    : QDialog(pParent),
+      mLogicWorker(pWorker->GetLogicWorker()),
+      mGameWorker(pWorker) {
   mDnsLookup = new QDnsLookup(this);
 
   ui.setupUi(this);
@@ -152,9 +157,10 @@ void LoginDialog::Login() {
 
   // Forward the request to the logic thread.
   mGameWorker->SendToLogic(new logic::MessageConnectToLobby(
-      username.toUtf8().constData(), password.toUtf8().constData(),
-      (uint32_t)clientVersion, connectionID.toUtf8().constData(),
-      host.toUtf8().constData(), (uint16_t)port, machineUUID));
+      mLogicWorker->GetUUID(), username.toUtf8().constData(),
+      password.toUtf8().constData(), (uint32_t)clientVersion,
+      connectionID.toUtf8().constData(), host.toUtf8().constData(),
+      (uint16_t)port, machineUUID));
 }
 
 void LoginDialog::HaveDNS() {
@@ -186,9 +192,10 @@ void LoginDialog::HaveDNS() {
 
   // Forward the request to the logic thread.
   mGameWorker->SendToLogic(new logic::MessageConnectToLobby(
-      username.toUtf8().constData(), password.toUtf8().constData(),
-      (uint32_t)clientVersion, connectionID.toUtf8().constData(),
-      host.toUtf8().constData(), (uint16_t)port, machineUUID));
+      mLogicWorker->GetUUID(), username.toUtf8().constData(),
+      password.toUtf8().constData(), (uint32_t)clientVersion,
+      connectionID.toUtf8().constData(), host.toUtf8().constData(),
+      (uint16_t)port, machineUUID));
 }
 
 bool LoginDialog::ProcessClientMessage(
