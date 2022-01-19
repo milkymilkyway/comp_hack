@@ -68,6 +68,12 @@ class MessageConnected : public libcomp::Message::MessageClient {
    */
   ErrorCodes_t GetErrorCode() const { return mErrorCode; }
 
+  /**
+   * Get the raw error code from authentication.
+   * @returns Raw error code from authentication.
+   */
+  int GetRawErrorCode() const { return to_underlying(mErrorCode); }
+
  protected:
   /// Connection ID.
   libcomp::String mConnectionID;

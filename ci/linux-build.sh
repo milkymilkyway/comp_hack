@@ -40,6 +40,10 @@ if [ "${INSTALL_TOOLS}" == "YES" ]; then
     if [ "${GENERATOR}" == "Ninja" ]; then
         sudo apt-get install ninja-build -y
     fi
+
+    if [ "${COMPILER}" == "clang" ]; then
+        pip3 install junit-xml junit2html
+    fi
 fi
 
 #
@@ -91,4 +95,15 @@ if [ "${COMPILER}" == "gcc" ]; then
     cd comp_translator/
     tar cjf ../comp_translator.tar.bz2 .
     cd ../
+fi
+
+if [ "${COMPILER}" == "clang" ]; then
+    echo "Running tests"
+
+    cd "${ROOT_DIR}"
+    sudo mysql --protocol tcp -hlocalhost -uroot -proot < contrib/testing/setup.sql
+
+    cd "${ROOT_DIR}/tests"
+    ./run.py -o results.xml -m "${ROOT_DIR}/build/bin/comp_manager" -c "${ROOT_DIR}/build/bin/comp_client" -s "${ROOT_DIR}/build/testing" quick
+    # junit2html results.xml results.html
 fi

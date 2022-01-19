@@ -108,17 +108,20 @@ int main(int argc, char *argv[]) {
 
   printf("Manager started with PID %d\n", getpid());
 
+  int returnCode = EXIT_FAILURE;
+
   try {
     DayCare juvy;
 
     if (!juvy.DetainMonsters(szProgramsXml)) {
-      fprintf(stderr, "Failed to load programs XML.\n");
+      fprintf(stderr, "Failed to load programs XML: %s\n", szProgramsXml);
 
       return EXIT_FAILURE;
     }
 
     gDayCare = &juvy;
     juvy.WaitForExit();
+    returnCode = gDayCare->GetReturnCode();
     gDayCare = nullptr;
 
   } catch (const std::system_error &e) {
@@ -128,5 +131,5 @@ int main(int argc, char *argv[]) {
 
   printf("Manager stopped.\n");
 
-  return EXIT_SUCCESS;
+  return returnCode;
 }

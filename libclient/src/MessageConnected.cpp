@@ -41,8 +41,10 @@ BaseScriptEngine &BaseScriptEngine::Using<logic::MessageConnected>() {
 
     binding.Func("GetConnectionID", &logic::MessageConnected::GetConnectionID)
         .Prop("ConnectionID", &logic::MessageConnected::GetConnectionID)
-        .Func("GetErrorCode", &logic::MessageConnected::GetErrorCode)
-        .Prop("ErrorCode", &logic::MessageConnected::GetErrorCode);
+        .Func("GetErrorCode", &logic::MessageConnected::GetRawErrorCode)
+        .Prop("ErrorCode", &logic::MessageConnected::GetRawErrorCode)
+        .Func("GetRawErrorCode", &logic::MessageConnected::GetRawErrorCode)
+        .Prop("RawErrorCode", &logic::MessageConnected::GetRawErrorCode);
   }
 
   return *this;
